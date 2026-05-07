@@ -1,0 +1,590 @@
+{
+  "fetchedAt": "2026-05-07T21:19:54.948Z",
+  "source": "https://www.teamusa.com/all-time-medals",
+  "categories": [
+    {
+      "title": "Winter Olympics",
+      "isSummer": false,
+      "isParalympic": false,
+      "overallMedals": {
+        "gold_medals": 126,
+        "silver_medals": 133,
+        "bronze_medals": 104,
+        "total_medals": 363
+      },
+      "totalGames": 25,
+      "sports": [
+        {
+          "name": "Figure Skating",
+          "medalCount": 24
+        },
+        {
+          "name": "Speed Skating",
+          "medalCount": 23
+        },
+        {
+          "name": "Ski & Snowboard",
+          "medalCount": 19
+        },
+        {
+          "name": "Ice Hockey",
+          "medalCount": 16
+        },
+        {
+          "name": "Bobsled & Skeleton",
+          "medalCount": 13
+        },
+        {
+          "name": "Luge",
+          "medalCount": 5
+        },
+        {
+          "name": "Curling",
+          "medalCount": 3
+        }
+      ],
+      "games": [
+        {
+          "eventId": "olympic games:milan:2026",
+          "city": "Milan",
+          "year": 2026,
+          "gold": 12,
+          "silver": 12,
+          "bronze": 9,
+          "isSummer": false,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:beijing:2022",
+          "city": "Beijing",
+          "year": 2022,
+          "gold": 9,
+          "silver": 9,
+          "bronze": 7,
+          "isSummer": false,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:pyeongchang:2018",
+          "city": "Pyeongchang",
+          "year": 2018,
+          "gold": 9,
+          "silver": 8,
+          "bronze": 6,
+          "isSummer": false,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:sochi:2014",
+          "city": "Sochi",
+          "year": 2014,
+          "gold": 9,
+          "silver": 9,
+          "bronze": 10,
+          "isSummer": false,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:vancouver:2010",
+          "city": "Vancouver",
+          "year": 2010,
+          "gold": 9,
+          "silver": 15,
+          "bronze": 13,
+          "isSummer": false,
+          "isParalympic": false
+        }
+      ]
+    },
+    {
+      "title": "Summer Olympics",
+      "isSummer": true,
+      "isParalympic": false,
+      "overallMedals": {
+        "gold_medals": 1105,
+        "silver_medals": 878,
+        "bronze_medals": 786,
+        "total_medals": 2769
+      },
+      "totalGames": 29,
+      "sports": [
+        {
+          "name": "Track & Field",
+          "medalCount": 29
+        },
+        {
+          "name": "Swimming",
+          "medalCount": 27
+        },
+        {
+          "name": "Wrestling",
+          "medalCount": 26
+        },
+        {
+          "name": "Boxing",
+          "medalCount": 25
+        },
+        {
+          "name": "Rowing",
+          "medalCount": 25
+        },
+        {
+          "name": "Diving",
+          "medalCount": 24
+        },
+        {
+          "name": "Shooting",
+          "medalCount": 24
+        },
+        {
+          "name": "Equestrian",
+          "medalCount": 21
+        },
+        {
+          "name": "Basketball",
+          "medalCount": 20
+        },
+        {
+          "name": "Sailing",
+          "medalCount": 19
+        },
+        {
+          "name": "Gymnastics",
+          "medalCount": 16
+        },
+        {
+          "name": "Weightlifting",
+          "medalCount": 15
+        },
+        {
+          "name": "Cycling",
+          "medalCount": 14
+        },
+        {
+          "name": "Fencing",
+          "medalCount": 13
+        },
+        {
+          "name": "Water Polo",
+          "medalCount": 13
+        },
+        {
+          "name": "Canoe & Kayak",
+          "medalCount": 12
+        },
+        {
+          "name": "Tennis",
+          "medalCount": 12
+        },
+        {
+          "name": "Archery",
+          "medalCount": 11
+        },
+        {
+          "name": "Volleyball",
+          "medalCount": 11
+        },
+        {
+          "name": "Judo",
+          "medalCount": 10
+        },
+        {
+          "name": "Modern Pentathlon",
+          "medalCount": 8
+        },
+        {
+          "name": "Soccer",
+          "medalCount": 8
+        },
+        {
+          "name": "Taekwondo",
+          "medalCount": 7
+        },
+        {
+          "name": "Synchronized Swimming",
+          "medalCount": 6
+        },
+        {
+          "name": "Golf",
+          "medalCount": 5
+        },
+        {
+          "name": "Softball",
+          "medalCount": 5
+        },
+        {
+          "name": "Baseball",
+          "medalCount": 4
+        },
+        {
+          "name": "Triathlon",
+          "medalCount": 4
+        },
+        {
+          "name": "Rugby",
+          "medalCount": 3
+        },
+        {
+          "name": "Field Hockey",
+          "medalCount": 2
+        },
+        {
+          "name": "Polo",
+          "medalCount": 2
+        },
+        {
+          "name": "Skateboarding",
+          "medalCount": 2
+        },
+        {
+          "name": "Sport Climbing",
+          "medalCount": 2
+        },
+        {
+          "name": "Surfing",
+          "medalCount": 2
+        },
+        {
+          "name": "Breaking",
+          "medalCount": 1
+        },
+        {
+          "name": "Figure Skating",
+          "medalCount": 1
+        },
+        {
+          "name": "Ice Hockey",
+          "medalCount": 1
+        },
+        {
+          "name": "Jeu de Paume",
+          "medalCount": 1
+        },
+        {
+          "name": "Karate",
+          "medalCount": 1
+        },
+        {
+          "name": "Lacrosse",
+          "medalCount": 1
+        },
+        {
+          "name": "Roque",
+          "medalCount": 1
+        },
+        {
+          "name": "Tug Of War",
+          "medalCount": 1
+        }
+      ],
+      "games": [
+        {
+          "eventId": "olympic games:paris:2024",
+          "city": "Paris",
+          "year": 2024,
+          "gold": 40,
+          "silver": 43,
+          "bronze": 42,
+          "isSummer": true,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:tokyo:2021",
+          "city": "Tokyo",
+          "year": 2021,
+          "gold": 39,
+          "silver": 40,
+          "bronze": 33,
+          "isSummer": true,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:rio de janeiro:2016",
+          "city": "Rio de Janeiro",
+          "year": 2016,
+          "gold": 46,
+          "silver": 37,
+          "bronze": 38,
+          "isSummer": true,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:london:2012",
+          "city": "London",
+          "year": 2012,
+          "gold": 48,
+          "silver": 26,
+          "bronze": 31,
+          "isSummer": true,
+          "isParalympic": false
+        },
+        {
+          "eventId": "olympic games:beijing:2008",
+          "city": "Beijing",
+          "year": 2008,
+          "gold": 36,
+          "silver": 39,
+          "bronze": 37,
+          "isSummer": true,
+          "isParalympic": false
+        }
+      ]
+    },
+    {
+      "title": "Winter Paralympics",
+      "isSummer": false,
+      "isParalympic": true,
+      "overallMedals": {
+        "gold_medals": 130,
+        "silver_medals": 135,
+        "bronze_medals": 94,
+        "total_medals": 359
+      },
+      "totalGames": 13,
+      "sports": [
+        {
+          "name": "PARA - Alpine Skiing",
+          "medalCount": 13
+        },
+        {
+          "name": "PARA - Nordic Skiing",
+          "medalCount": 12
+        },
+        {
+          "name": "PARA - Sled Hockey",
+          "medalCount": 7
+        },
+        {
+          "name": "PARA - Snowboard",
+          "medalCount": 4
+        }
+      ],
+      "games": [
+        {
+          "eventId": "paralympic games:milan:2026",
+          "city": "Milan",
+          "year": 2026,
+          "gold": 13,
+          "silver": 5,
+          "bronze": 6,
+          "isSummer": false,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:beijing:2022",
+          "city": "Beijing",
+          "year": 2022,
+          "gold": 6,
+          "silver": 11,
+          "bronze": 3,
+          "isSummer": false,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:pyeongchang:2018",
+          "city": "Pyeongchang",
+          "year": 2018,
+          "gold": 13,
+          "silver": 15,
+          "bronze": 8,
+          "isSummer": false,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:sochi:2014",
+          "city": "Sochi",
+          "year": 2014,
+          "gold": 2,
+          "silver": 7,
+          "bronze": 9,
+          "isSummer": false,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:vancouver:2010",
+          "city": "Vancouver",
+          "year": 2010,
+          "gold": 4,
+          "silver": 5,
+          "bronze": 4,
+          "isSummer": false,
+          "isParalympic": true
+        }
+      ]
+    },
+    {
+      "title": "Summer Paralympics",
+      "isSummer": true,
+      "isParalympic": true,
+      "overallMedals": {
+        "gold_medals": 821,
+        "silver_medals": 769,
+        "bronze_medals": 757,
+        "total_medals": 2347
+      },
+      "totalGames": 17,
+      "sports": [
+        {
+          "name": "PARA - Swimming",
+          "medalCount": 17
+        },
+        {
+          "name": "PARA - Track & Field",
+          "medalCount": 17
+        },
+        {
+          "name": "PARA - Archery",
+          "medalCount": 15
+        },
+        {
+          "name": "PARA - Basketball",
+          "medalCount": 15
+        },
+        {
+          "name": "PARA - Table Tennis",
+          "medalCount": 13
+        },
+        {
+          "name": "PARA - Cycling",
+          "medalCount": 11
+        },
+        {
+          "name": "PARA - Judo",
+          "medalCount": 10
+        },
+        {
+          "name": "PARA - Weightlifting",
+          "medalCount": 8
+        },
+        {
+          "name": "PARA - Rugby",
+          "medalCount": 7
+        },
+        {
+          "name": "PARA - Tennis",
+          "medalCount": 7
+        },
+        {
+          "name": "PARA - Goalball",
+          "medalCount": 6
+        },
+        {
+          "name": "PARA - Sailing",
+          "medalCount": 6
+        },
+        {
+          "name": "PARA - Volleyball",
+          "medalCount": 6
+        },
+        {
+          "name": "PARA - Dartchery",
+          "medalCount": 5
+        },
+        {
+          "name": "PARA - Equestrian",
+          "medalCount": 5
+        },
+        {
+          "name": "PARA - Lawn Bowls",
+          "medalCount": 5
+        },
+        {
+          "name": "PARA - Powerlifting",
+          "medalCount": 5
+        },
+        {
+          "name": "PARA - Rowing",
+          "medalCount": 5
+        },
+        {
+          "name": "PARA - Shooting",
+          "medalCount": 4
+        },
+        {
+          "name": "PARA - Boccia",
+          "medalCount": 3
+        },
+        {
+          "name": "PARA - Triathlon",
+          "medalCount": 3
+        },
+        {
+          "name": "PARA - Canoe Sprint",
+          "medalCount": 2
+        },
+        {
+          "name": "PARA - Fencing",
+          "medalCount": 2
+        },
+        {
+          "name": "PARA - Snooker",
+          "medalCount": 2
+        },
+        {
+          "name": "PARA - Taekwondo",
+          "medalCount": 2
+        },
+        {
+          "name": "PARA - Wrestling",
+          "medalCount": 2
+        },
+        {
+          "name": "PARA - Badminton",
+          "medalCount": 1
+        }
+      ],
+      "games": [
+        {
+          "eventId": "paralympic games:paris:2024",
+          "city": "Paris",
+          "year": 2024,
+          "gold": 36,
+          "silver": 42,
+          "bronze": 27,
+          "isSummer": true,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:tokyo:2021",
+          "city": "Tokyo",
+          "year": 2021,
+          "gold": 37,
+          "silver": 36,
+          "bronze": 31,
+          "isSummer": true,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:rio de janeiro:2016",
+          "city": "Rio de Janeiro",
+          "year": 2016,
+          "gold": 40,
+          "silver": 44,
+          "bronze": 31,
+          "isSummer": true,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:london:2012",
+          "city": "London",
+          "year": 2012,
+          "gold": 31,
+          "silver": 29,
+          "bronze": 38,
+          "isSummer": true,
+          "isParalympic": true
+        },
+        {
+          "eventId": "paralympic games:beijing:2008",
+          "city": "Beijing",
+          "year": 2008,
+          "gold": 36,
+          "silver": 35,
+          "bronze": 28,
+          "isSummer": true,
+          "isParalympic": true
+        }
+      ]
+    }
+  ]
+}

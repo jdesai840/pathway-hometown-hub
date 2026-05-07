@@ -1,0 +1,13 @@
+{
+  "name": "find-your-archetype-scripts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "scrape": "node scrape-teamusa.mjs",
+    "cluster": "node cluster-archetypes.mjs"
+  },
+  "dependencies": {
+    "@google-cloud/vertexai": "^1.10.0"
+  }
+}
