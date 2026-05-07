@@ -1,6 +1,7 @@
 import { VertexAI } from "@google-cloud/vertexai";
 import { loadArchetypes } from "../lib/archetypes.js";
 import { narrateSystemPrompt } from "../lib/prompts.js";
+import { mockNarrate } from "../lib/mockMatch.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
@@ -14,6 +15,10 @@ export async function narrate(req, res) {
     const archetypes = await loadArchetypes();
     const archetype = archetypes.find((a) => a.id === archetypeId);
     if (!archetype) return res.status(404).json({ error: "archetype not found" });
+
+    if (!PROJECT) {
+      return res.json({ ...mockNarrate(archetype), mock: true });
+    }
 
     const vertex = new VertexAI({ project: PROJECT, location: LOCATION });
     const model = vertex.getGenerativeModel({

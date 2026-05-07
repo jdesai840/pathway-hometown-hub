@@ -38,6 +38,18 @@ Visit http://localhost:5173 (frontend dev server proxies API calls to the backen
 
 See [`server/DEPLOY.md`](./server/DEPLOY.md).
 
+## Data pipeline
+
+Compliance-aligned, AI-routed data flow:
+
+1. `npm run scrape:medals` — HTTP fetch of teamusa.com `/all-time-medals` aggregates (no AI)
+2. `npm run scrape:athletes` — HTTP fetch of `/api/athletes` for the full 8,525-athlete archive (no AI; names used in pipeline only, never output)
+3. `npm run group` — mechanical group-by-sport projection (no AI; drops NIL, computes height/hometown/era distributions)
+4. `npm run distill` — **Gemini via Vertex AI** generates per-sport biometric/geographic/era profiles
+5. `npm run cluster` — **Gemini via Vertex AI** clusters sports into 5 Olympic + 5 Paralympic archetypes
+
+**Every analytical inference is performed by Gemini via Vertex AI.** The only non-Gemini code in the data pipeline is HTTP retrieval and field projection. No third-party generative AI tools touch Team USA data.
+
 ## Data sources
 
 - [teamusa.com](https://www.teamusa.com) — placements (1st/2nd/3rd) and medals only

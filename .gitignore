@@ -32,6 +32,10 @@ data/raw/
 data/scratch/
 *.pkl
 
+# Pipeline-only data files containing athlete names (NIL).
+# These must NOT be committed to the public repo. Regenerate via npm run scrape:athletes.
+data/athletes.raw.json
+
 # python
 __pycache__/
 *.pyc

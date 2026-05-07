@@ -18,7 +18,7 @@ import { fileURLToPath } from "node:url";
 import { VertexAI } from "@google-cloud/vertexai";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const IN = join(ROOT, "data", "teamusa-aggregates.json");
+const IN = join(ROOT, "data", "sport-profiles.json");
 const OUT = join(ROOT, "data", "archetypes.json");
 
 const PROJECT = process.env.GCP_PROJECT;
@@ -57,37 +57,21 @@ const SYSTEM_PROMPT = [
   "Return STRICT JSON: {olympic: [...5], paralympic: [...5]}",
 ].join("\n");
 
-function buildUserMessage(aggregates) {
-  const olympicSports = [];
-  const paralympicSports = [];
-
-  for (const cat of aggregates.categories) {
-    const target = cat.isParalympic ? paralympicSports : olympicSports;
-    for (const s of cat.sports) {
-      target.push({
-        name: s.name,
-        season: cat.isSummer ? "summer" : "winter",
-        gamesAppearances: s.medalCount, // count of Games with US medals in this sport
-      });
-    }
-  }
-
+function buildUserMessage(profilesDoc) {
+  const profiles = profilesDoc.profiles || [];
+  const olympic = profiles.filter((p) => p.category === "Olympic");
+  const paralympic = profiles.filter((p) => p.category === "Paralympic");
   return [
-    "OLYMPIC sports catalog:",
-    JSON.stringify(olympicSports, null, 2),
+    "OLYMPIC sport profiles (Gemini-distilled):",
+    JSON.stringify(olympic, null, 2),
     "",
-    "PARALYMPIC sports catalog:",
-    JSON.stringify(paralympicSports, null, 2),
-    "",
-    "All-time medal totals (cross-category context):",
-    JSON.stringify(
-      aggregates.categories.map((c) => ({ title: c.title, overall: c.overallMedals })),
-      null,
-      2
-    ),
+    "PARALYMPIC sport profiles (Gemini-distilled):",
+    JSON.stringify(paralympic, null, 2),
     "",
     "Cluster the OLYMPIC sports into exactly 5 archetypes, and the PARALYMPIC sports into exactly 5 archetypes.",
-    "Apply identical analytical depth to both. Return JSON only.",
+    "Apply identical analytical depth to both. Use the biometricProfile from sport profiles to set",
+    "each archetype's biometricProfile (averaged across exemplar sports).",
+    "Return JSON only.",
   ].join("\n");
 }
 
