@@ -5,31 +5,45 @@ import { XR, createXRStore } from "@react-three/xr";
 import * as THREE from "three";
 import { useApp, computeStateIntensity } from "../store.js";
 import { STATE_INFO, statePosition, PLANE_SIZE } from "../data/us-states.js";
+import PhotorealisticMap from "./PhotorealisticMap.jsx";
 
 export const xrStore = createXRStore({ hand: true, controller: true });
 
-// Scene root — works on desktop AND in WebXR. Same camera-relative content,
-// different session mode (immersive-ar gives Quest 3 mixed-reality passthrough).
+// Top-level scene. When a Maps API key is available we render the Photorealistic
+// 3D Tiles globe with state markers on the ellipsoid; otherwise we fall back to
+// the simple flat-plane choropleth (still functional, useful for local dev).
 export default function MapScene() {
   const setSelectedState = useApp((s) => s.setSelectedState);
+  const mapsApiKey = useApp((s) => s.mapsApiKey);
+  const hasKey = Boolean(mapsApiKey);
+
   return (
     <Canvas
-      camera={{ position: [0, 1.4, 1.4], fov: 50 }}
+      // Globe needs more headroom (large Earth-meter coordinates); flat is small.
+      camera={hasKey
+        ? { position: [0, 6_000_000, 22_000_000], fov: 45, near: 1, far: 50_000_000 }
+        : { position: [0, 1.4, 1.4], fov: 50 }}
       shadows
       onPointerMissed={() => setSelectedState(null)}
     >
       <XR store={xrStore}>
-        <ambientLight intensity={0.55} />
+        <ambientLight intensity={hasKey ? 1.0 : 0.55} />
         <directionalLight position={[2, 4, 2]} intensity={1.0} />
-        <OrbitControls enablePan={false} target={[0, 0, 0]} maxPolarAngle={Math.PI / 2.1} />
-        <USPlane />
-        <StateMarkers />
+        {hasKey ? (
+          <PhotorealisticMap apiKey={mapsApiKey} />
+        ) : (
+          <>
+            <OrbitControls enablePan={false} target={[0, 0, 0]} maxPolarAngle={Math.PI / 2.1} />
+            <FlatPlane />
+            <FlatStateMarkers />
+          </>
+        )}
       </XR>
     </Canvas>
   );
 }
 
-function USPlane() {
+function FlatPlane() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
       <planeGeometry args={[PLANE_SIZE.w, PLANE_SIZE.h, 1, 1]} />
@@ -38,8 +52,7 @@ function USPlane() {
   );
 }
 
-// One marker per state. Height = intensity, color = category mix.
-function StateMarkers() {
+function FlatStateMarkers() {
   const hubsDoc = useApp((s) => s.hubsDoc);
   const mode = useApp((s) => s.mode);
   const sportFilter = useApp((s) => s.sportFilter);
@@ -52,8 +65,6 @@ function StateMarkers() {
     () => computeStateIntensity(hubsDoc, { mode, sportFilter, categoryFilter }),
     [hubsDoc, mode, sportFilter, categoryFilter]
   );
-
-  // Olympic vs Paralympic split per state for color blending
   const splitByState = useMemo(() => {
     const out = new Map();
     if (!hubsDoc) return out;
@@ -82,13 +93,12 @@ function StateMarkers() {
         const split = splitByState.get(code) || { Olympic: 0, Paralympic: 0 };
         const total = split.Olympic + split.Paralympic;
         const paraRatio = total > 0 ? split.Paralympic / total : 0;
-        const color = blendColors("#3b82f6", "#f59e0b", paraRatio); // olympic blue → paralympic amber
+        const color = blendColors("#3b82f6", "#f59e0b", paraRatio);
         const isHighlighted = highlightedStates.includes(code);
         const isSelected = selectedState === code;
         return (
-          <StateBar
+          <FlatStateBar
             key={code}
-            code={code}
             position={[pos[0], height / 2, pos[2]]}
             height={height}
             color={color}
@@ -102,9 +112,8 @@ function StateMarkers() {
   );
 }
 
-function StateBar({ code, position, height, color, highlighted, selected, onSelect }) {
+function FlatStateBar({ position, height, color, highlighted, selected, onSelect }) {
   const ref = useRef();
-  // Subtle pulse for highlighted/selected
   useFrame(({ clock }) => {
     if (!ref.current) return;
     const t = clock.getElapsedTime();
@@ -128,12 +137,8 @@ function StateBar({ code, position, height, color, highlighted, selected, onSele
         e.stopPropagation();
         onSelect();
       }}
-      onPointerOver={(e) => {
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        document.body.style.cursor = "default";
-      }}
+      onPointerOver={() => (document.body.style.cursor = "pointer")}
+      onPointerOut={() => (document.body.style.cursor = "default")}
       castShadow
     >
       <boxGeometry args={[0.025, height, 0.025]} />

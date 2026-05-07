@@ -1,22 +1,19 @@
-# GCP Setup for Find Your Archetype
+# GCP Setup — Hometown Hubs
 
-You said you have a GCP account already. These steps enable the specific APIs we need and create the Cloud Storage bucket. ~10 minutes total.
+You've already done `gcloud init`. These steps enable the rest. ~10 minutes total. Run them in your terminal — they need your Google identity.
 
-> Run these in your terminal, **not** in this Claude session — they need your Google identity.
-
-## 1. Pick (or note) your project
+## 1. Pick a project + verify
 
 ```bash
-# list projects
 gcloud projects list
-
-# set the project you want to use
 gcloud config set project YOUR_PROJECT_ID
+gcloud config get-value project    # should print your project id
+gcloud auth list                   # should show your account ACTIVE
 ```
 
-If you don't have a billing account attached, attach one — Vertex AI + Cloud Run won't work without billing enabled. Free-tier is fine for this hackathon's traffic.
+If billing isn't attached to the project, attach it now (Vertex AI + Cloud Run won't run without). $300 free trial covers this hackathon by orders of magnitude.
 
-## 2. Enable the APIs we use
+## 2. Enable the seven APIs
 
 ```bash
 gcloud services enable \
@@ -24,70 +21,89 @@ gcloud services enable \
   cloudbuild.googleapis.com \
   artifactregistry.googleapis.com \
   aiplatform.googleapis.com \
-  storage.googleapis.com
+  storage.googleapis.com \
+  maps-backend.googleapis.com \
+  tile.googleapis.com
 ```
 
-What each one is for:
-- **`aiplatform.googleapis.com`** — Vertex AI (the home of Gemini)
-- **`run.googleapis.com`** — Cloud Run (where our backend deploys)
-- **`cloudbuild.googleapis.com`** — Cloud Build (used implicitly by `gcloud run deploy --source`)
-- **`artifactregistry.googleapis.com`** — Artifact Registry (Cloud Build pushes the Docker image here)
-- **`storage.googleapis.com`** — Cloud Storage (holds `archetypes.json`)
+| API | Used for |
+|---|---|
+| `aiplatform.googleapis.com` | Vertex AI (Gemini) |
+| `run.googleapis.com` | Cloud Run (combined frontend + API service) |
+| `cloudbuild.googleapis.com` + `artifactregistry.googleapis.com` | Used implicitly by `gcloud run deploy --source .` |
+| `storage.googleapis.com` | Cloud Storage (holds `hubs.json` + `sport-catalog.json`) |
+| `maps-backend.googleapis.com` | Maps JavaScript API |
+| `tile.googleapis.com` | Map Tiles API (Photorealistic 3D Tiles) |
 
 ## 3. Create the Cloud Storage bucket
 
 ```bash
-export GCP_LOCATION=us-central1   # any region with Vertex AI; us-central1 is safe
-export GCS_BUCKET=find-your-archetype-data-$(gcloud config get-value project)
+export GCP_LOCATION=us-central1
+export GCS_BUCKET=hometown-hubs-data-$(gcloud config get-value project)
 
 gcloud storage buckets create gs://$GCS_BUCKET --location=$GCP_LOCATION
 ```
 
-(Bucket names are globally unique — appending the project id keeps it unique without you thinking.)
+Bucket names are globally unique — appending the project id keeps it unique automatically.
 
-## 4. Authenticate the local CLI for Vertex AI calls
-
-For running the build-time Gemini scripts (`distill`, `cluster`) from your laptop:
+## 4. Authenticate the local SDK
 
 ```bash
 gcloud auth application-default login
+# add --no-launch-browser if port 8085 is taken by GastonScraper
 ```
 
-This opens a browser, you approve, and the credentials get cached locally. The `@google-cloud/vertexai` SDK picks them up automatically.
+The `@google-cloud/vertexai` SDK reads these credentials automatically.
 
-## 5. Tell me your project ID
+## 5. Create a Maps Platform API key
 
-When you're done, drop me the project id in chat. I'll wire it into env-var examples and we'll run the real Gemini pipeline:
+The Photorealistic 3D Tiles renderer is called from the browser, so the key is **public** in the bundle. We lock it down via HTTP-referrer restrictions in the Console.
 
 ```bash
-# what I'll run from /scripts after you confirm
-export GCP_PROJECT=your-project-id
-export GCP_LOCATION=us-central1
-npm run distill   # Gemini distills per-sport profiles (~120KB context, 1-2 min)
-npm run cluster   # Gemini clusters into 5 Olympic + 5 Paralympic archetypes
+gcloud alpha services api-keys create --display-name="hometown-hubs-maps"
+gcloud alpha services api-keys list --format="value(displayName,keyString)"
 ```
 
-Then upload the result to GCS and deploy to Cloud Run:
+Then in the GCP Console (APIs & Services → Credentials → click the key):
 
-```bash
-gcloud storage cp data/archetypes.json gs://$GCS_BUCKET/archetypes.json
+1. **Application restrictions** → HTTP referrers → add:
+   - `http://localhost:5173/*` (dev)
+   - `https://localhost:5173/*` (dev, both protocols)
+   - We'll add the Cloud Run URL after deploy
+2. **API restrictions** → Restrict key to: **Map Tiles API** + **Maps JavaScript API**
 
-cd server
-gcloud run deploy find-your-archetype \
-  --source . \
-  --region $GCP_LOCATION \
-  --allow-unauthenticated \
-  --set-env-vars "GCP_PROJECT=$GCP_PROJECT,GCP_LOCATION=$GCP_LOCATION,GCS_BUCKET=$GCS_BUCKET"
+Save.
+
+## 6. Drop me four values
+
+Paste these back to me in chat and I'll run the deploy:
+
+1. **Project ID** (from `gcloud config get-value project`)
+2. **Bucket name** (`$GCS_BUCKET`)
+3. **Region** (probably `us-central1`)
+4. **Maps API key** (`keyString` from step 5)
+
+## 7. (After deploy) tighten the Maps key restriction
+
+Once we have the live Cloud Run URL, add it to the Maps key's HTTP-referrer restrictions:
+
+```
+https://hometown-hubs-XXXX-uc.a.run.app/*
 ```
 
-That's the full deployment. The Cloud Run service hits Vertex AI for matching/narration via its service account — no API keys.
+You can remove the `localhost:5173/*` entries once you're done with local dev.
 
 ## Free credits
 
-If you haven't claimed the GCP $300 free trial, you can do that in the [Google Cloud Console billing page](https://console.cloud.google.com/billing). For this hackathon's traffic (Vertex AI + Cloud Run), $300 is *way* more than enough.
+If you haven't claimed the GCP $300 free trial:
+[console.cloud.google.com/billing](https://console.cloud.google.com/billing)
+
+For this hackathon (Vertex AI + Cloud Run + a few thousand Photorealistic 3D Tiles sessions for judges), $300 is way more than enough.
 
 ## Troubleshooting
 
 - **"Vertex AI region not supported"** — use `us-central1`, `us-east4`, or `us-west1`. Avoid `us` (multi-region).
-- **"Permission denied calling Vertex AI"** — the Cloud Run service account needs `roles/aiplatform.user`. See `server/DEPLOY.md` for the IAM commands.
-- **"Bucket name already taken"** — the bucket name must be globally unique. Append a random suffix.
+- **"Permission denied calling Vertex AI"** — the Cloud Run service account needs `roles/aiplatform.user`. The deploy script (`scripts/deploy.sh`) grants this automatically; if you ever set `--service-account`, re-grant.
+- **"Bucket name already taken"** — append a random suffix.
+- **Maps API key error in browser console** — referrer not whitelisted. Add the current origin (`http://localhost:5173/*` for dev, the Cloud Run URL for prod) to the key's HTTP referrer restrictions.
+- **`gcloud auth application-default login` port conflict** — use `--no-launch-browser`.

@@ -5,6 +5,7 @@ export const useApp = create((set) => ({
   step: "intro", // intro | explore
   hubsDoc: null, // /api/hubs response
   sportCatalog: null, // /api/sport-catalog response
+  mapsApiKey: null, // /api/config — public, restricted by HTTP referrer in GCP
 
   // Current map state
   mode: "recency", // "recency" | "all_time"
@@ -22,6 +23,7 @@ export const useApp = create((set) => ({
   setStep: (step) => set({ step }),
   setHubsDoc: (hubsDoc) => set({ hubsDoc }),
   setSportCatalog: (sportCatalog) => set({ sportCatalog }),
+  setMapsApiKey: (mapsApiKey) => set({ mapsApiKey }),
   setMode: (mode) => set({ mode }),
   setSportFilter: (sportFilter) => set({ sportFilter }),
   setCategoryFilter: (categoryFilter) => set({ categoryFilter }),

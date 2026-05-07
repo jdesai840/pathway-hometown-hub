@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useApp } from "./store.js";
-import { fetchHubs, fetchSportCatalog } from "./lib/api.js";
+import { fetchHubs, fetchSportCatalog, fetchConfig } from "./lib/api.js";
 import Intro from "./components/Intro.jsx";
 import MapExplorer from "./components/MapExplorer.jsx";
 
@@ -8,13 +8,20 @@ export default function App() {
   const step = useApp((s) => s.step);
   const hubsDoc = useApp((s) => s.hubsDoc);
   const sportCatalog = useApp((s) => s.sportCatalog);
+  const mapsApiKey = useApp((s) => s.mapsApiKey);
   const setHubsDoc = useApp((s) => s.setHubsDoc);
   const setSportCatalog = useApp((s) => s.setSportCatalog);
+  const setMapsApiKey = useApp((s) => s.setMapsApiKey);
 
   useEffect(() => {
     if (!hubsDoc) fetchHubs().then(setHubsDoc).catch(console.error);
     if (!sportCatalog) fetchSportCatalog().then(setSportCatalog).catch(console.error);
-  }, [hubsDoc, sportCatalog, setHubsDoc, setSportCatalog]);
+    if (mapsApiKey == null) {
+      fetchConfig()
+        .then((c) => setMapsApiKey(c.mapsApiKey))
+        .catch(console.error);
+    }
+  }, [hubsDoc, sportCatalog, mapsApiKey, setHubsDoc, setSportCatalog, setMapsApiKey]);
 
   return (
     <div className="min-h-full">

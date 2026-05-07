@@ -8,6 +8,12 @@ async function postJSON(path, body) {
   return res.json();
 }
 
+export async function fetchConfig() {
+  const res = await fetch("/api/config");
+  if (!res.ok) throw new Error(`/api/config ${res.status}`);
+  return res.json();
+}
+
 export async function fetchHubs() {
   const res = await fetch("/api/hubs");
   if (!res.ok) throw new Error(`/api/hubs ${res.status}`);
