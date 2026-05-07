@@ -7,6 +7,7 @@ export const useApp = create((set) => ({
   transcript: "",
   matches: null, // {matches: [{archetypeId, score, rationale}]}
   archetypes: null, // catalog from /api/archetypes
+  sportCatalog: null, // { catalog: { "ice hockey|olympic": {sport, url, earliestYear, ...}, ... } }
   inXR: false,
 
   setStep: (step) => set({ step }),
@@ -14,5 +15,13 @@ export const useApp = create((set) => ({
   setTranscript: (transcript) => set({ transcript }),
   setMatches: (matches) => set({ matches }),
   setArchetypes: (archetypes) => set({ archetypes }),
+  setSportCatalog: (sportCatalog) => set({ sportCatalog }),
   setInXR: (inXR) => set({ inXR }),
 }));
+
+// Resolve a sport+category to its catalog entry. Robust to case variations.
+export function lookupSport(sportCatalog, sport, category) {
+  if (!sportCatalog?.catalog || !sport) return null;
+  const key = `${sport.toLowerCase()}|${(category || "").toLowerCase()}`;
+  return sportCatalog.catalog[key] || null;
+}

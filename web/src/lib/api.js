@@ -14,6 +14,12 @@ export async function fetchArchetypes() {
   return res.json();
 }
 
+export async function fetchSportCatalog() {
+  const res = await fetch("/api/sport-catalog");
+  if (!res.ok) throw new Error(`/api/sport-catalog ${res.status}`);
+  return res.json();
+}
+
 export function postArchetypeMatch({ biometrics, transcript }) {
   return postJSON("/api/archetype-match", { biometrics, transcript });
 }

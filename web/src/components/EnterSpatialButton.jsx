@@ -14,7 +14,8 @@ export default function EnterSpatialButton() {
   return (
     <button
       onClick={() => xrStore.enterAR()}
-      className="fixed bottom-6 right-6 z-20 px-5 py-3 rounded-full bg-gradient-to-r from-olympic to-paralympic text-white font-semibold shadow-lg"
+      aria-label="Enter spatial mode in mixed reality"
+      className="fixed bottom-6 right-6 z-20 px-5 py-3 rounded-full bg-gradient-to-r from-olympic to-paralympic text-white font-semibold shadow-lg focus:outline-none focus:ring-2 focus:ring-white/70"
     >
       Enter Spatial Mode
     </button>

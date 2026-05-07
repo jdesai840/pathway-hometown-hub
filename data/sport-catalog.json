@@ -1,0 +1,935 @@
+{
+  "generatedAt": "2026-05-07T22:43:21.395Z",
+  "catalog": {
+    "para snowboarding|paralympic": {
+      "sport": "Para Snowboarding",
+      "category": "Paralympic",
+      "season": "Winter",
+      "slug": "para-snowboarding",
+      "url": "https://www.teamusa.com/news/para-snowboarding",
+      "athleteCount": 27,
+      "earliestYear": 2014,
+      "latestYear": 2026
+    },
+    "ice hockey|olympic": {
+      "sport": "Ice Hockey",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "ice-hockey",
+      "url": "https://www.teamusa.com/news/ice-hockey",
+      "athleteCount": 178,
+      "earliestYear": 1964,
+      "latestYear": 2026
+    },
+    "snowboarding|olympic": {
+      "sport": "Snowboarding",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "snowboarding",
+      "url": "https://www.teamusa.com/news/snowboarding",
+      "athleteCount": 67,
+      "earliestYear": 2002,
+      "latestYear": 2026
+    },
+    "freestyle skiing|olympic": {
+      "sport": "Freestyle Skiing",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "freestyle-skiing",
+      "url": "https://www.teamusa.com/news/freestyle-skiing",
+      "athleteCount": 84,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "cross-country skiing|olympic": {
+      "sport": "Cross-Country Skiing",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "cross-country-skiing",
+      "url": "https://www.teamusa.com/news/cross-country-skiing",
+      "athleteCount": 43,
+      "earliestYear": 2002,
+      "latestYear": 2026
+    },
+    "sitting volleyball|paralympic": {
+      "sport": "Sitting Volleyball",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "sitting-volleyball",
+      "url": "https://www.teamusa.com/news/sitting-volleyball",
+      "athleteCount": 42,
+      "earliestYear": 1996,
+      "latestYear": 2024
+    },
+    "soccer|olympic": {
+      "sport": "Soccer",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "soccer",
+      "url": "https://www.teamusa.com/news/soccer",
+      "athleteCount": 87,
+      "earliestYear": 1996,
+      "latestYear": 2024
+    },
+    "cycling|olympic": {
+      "sport": "Cycling",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "cycling",
+      "url": "https://www.teamusa.com/news/cycling",
+      "athleteCount": 72,
+      "earliestYear": 2004,
+      "latestYear": 2024
+    },
+    "figure skating|olympic": {
+      "sport": "Figure Skating",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "figure-skating",
+      "url": "https://www.teamusa.com/news/figure-skating",
+      "athleteCount": 77,
+      "earliestYear": 1948,
+      "latestYear": 2026
+    },
+    "para track and field|paralympic": {
+      "sport": "Para Track and Field",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-track-and-field",
+      "url": "https://www.teamusa.com/news/para-track-and-field",
+      "athleteCount": 167,
+      "earliestYear": 1976,
+      "latestYear": 2026
+    },
+    "swimming|olympic": {
+      "sport": "Swimming",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "swimming",
+      "url": "https://www.teamusa.com/news/swimming",
+      "athleteCount": 193,
+      "earliestYear": 1904,
+      "latestYear": 2024
+    },
+    "softball|olympic": {
+      "sport": "Softball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "softball",
+      "url": "https://www.teamusa.com/news/softball",
+      "athleteCount": 181,
+      "earliestYear": 1996,
+      "latestYear": 2020
+    },
+    "taekwondo|olympic": {
+      "sport": "Taekwondo",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "taekwondo",
+      "url": "https://www.teamusa.com/news/taekwondo",
+      "athleteCount": 112,
+      "earliestYear": 2004,
+      "latestYear": 2024
+    },
+    "track and field|olympic": {
+      "sport": "Track and Field",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "track-and-field",
+      "url": "https://www.teamusa.com/news/track-and-field",
+      "athleteCount": 486,
+      "earliestYear": 1900,
+      "latestYear": 2024
+    },
+    "bobsled|olympic": {
+      "sport": "Bobsled",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "bobsled",
+      "url": "https://www.teamusa.com/news/bobsled",
+      "athleteCount": 95,
+      "earliestYear": 1920,
+      "latestYear": 2026
+    },
+    "artistic swimming|olympic": {
+      "sport": "Artistic Swimming",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "artistic-swimming",
+      "url": "https://www.teamusa.com/news/artistic-swimming",
+      "athleteCount": 143,
+      "earliestYear": 2000,
+      "latestYear": 2024
+    },
+    "field hockey|olympic": {
+      "sport": "Field Hockey",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "field-hockey",
+      "url": "https://www.teamusa.com/news/field-hockey",
+      "athleteCount": 214,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "shooting|olympic": {
+      "sport": "Shooting",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "shooting",
+      "url": "https://www.teamusa.com/news/shooting",
+      "athleteCount": 69,
+      "earliestYear": 1992,
+      "latestYear": 2024
+    },
+    "para swimming|paralympic": {
+      "sport": "Para Swimming",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-swimming",
+      "url": "https://www.teamusa.com/news/para-swimming",
+      "athleteCount": 109,
+      "earliestYear": 1980,
+      "latestYear": 2024
+    },
+    "speedskating|olympic": {
+      "sport": "Speedskating",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "speedskating",
+      "url": "https://www.teamusa.com/news/speedskating",
+      "athleteCount": 67,
+      "earliestYear": 1932,
+      "latestYear": 2026
+    },
+    "triathlon|olympic": {
+      "sport": "Triathlon",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "triathlon",
+      "url": "https://www.teamusa.com/news/triathlon",
+      "athleteCount": 40,
+      "earliestYear": 1992,
+      "latestYear": 2024
+    },
+    "wheelchair rugby|paralympic": {
+      "sport": "Wheelchair Rugby",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "wheelchair-rugby",
+      "url": "https://www.teamusa.com/news/wheelchair-rugby",
+      "athleteCount": 23,
+      "earliestYear": 2000,
+      "latestYear": 2024
+    },
+    "canoe/kayak|olympic": {
+      "sport": "Canoe/Kayak",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "canoekayak",
+      "url": "https://www.teamusa.com/news/canoekayak",
+      "athleteCount": 93,
+      "earliestYear": 1984,
+      "latestYear": 2024
+    },
+    "volleyball|olympic": {
+      "sport": "Volleyball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "volleyball",
+      "url": "https://www.teamusa.com/news/volleyball",
+      "athleteCount": 169,
+      "earliestYear": 1984,
+      "latestYear": 2024
+    },
+    "karate|olympic": {
+      "sport": "Karate",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "karate",
+      "url": "https://www.teamusa.com/news/karate",
+      "athleteCount": 209,
+      "earliestYear": 2020,
+      "latestYear": 2020
+    },
+    "basketball|olympic": {
+      "sport": "Basketball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "basketball",
+      "url": "https://www.teamusa.com/news/basketball",
+      "athleteCount": 130,
+      "earliestYear": 1984,
+      "latestYear": 2024
+    },
+    "para nordic skiing|paralympic": {
+      "sport": "Para Nordic Skiing",
+      "category": "Paralympic",
+      "season": "Winter",
+      "slug": "para-nordic-skiing",
+      "url": "https://www.teamusa.com/news/para-nordic-skiing",
+      "athleteCount": 38,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "waterski/wakeboard|olympic": {
+      "sport": "Waterski/Wakeboard",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "waterskiwakeboard",
+      "url": "https://www.teamusa.com/news/waterskiwakeboard",
+      "athleteCount": 13,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "curling|olympic": {
+      "sport": "Curling",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "curling",
+      "url": "https://www.teamusa.com/news/curling",
+      "athleteCount": 257,
+      "earliestYear": 1988,
+      "latestYear": 2026
+    },
+    "para taekwondo|paralympic": {
+      "sport": "Para Taekwondo",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-taekwondo",
+      "url": "https://www.teamusa.com/news/para-taekwondo",
+      "athleteCount": 5,
+      "earliestYear": 2020,
+      "latestYear": 2024
+    },
+    "diving|olympic": {
+      "sport": "Diving",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "diving",
+      "url": "https://www.teamusa.com/news/diving",
+      "athleteCount": 204,
+      "earliestYear": 1948,
+      "latestYear": 2024
+    },
+    "soccer 7-a-side|paralympic": {
+      "sport": "Soccer 7-A-Side",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "soccer-7-a-side",
+      "url": "https://www.teamusa.com/news/soccer-7-a-side",
+      "athleteCount": 6,
+      "earliestYear": 2004,
+      "latestYear": 2012
+    },
+    "gymnastics|olympic": {
+      "sport": "Gymnastics",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "gymnastics",
+      "url": "https://www.teamusa.com/news/gymnastics",
+      "athleteCount": 78,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "skeleton|olympic": {
+      "sport": "Skeleton",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "skeleton",
+      "url": "https://www.teamusa.com/news/skeleton",
+      "athleteCount": 32,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "fencing|olympic": {
+      "sport": "Fencing",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "fencing",
+      "url": "https://www.teamusa.com/news/fencing",
+      "athleteCount": 53,
+      "earliestYear": 2000,
+      "latestYear": 2024
+    },
+    "rugby|olympic": {
+      "sport": "Rugby",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "rugby",
+      "url": "https://www.teamusa.com/news/rugby",
+      "athleteCount": 86,
+      "earliestYear": 2016,
+      "latestYear": 2024
+    },
+    "table tennis|olympic": {
+      "sport": "Table Tennis",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "table-tennis",
+      "url": "https://www.teamusa.com/news/table-tennis",
+      "athleteCount": 120,
+      "earliestYear": 1984,
+      "latestYear": 2024
+    },
+    "boxing|olympic": {
+      "sport": "Boxing",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "boxing",
+      "url": "https://www.teamusa.com/news/boxing",
+      "athleteCount": 145,
+      "earliestYear": 1920,
+      "latestYear": 2024
+    },
+    "modern pentathlon|olympic": {
+      "sport": "Modern Pentathlon",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "modern-pentathlon",
+      "url": "https://www.teamusa.com/news/modern-pentathlon",
+      "athleteCount": 17,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "baseball|olympic": {
+      "sport": "Baseball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "baseball",
+      "url": "https://www.teamusa.com/news/baseball",
+      "athleteCount": 61,
+      "earliestYear": 2020,
+      "latestYear": 2020
+    },
+    "racquetball|olympic": {
+      "sport": "Racquetball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "racquetball",
+      "url": "https://www.teamusa.com/news/racquetball",
+      "athleteCount": 16,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "para shooting|paralympic": {
+      "sport": "Para Shooting",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-shooting",
+      "url": "https://www.teamusa.com/news/para-shooting",
+      "athleteCount": 16,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "weightlifting|olympic": {
+      "sport": "Weightlifting",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "weightlifting",
+      "url": "https://www.teamusa.com/news/weightlifting",
+      "athleteCount": 43,
+      "earliestYear": 1948,
+      "latestYear": 2024
+    },
+    "team handball|olympic": {
+      "sport": "Team Handball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "team-handball",
+      "url": "https://www.teamusa.com/news/team-handball",
+      "athleteCount": 126,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "water polo|olympic": {
+      "sport": "Water Polo",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "water-polo",
+      "url": "https://www.teamusa.com/news/water-polo",
+      "athleteCount": 56,
+      "earliestYear": 1912,
+      "latestYear": 2024
+    },
+    "wrestling|olympic": {
+      "sport": "Wrestling",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "wrestling",
+      "url": "https://www.teamusa.com/news/wrestling",
+      "athleteCount": 72,
+      "earliestYear": 1984,
+      "latestYear": 2024
+    },
+    "archery|olympic": {
+      "sport": "Archery",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "archery",
+      "url": "https://www.teamusa.com/news/archery",
+      "athleteCount": 32,
+      "earliestYear": 1992,
+      "latestYear": 2024
+    },
+    "biathlon|olympic": {
+      "sport": "Biathlon",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "biathlon",
+      "url": "https://www.teamusa.com/news/biathlon",
+      "athleteCount": 66,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "surfing|olympic": {
+      "sport": "Surfing",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "surfing",
+      "url": "https://www.teamusa.com/news/surfing",
+      "athleteCount": 12,
+      "earliestYear": 2020,
+      "latestYear": 2024
+    },
+    "sailing|olympic": {
+      "sport": "Sailing",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "sailing",
+      "url": "https://www.teamusa.com/news/sailing",
+      "athleteCount": 64,
+      "earliestYear": 2004,
+      "latestYear": 2024
+    },
+    "wheelchair basketball|paralympic": {
+      "sport": "Wheelchair Basketball",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "wheelchair-basketball",
+      "url": "https://www.teamusa.com/news/wheelchair-basketball",
+      "athleteCount": 63,
+      "earliestYear": 1976,
+      "latestYear": 2024
+    },
+    "tennis|olympic": {
+      "sport": "Tennis",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "tennis",
+      "url": "https://www.teamusa.com/news/tennis",
+      "athleteCount": 44,
+      "earliestYear": 2000,
+      "latestYear": 2024
+    },
+    "goalball|paralympic": {
+      "sport": "Goalball",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "goalball",
+      "url": "https://www.teamusa.com/news/goalball",
+      "athleteCount": 23,
+      "earliestYear": 1992,
+      "latestYear": 2024
+    },
+    "judo|olympic": {
+      "sport": "Judo",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "judo",
+      "url": "https://www.teamusa.com/news/judo",
+      "athleteCount": 35,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "para table tennis|paralympic": {
+      "sport": "Para Table Tennis",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-table-tennis",
+      "url": "https://www.teamusa.com/news/para-table-tennis",
+      "athleteCount": 8,
+      "earliestYear": 1996,
+      "latestYear": 2024
+    },
+    "alpine skiing|olympic": {
+      "sport": "Alpine Skiing",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "alpine-skiing",
+      "url": "https://www.teamusa.com/news/alpine-skiing",
+      "athleteCount": 63,
+      "earliestYear": 1948,
+      "latestYear": 2026
+    },
+    "rowing|olympic": {
+      "sport": "Rowing",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "rowing",
+      "url": "https://www.teamusa.com/news/rowing",
+      "athleteCount": 145,
+      "earliestYear": 1920,
+      "latestYear": 2024
+    },
+    "skateboarding|olympic": {
+      "sport": "Skateboarding",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "skateboarding",
+      "url": "https://www.teamusa.com/news/skateboarding",
+      "athleteCount": 29,
+      "earliestYear": 2020,
+      "latestYear": 2024
+    },
+    "wheelchair tennis|paralympic": {
+      "sport": "Wheelchair Tennis",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "wheelchair-tennis",
+      "url": "https://www.teamusa.com/news/wheelchair-tennis",
+      "athleteCount": 13,
+      "earliestYear": 1992,
+      "latestYear": 2024
+    },
+    "para alpine skiing|paralympic": {
+      "sport": "Para Alpine Skiing",
+      "category": "Paralympic",
+      "season": "Winter",
+      "slug": "para-alpine-skiing",
+      "url": "https://www.teamusa.com/news/para-alpine-skiing",
+      "athleteCount": 55,
+      "earliestYear": 2002,
+      "latestYear": 2026
+    },
+    "roller sports|olympic": {
+      "sport": "Roller Sports",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "roller-sports",
+      "url": "https://www.teamusa.com/news/roller-sports",
+      "athleteCount": 16,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "paratriathlon|paralympic": {
+      "sport": "Paratriathlon",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "paratriathlon",
+      "url": "https://www.teamusa.com/news/paratriathlon",
+      "athleteCount": 19,
+      "earliestYear": 2004,
+      "latestYear": 2026
+    },
+    "3x3 basketball|olympic": {
+      "sport": "3x3 Basketball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "3x3-basketball",
+      "url": "https://www.teamusa.com/news/3x3-basketball",
+      "athleteCount": 6,
+      "earliestYear": 2024,
+      "latestYear": 2024
+    },
+    "para-cycling|paralympic": {
+      "sport": "Para-Cycling",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-cycling",
+      "url": "https://www.teamusa.com/news/para-cycling",
+      "athleteCount": 73,
+      "earliestYear": 2000,
+      "latestYear": 2026
+    },
+    "equestrian|olympic": {
+      "sport": "Equestrian",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "equestrian",
+      "url": "https://www.teamusa.com/news/equestrian",
+      "athleteCount": 40,
+      "earliestYear": 1960,
+      "latestYear": 2024
+    },
+    "sled hockey|paralympic": {
+      "sport": "Sled Hockey",
+      "category": "Paralympic",
+      "season": "Winter",
+      "slug": "sled-hockey",
+      "url": "https://www.teamusa.com/news/sled-hockey",
+      "athleteCount": 36,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "ski jumping|olympic": {
+      "sport": "Ski Jumping",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "ski-jumping",
+      "url": "https://www.teamusa.com/news/ski-jumping",
+      "athleteCount": 24,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "beach volleyball|olympic": {
+      "sport": "Beach Volleyball",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "beach-volleyball",
+      "url": "https://www.teamusa.com/news/beach-volleyball",
+      "athleteCount": 12,
+      "earliestYear": 1984,
+      "latestYear": 2024
+    },
+    "para archery|paralympic": {
+      "sport": "Para Archery",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-archery",
+      "url": "https://www.teamusa.com/news/para-archery",
+      "athleteCount": 21,
+      "earliestYear": 1976,
+      "latestYear": 2024
+    },
+    "nordic combined|olympic": {
+      "sport": "Nordic Combined",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "nordic-combined",
+      "url": "https://www.teamusa.com/news/nordic-combined",
+      "athleteCount": 11,
+      "earliestYear": 1994,
+      "latestYear": 2026
+    },
+    "golf|olympic": {
+      "sport": "Golf",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "golf",
+      "url": "https://www.teamusa.com/news/golf",
+      "athleteCount": 27,
+      "earliestYear": 2016,
+      "latestYear": 2024
+    },
+    "bowling|olympic": {
+      "sport": "Bowling",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "bowling",
+      "url": "https://www.teamusa.com/news/bowling",
+      "athleteCount": 9,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "wheelchair curling|paralympic": {
+      "sport": "Wheelchair Curling",
+      "category": "Paralympic",
+      "season": "Winter",
+      "slug": "wheelchair-curling",
+      "url": "https://www.teamusa.com/news/wheelchair-curling",
+      "athleteCount": 17,
+      "earliestYear": 1912,
+      "latestYear": 2026
+    },
+    "squash|olympic": {
+      "sport": "Squash",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "squash",
+      "url": "https://www.teamusa.com/news/squash",
+      "athleteCount": 8,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "para powerlifting|paralympic": {
+      "sport": "Para Powerlifting",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-powerlifting",
+      "url": "https://www.teamusa.com/news/para-powerlifting",
+      "athleteCount": 5,
+      "earliestYear": 2024,
+      "latestYear": 2024
+    },
+    "wheelchair fencing|paralympic": {
+      "sport": "Wheelchair Fencing",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "wheelchair-fencing",
+      "url": "https://www.teamusa.com/news/wheelchair-fencing",
+      "athleteCount": 11,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "luge|olympic": {
+      "sport": "Luge",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "luge",
+      "url": "https://www.teamusa.com/news/luge",
+      "athleteCount": 25,
+      "earliestYear": 2006,
+      "latestYear": 2026
+    },
+    "para-rowing|paralympic": {
+      "sport": "Para-Rowing",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-rowing",
+      "url": "https://www.teamusa.com/news/para-rowing",
+      "athleteCount": 26,
+      "earliestYear": 2008,
+      "latestYear": 2026
+    },
+    "para biathlon|paralympic": {
+      "sport": "Para Biathlon",
+      "category": "Paralympic",
+      "season": "Winter",
+      "slug": "para-biathlon",
+      "url": "https://www.teamusa.com/news/para-biathlon",
+      "athleteCount": 4,
+      "earliestYear": 2012,
+      "latestYear": 2026
+    },
+    "breaking|olympic": {
+      "sport": "Breaking",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "breaking",
+      "url": "https://www.teamusa.com/news/breaking",
+      "athleteCount": 13,
+      "earliestYear": 2024,
+      "latestYear": 2024
+    },
+    "badminton|olympic": {
+      "sport": "Badminton",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "badminton",
+      "url": "https://www.teamusa.com/news/badminton",
+      "athleteCount": 18,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "para judo|paralympic": {
+      "sport": "Para Judo",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-judo",
+      "url": "https://www.teamusa.com/news/para-judo",
+      "athleteCount": 11,
+      "earliestYear": 2008,
+      "latestYear": 2024
+    },
+    "sport climbing|olympic": {
+      "sport": "Sport Climbing",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "sport-climbing",
+      "url": "https://www.teamusa.com/news/sport-climbing",
+      "athleteCount": 10,
+      "earliestYear": 2020,
+      "latestYear": 2024
+    },
+    "para-equestrian|paralympic": {
+      "sport": "Para-Equestrian",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-equestrian",
+      "url": "https://www.teamusa.com/news/para-equestrian",
+      "athleteCount": 11,
+      "earliestYear": 2004,
+      "latestYear": 2024
+    },
+    "artistic gymnastics|olympic": {
+      "sport": "Artistic Gymnastics",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "artistic-gymnastics",
+      "url": "https://www.teamusa.com/news/artistic-gymnastics",
+      "athleteCount": 6,
+      "earliestYear": 1972,
+      "latestYear": 2008
+    },
+    "ski mountaineering|olympic": {
+      "sport": "Ski Mountaineering",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "ski-mountaineering",
+      "url": "https://www.teamusa.com/news/ski-mountaineering",
+      "athleteCount": 15,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "paracanoe|paralympic": {
+      "sport": "Paracanoe",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "paracanoe",
+      "url": "https://www.teamusa.com/news/paracanoe",
+      "athleteCount": 5,
+      "earliestYear": 2016,
+      "latestYear": 2026
+    },
+    "boccia|paralympic": {
+      "sport": "Boccia",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "boccia",
+      "url": "https://www.teamusa.com/news/boccia",
+      "athleteCount": 8,
+      "earliestYear": 1996,
+      "latestYear": 2012
+    },
+    "short track speedskating|olympic": {
+      "sport": "Short Track Speedskating",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "short-track-speedskating",
+      "url": "https://www.teamusa.com/news/short-track-speedskating",
+      "athleteCount": 6,
+      "earliestYear": 2022,
+      "latestYear": 2026
+    },
+    "basque pelota|olympic": {
+      "sport": "Basque Pelota",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "basque-pelota",
+      "url": "https://www.teamusa.com/news/basque-pelota",
+      "athleteCount": 1,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "para badminton|paralympic": {
+      "sport": "Para Badminton",
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-badminton",
+      "url": "https://www.teamusa.com/news/para-badminton",
+      "athleteCount": 2,
+      "earliestYear": 2024,
+      "latestYear": 2024
+    },
+    "rifle shooting|olympic": {
+      "sport": "Rifle Shooting",
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "rifle-shooting",
+      "url": "https://www.teamusa.com/news/rifle-shooting",
+      "athleteCount": 2,
+      "earliestYear": null,
+      "latestYear": null
+    },
+    "speed skating|olympic": {
+      "sport": "Speed Skating",
+      "category": "Olympic",
+      "season": "Winter",
+      "slug": "speed-skating",
+      "url": "https://www.teamusa.com/news/speed-skating",
+      "athleteCount": 1,
+      "earliestYear": null,
+      "latestYear": null
+    }
+  }
+}

@@ -7,6 +7,7 @@
     "scrape:medals": "node scrape-teamusa.mjs",
     "scrape:athletes": "node scrape-athletes.mjs",
     "group": "node group-by-sport.mjs",
+    "catalog": "node build-sport-catalog.mjs",
     "distill": "node distill-sports.mjs",
     "cluster": "node cluster-archetypes.mjs"
   },

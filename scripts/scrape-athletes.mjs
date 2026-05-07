@@ -52,7 +52,20 @@ function projectEntry(e) {
     first_name: (e.first_name || "").trim(),
     last_name: (e.last_name || "").trim(),
     sports: Array.isArray(e.sport)
-      ? e.sport.map((s) => (typeof s === "object" ? s.title || s.name : s)).filter(Boolean).map((x) => x.trim())
+      ? e.sport
+          .filter(Boolean)
+          .map((s) =>
+            typeof s === "object"
+              ? {
+                  name: (s.title || s.name || "").trim(),
+                  season: s.season || null, // "Summer" | "Winter"
+                  type: s.type || null, // "Olympic" | "Paralympic"
+                  slug: s.seo_id || null,
+                  url: s.url || null,
+                }
+              : { name: String(s).trim() }
+          )
+          .filter((s) => s.name)
       : [],
     olympic_paralympic: e.olympic_paralympic, // "Olympian" | "Paralympian" | array
     years: extractYears(e.olympian_paralympian_years),

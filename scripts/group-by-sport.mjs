@@ -54,13 +54,23 @@ async function main() {
     const heightCm = heightToCm(a.quick_facts.height);
     const yrs = a.years || []; // already an array of 4-digit numbers
 
-    for (const sport of sports) {
-      const key = `${sport}|${para ? "Paralympic" : "Olympic"}`;
+    for (const sportObj of sports) {
+      // sport may be a string (legacy) or an object {name, season, type, slug, url}
+      const sportName = typeof sportObj === "string" ? sportObj : sportObj.name;
+      if (!sportName) continue;
+      const sportMeta = typeof sportObj === "object" ? sportObj : null;
+      // Prefer the API's per-sport "type" field over the athlete-level olympic_paralympic flag,
+      // because some athletes have mixed Olympic+Paralympic sports.
+      const sportPara = sportMeta?.type === "Paralympic" || (sportMeta?.type == null && para);
+      const key = `${sportName}|${sportPara ? "Paralympic" : "Olympic"}`;
       let g = groups.get(key);
       if (!g) {
         g = {
-          sport,
-          category: para ? "Paralympic" : "Olympic",
+          sport: sportName,
+          category: sportPara ? "Paralympic" : "Olympic",
+          season: sportMeta?.season || null,
+          slug: sportMeta?.slug || null,
+          url: sportMeta?.url || null,
           athleteCount: 0,
           medaledAthleteCount: 0,
           heightCmSamples: [],
@@ -74,6 +84,10 @@ async function main() {
         };
         groups.set(key, g);
       }
+      // First non-null url/slug/season we encounter wins (some entries may lack metadata)
+      if (!g.url && sportMeta?.url) g.url = sportMeta.url;
+      if (!g.slug && sportMeta?.slug) g.slug = sportMeta.slug;
+      if (!g.season && sportMeta?.season) g.season = sportMeta.season;
       g.athleteCount += 1;
       if (a.medal_count > 0) g.medaledAthleteCount += 1;
       if (heightCm) g.heightCmSamples.push(heightCm);
@@ -119,6 +133,9 @@ async function main() {
     groups: [...groups.values()].map((g) => ({
       sport: g.sport,
       category: g.category,
+      season: g.season,
+      slug: g.slug,
+      url: g.url ? `https://www.teamusa.com${g.url}` : null,
       athleteCount: g.athleteCount,
       medaledAthleteCount: g.medaledAthleteCount,
       totalMedals: g.totalGold + g.totalSilver + g.totalBronze,

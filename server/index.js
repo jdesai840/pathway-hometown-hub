@@ -3,6 +3,7 @@ import cors from "cors";
 import { archetypeMatch } from "./routes/archetypeMatch.js";
 import { narrate } from "./routes/narrate.js";
 import { getArchetypes } from "./routes/getArchetypes.js";
+import { getSportCatalog } from "./routes/getSportCatalog.js";
 
 const app = express();
 app.use(cors());
@@ -11,6 +12,7 @@ app.use(express.json({ limit: "5mb" }));
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
 app.get("/api/archetypes", getArchetypes);
+app.get("/api/sport-catalog", getSportCatalog);
 app.post("/api/archetype-match", archetypeMatch);
 app.post("/api/narrate", narrate);
 

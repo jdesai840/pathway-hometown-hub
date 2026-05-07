@@ -1,12 +1,15 @@
 {
-  "generatedAt": "2026-05-07T22:34:54.725Z",
+  "generatedAt": "2026-05-07T22:43:21.211Z",
   "sourceFile": "athletes.raw.json",
   "note": "Sport-level aggregates only. No athlete names. Suitable as input to Gemini for further distillation and clustering.",
   "groups": [
     {
       "sport": "Para Snowboarding",
       "category": "Paralympic",
-      "athleteCount": 25,
+      "season": "Winter",
+      "slug": "para-snowboarding",
+      "url": "https://www.teamusa.com/news/para-snowboarding",
+      "athleteCount": 27,
       "medaledAthleteCount": 11,
       "totalMedals": 27,
       "medalBreakdown": {
@@ -67,6 +70,9 @@
     {
       "sport": "Ice Hockey",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "ice-hockey",
+      "url": "https://www.teamusa.com/news/ice-hockey",
       "athleteCount": 178,
       "medaledAthleteCount": 84,
       "totalMedals": 135,
@@ -132,6 +138,9 @@
     {
       "sport": "Snowboarding",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "snowboarding",
+      "url": "https://www.teamusa.com/news/snowboarding",
       "athleteCount": 67,
       "medaledAthleteCount": 15,
       "totalMedals": 26,
@@ -194,6 +203,9 @@
     {
       "sport": "Freestyle Skiing",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "freestyle-skiing",
+      "url": "https://www.teamusa.com/news/freestyle-skiing",
       "athleteCount": 84,
       "medaledAthleteCount": 20,
       "totalMedals": 32,
@@ -256,6 +268,9 @@
     {
       "sport": "Cross-Country Skiing",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "cross-country-skiing",
+      "url": "https://www.teamusa.com/news/cross-country-skiing",
       "athleteCount": 43,
       "medaledAthleteCount": 4,
       "totalMedals": 8,
@@ -318,7 +333,10 @@
     {
       "sport": "Sitting Volleyball",
       "category": "Paralympic",
-      "athleteCount": 35,
+      "season": "Summer",
+      "slug": "sitting-volleyball",
+      "url": "https://www.teamusa.com/news/sitting-volleyball",
+      "athleteCount": 42,
       "medaledAthleteCount": 21,
       "totalMedals": 58,
       "medalBreakdown": {
@@ -327,10 +345,10 @@
         "bronze": 5
       },
       "heightStats": {
-        "n": 34,
-        "meanCm": 180,
+        "n": 40,
+        "meanCm": 181,
         "medianCm": 183,
-        "p10Cm": 163,
+        "p10Cm": 168,
         "p90Cm": 196,
         "minCm": 157,
         "maxCm": 198
@@ -345,8 +363,20 @@
           "count": 3
         },
         {
+          "state": "TX",
+          "count": 3
+        },
+        {
           "state": "FL",
           "count": 3
+        },
+        {
+          "state": "WA",
+          "count": 2
+        },
+        {
+          "state": "NE",
+          "count": 2
         },
         {
           "state": "AZ",
@@ -355,18 +385,6 @@
         {
           "state": "GA",
           "count": 2
-        },
-        {
-          "state": "CA",
-          "count": 2
-        },
-        {
-          "state": "TX",
-          "count": 2
-        },
-        {
-          "state": "WA",
-          "count": 1
         }
       ],
       "earliestYear": 1996,
@@ -381,7 +399,10 @@
     {
       "sport": "Soccer",
       "category": "Olympic",
-      "athleteCount": 74,
+      "season": "Summer",
+      "slug": "soccer",
+      "url": "https://www.teamusa.com/news/soccer",
+      "athleteCount": 87,
       "medaledAthleteCount": 40,
       "totalMedals": 67,
       "medalBreakdown": {
@@ -390,9 +411,9 @@
         "bronze": 23
       },
       "heightStats": {
-        "n": 69,
-        "meanCm": 173,
-        "medianCm": 170,
+        "n": 82,
+        "meanCm": 174,
+        "medianCm": 173,
         "p10Cm": 163,
         "p90Cm": 188,
         "minCm": 155,
@@ -401,7 +422,7 @@
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 16
+          "count": 18
         },
         {
           "state": "GA",
@@ -412,24 +433,24 @@
           "count": 7
         },
         {
+          "state": "VA",
+          "count": 6
+        },
+        {
           "state": "NY",
           "count": 6
         },
         {
-          "state": "IL",
-          "count": 4
-        },
-        {
-          "state": "VA",
-          "count": 4
+          "state": "CO",
+          "count": 5
         },
         {
           "state": "FL",
-          "count": 3
+          "count": 5
         },
         {
-          "state": "CO",
-          "count": 3
+          "state": "IL",
+          "count": 4
         }
       ],
       "earliestYear": 1996,
@@ -437,73 +458,16 @@
       "yearBuckets": {
         "1990": 3,
         "2000": 14,
-        "2010": 29,
+        "2010": 47,
         "2020": 59
-      }
-    },
-    {
-      "sport": "Soccer",
-      "category": "Paralympic",
-      "athleteCount": 13,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 13,
-        "meanCm": 179,
-        "medianCm": 183,
-        "p10Cm": 168,
-        "p90Cm": 188,
-        "minCm": 165,
-        "maxCm": 191
-      },
-      "topHometownStates": [
-        {
-          "state": "CA",
-          "count": 2
-        },
-        {
-          "state": "VA",
-          "count": 2
-        },
-        {
-          "state": "OH",
-          "count": 2
-        },
-        {
-          "state": "CO",
-          "count": 2
-        },
-        {
-          "state": "FL",
-          "count": 2
-        },
-        {
-          "state": "MI",
-          "count": 1
-        },
-        {
-          "state": "NC",
-          "count": 1
-        },
-        {
-          "state": "TN",
-          "count": 1
-        }
-      ],
-      "earliestYear": 2012,
-      "latestYear": 2016,
-      "yearBuckets": {
-        "2010": 18
       }
     },
     {
       "sport": "Cycling",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "cycling",
+      "url": "https://www.teamusa.com/news/cycling",
       "athleteCount": 72,
       "medaledAthleteCount": 16,
       "totalMedals": 30,
@@ -566,6 +530,9 @@
     {
       "sport": "Figure Skating",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "figure-skating",
+      "url": "https://www.teamusa.com/news/figure-skating",
       "athleteCount": 77,
       "medaledAthleteCount": 36,
       "totalMedals": 56,
@@ -634,54 +601,57 @@
     {
       "sport": "Para Track and Field",
       "category": "Paralympic",
-      "athleteCount": 131,
-      "medaledAthleteCount": 63,
-      "totalMedals": 201,
+      "season": "Summer",
+      "slug": "para-track-and-field",
+      "url": "https://www.teamusa.com/news/para-track-and-field",
+      "athleteCount": 167,
+      "medaledAthleteCount": 65,
+      "totalMedals": 219,
       "medalBreakdown": {
-        "gold": 68,
-        "silver": 69,
-        "bronze": 64
+        "gold": 78,
+        "silver": 73,
+        "bronze": 68
       },
       "heightStats": {
-        "n": 109,
-        "meanCm": 171,
+        "n": 138,
+        "meanCm": 169,
         "medianCm": 173,
-        "p10Cm": 150,
+        "p10Cm": 147,
         "p90Cm": 188,
-        "minCm": 124,
+        "minCm": 91,
         "maxCm": 201
       },
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 19
+          "count": 23
         },
         {
           "state": "WA",
-          "count": 11
+          "count": 18
         },
         {
           "state": "TX",
-          "count": 7
+          "count": 10
         },
         {
           "state": "FL",
-          "count": 6
+          "count": 8
         },
         {
           "state": "VA",
-          "count": 5
-        },
-        {
-          "state": "NJ",
-          "count": 5
-        },
-        {
-          "state": "MD",
-          "count": 5
+          "count": 7
         },
         {
           "state": "IL",
+          "count": 6
+        },
+        {
+          "state": "NJ",
+          "count": 6
+        },
+        {
+          "state": "MD",
           "count": 5
         }
       ],
@@ -690,8 +660,8 @@
       "yearBuckets": {
         "1970": 1,
         "1980": 3,
-        "1990": 5,
-        "2000": 35,
+        "1990": 7,
+        "2000": 37,
         "2010": 111,
         "2020": 124
       }
@@ -699,16 +669,19 @@
     {
       "sport": "Swimming",
       "category": "Olympic",
-      "athleteCount": 192,
-      "medaledAthleteCount": 114,
-      "totalMedals": 449,
+      "season": "Summer",
+      "slug": "swimming",
+      "url": "https://www.teamusa.com/news/swimming",
+      "athleteCount": 193,
+      "medaledAthleteCount": 115,
+      "totalMedals": 450,
       "medalBreakdown": {
         "gold": 258,
         "silver": 127,
-        "bronze": 64
+        "bronze": 65
       },
       "heightStats": {
-        "n": 140,
+        "n": 141,
         "meanCm": 183,
         "medianCm": 183,
         "p10Cm": 170,
@@ -722,11 +695,11 @@
           "count": 30
         },
         {
-          "state": "TX",
-          "count": 12
+          "state": "PA",
+          "count": 13
         },
         {
-          "state": "PA",
+          "state": "TX",
           "count": 12
         },
         {
@@ -761,14 +734,17 @@
         "1970": 4,
         "1980": 9,
         "1990": 8,
-        "2000": 33,
-        "2010": 73,
+        "2000": 34,
+        "2010": 74,
         "2020": 99
       }
     },
     {
       "sport": "Softball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "softball",
+      "url": "https://www.teamusa.com/news/softball",
       "athleteCount": 181,
       "medaledAthleteCount": 32,
       "totalMedals": 48,
@@ -831,6 +807,9 @@
     {
       "sport": "Taekwondo",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "taekwondo",
+      "url": "https://www.teamusa.com/news/taekwondo",
       "athleteCount": 112,
       "medaledAthleteCount": 6,
       "totalMedals": 6,
@@ -893,13 +872,16 @@
     {
       "sport": "Track and Field",
       "category": "Olympic",
-      "athleteCount": 484,
-      "medaledAthleteCount": 165,
-      "totalMedals": 346,
+      "season": "Summer",
+      "slug": "track-and-field",
+      "url": "https://www.teamusa.com/news/track-and-field",
+      "athleteCount": 486,
+      "medaledAthleteCount": 166,
+      "totalMedals": 358,
       "medalBreakdown": {
-        "gold": 213,
-        "silver": 80,
-        "bronze": 53
+        "gold": 221,
+        "silver": 82,
+        "bronze": 55
       },
       "heightStats": {
         "n": 358,
@@ -955,9 +937,9 @@
         "1950": 17,
         "1960": 29,
         "1970": 9,
-        "1980": 15,
-        "1990": 14,
-        "2000": 65,
+        "1980": 17,
+        "1990": 17,
+        "2000": 69,
         "2010": 194,
         "2020": 245
       }
@@ -965,6 +947,9 @@
     {
       "sport": "Bobsled",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "bobsled",
+      "url": "https://www.teamusa.com/news/bobsled",
       "athleteCount": 95,
       "medaledAthleteCount": 18,
       "totalMedals": 34,
@@ -1032,6 +1017,9 @@
     {
       "sport": "Artistic Swimming",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "artistic-swimming",
+      "url": "https://www.teamusa.com/news/artistic-swimming",
       "athleteCount": 143,
       "medaledAthleteCount": 10,
       "totalMedals": 10,
@@ -1094,6 +1082,9 @@
     {
       "sport": "Field Hockey",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "field-hockey",
+      "url": "https://www.teamusa.com/news/field-hockey",
       "athleteCount": 214,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -1156,6 +1147,9 @@
     {
       "sport": "Shooting",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "shooting",
+      "url": "https://www.teamusa.com/news/shooting",
       "athleteCount": 69,
       "medaledAthleteCount": 17,
       "totalMedals": 30,
@@ -1219,7 +1213,10 @@
     {
       "sport": "Para Swimming",
       "category": "Paralympic",
-      "athleteCount": 90,
+      "season": "Summer",
+      "slug": "para-swimming",
+      "url": "https://www.teamusa.com/news/para-swimming",
+      "athleteCount": 109,
       "medaledAthleteCount": 55,
       "totalMedals": 275,
       "medalBreakdown": {
@@ -1228,30 +1225,30 @@
         "bronze": 73
       },
       "heightStats": {
-        "n": 72,
-        "meanCm": 167,
-        "medianCm": 170,
-        "p10Cm": 145,
+        "n": 90,
+        "meanCm": 166,
+        "medianCm": 168,
+        "p10Cm": 142,
         "p90Cm": 185,
-        "minCm": 114,
+        "minCm": 91,
         "maxCm": 193
       },
       "topHometownStates": [
         {
           "state": "CO",
-          "count": 6
+          "count": 8
         },
         {
           "state": "CA",
-          "count": 6
+          "count": 8
         },
         {
           "state": "NC",
-          "count": 5
+          "count": 7
         },
         {
           "state": "IN",
-          "count": 5
+          "count": 6
         },
         {
           "state": "IL",
@@ -1266,7 +1263,7 @@
           "count": 4
         },
         {
-          "state": "GA",
+          "state": "MN",
           "count": 4
         }
       ],
@@ -1281,69 +1278,11 @@
       }
     },
     {
-      "sport": "Para Track and Field",
-      "category": "Olympic",
-      "athleteCount": 36,
-      "medaledAthleteCount": 2,
-      "totalMedals": 18,
-      "medalBreakdown": {
-        "gold": 10,
-        "silver": 4,
-        "bronze": 4
-      },
-      "heightStats": {
-        "n": 29,
-        "meanCm": 160,
-        "medianCm": 168,
-        "p10Cm": 127,
-        "p90Cm": 183,
-        "minCm": 91,
-        "maxCm": 193
-      },
-      "topHometownStates": [
-        {
-          "state": "WA",
-          "count": 7
-        },
-        {
-          "state": "CA",
-          "count": 4
-        },
-        {
-          "state": "TX",
-          "count": 3
-        },
-        {
-          "state": "CO",
-          "count": 2
-        },
-        {
-          "state": "VA",
-          "count": 2
-        },
-        {
-          "state": "FL",
-          "count": 2
-        },
-        {
-          "state": "AZ",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        }
-      ],
-      "earliestYear": 1992,
-      "latestYear": 2004,
-      "yearBuckets": {
-        "1990": 2,
-        "2000": 2
-      }
-    },
-    {
       "sport": "Speedskating",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "speedskating",
+      "url": "https://www.teamusa.com/news/speedskating",
       "athleteCount": 67,
       "medaledAthleteCount": 15,
       "totalMedals": 41,
@@ -1410,35 +1349,42 @@
     {
       "sport": "Triathlon",
       "category": "Olympic",
-      "athleteCount": 33,
-      "medaledAthleteCount": 8,
-      "totalMedals": 11,
+      "season": "Summer",
+      "slug": "triathlon",
+      "url": "https://www.teamusa.com/news/triathlon",
+      "athleteCount": 40,
+      "medaledAthleteCount": 10,
+      "totalMedals": 21,
       "medalBreakdown": {
-        "gold": 1,
-        "silver": 8,
-        "bronze": 2
+        "gold": 7,
+        "silver": 11,
+        "bronze": 3
       },
       "heightStats": {
-        "n": 23,
-        "meanCm": 175,
+        "n": 28,
+        "meanCm": 173,
         "medianCm": 175,
-        "p10Cm": 163,
+        "p10Cm": 160,
         "p90Cm": 188,
-        "minCm": 157,
+        "minCm": 155,
         "maxCm": 196
       },
       "topHometownStates": [
+        {
+          "state": "NJ",
+          "count": 5
+        },
         {
           "state": "CO",
           "count": 5
         },
         {
-          "state": "NJ",
+          "state": "CA",
           "count": 4
         },
         {
-          "state": "CA",
-          "count": 3
+          "state": "GA",
+          "count": 2
         },
         {
           "state": "WA",
@@ -1455,24 +1401,24 @@
         {
           "state": "MT",
           "count": 1
-        },
-        {
-          "state": "SD",
-          "count": 1
         }
       ],
-      "earliestYear": 2000,
+      "earliestYear": 1992,
       "latestYear": 2024,
       "yearBuckets": {
-        "2000": 11,
-        "2010": 9,
-        "2020": 10
+        "1990": 2,
+        "2000": 13,
+        "2010": 16,
+        "2020": 14
       }
     },
     {
       "sport": "Wheelchair Rugby",
       "category": "Paralympic",
-      "athleteCount": 21,
+      "season": "Summer",
+      "slug": "wheelchair-rugby",
+      "url": "https://www.teamusa.com/news/wheelchair-rugby",
+      "athleteCount": 23,
       "medaledAthleteCount": 21,
       "totalMedals": 44,
       "medalBreakdown": {
@@ -1481,9 +1427,9 @@
         "bronze": 6
       },
       "heightStats": {
-        "n": 14,
-        "meanCm": 171,
-        "medianCm": 178,
+        "n": 16,
+        "meanCm": 173,
+        "medianCm": 183,
         "p10Cm": 124,
         "p90Cm": 196,
         "minCm": 104,
@@ -1519,7 +1465,7 @@
           "count": 1
         },
         {
-          "state": "WI",
+          "state": "HI",
           "count": 1
         }
       ],
@@ -1534,21 +1480,24 @@
     {
       "sport": "Canoe/Kayak",
       "category": "Olympic",
-      "athleteCount": 84,
-      "medaledAthleteCount": 7,
-      "totalMedals": 14,
+      "season": "Summer",
+      "slug": "canoekayak",
+      "url": "https://www.teamusa.com/news/canoekayak",
+      "athleteCount": 93,
+      "medaledAthleteCount": 8,
+      "totalMedals": 20,
       "medalBreakdown": {
-        "gold": 6,
-        "silver": 3,
-        "bronze": 5
+        "gold": 9,
+        "silver": 5,
+        "bronze": 6
       },
       "heightStats": {
-        "n": 55,
+        "n": 60,
         "meanCm": 177,
         "medianCm": 178,
         "p10Cm": 163,
         "p90Cm": 188,
-        "minCm": 160,
+        "minCm": 150,
         "maxCm": 196
       },
       "topHometownStates": [
@@ -1557,11 +1506,11 @@
           "count": 16
         },
         {
-          "state": "CA",
-          "count": 10
+          "state": "WA",
+          "count": 11
         },
         {
-          "state": "WA",
+          "state": "CA",
           "count": 10
         },
         {
@@ -1570,18 +1519,18 @@
         },
         {
           "state": "NC",
-          "count": 6
+          "count": 7
         },
         {
           "state": "CO",
-          "count": 4
+          "count": 5
         },
         {
           "state": "VA",
-          "count": 4
+          "count": 5
         },
         {
-          "state": "NY",
+          "state": "HI",
           "count": 4
         }
       ],
@@ -1590,14 +1539,17 @@
       "yearBuckets": {
         "1980": 5,
         "1990": 13,
-        "2000": 13,
-        "2010": 10,
-        "2020": 10
+        "2000": 18,
+        "2010": 18,
+        "2020": 11
       }
     },
     {
       "sport": "Volleyball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "volleyball",
+      "url": "https://www.teamusa.com/news/volleyball",
       "athleteCount": 169,
       "medaledAthleteCount": 65,
       "totalMedals": 97,
@@ -1662,6 +1614,9 @@
     {
       "sport": "Karate",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "karate",
+      "url": "https://www.teamusa.com/news/karate",
       "athleteCount": 209,
       "medaledAthleteCount": 1,
       "totalMedals": 1,
@@ -1722,6 +1677,9 @@
     {
       "sport": "Basketball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "basketball",
+      "url": "https://www.teamusa.com/news/basketball",
       "athleteCount": 130,
       "medaledAthleteCount": 62,
       "totalMedals": 120,
@@ -1786,7 +1744,10 @@
     {
       "sport": "Para Nordic Skiing",
       "category": "Paralympic",
-      "athleteCount": 30,
+      "season": "Winter",
+      "slug": "para-nordic-skiing",
+      "url": "https://www.teamusa.com/news/para-nordic-skiing",
+      "athleteCount": 38,
       "medaledAthleteCount": 9,
       "totalMedals": 67,
       "medalBreakdown": {
@@ -1795,10 +1756,10 @@
         "bronze": 11
       },
       "heightStats": {
-        "n": 28,
-        "meanCm": 170,
+        "n": 32,
+        "meanCm": 171,
         "medianCm": 173,
-        "p10Cm": 152,
+        "p10Cm": 155,
         "p90Cm": 188,
         "minCm": 107,
         "maxCm": 193
@@ -1806,14 +1767,18 @@
       "topHometownStates": [
         {
           "state": "ID",
-          "count": 3
-        },
-        {
-          "state": "MN",
-          "count": 3
+          "count": 4
         },
         {
           "state": "MT",
+          "count": 4
+        },
+        {
+          "state": "MN",
+          "count": 4
+        },
+        {
+          "state": "MI",
           "count": 2
         },
         {
@@ -1827,10 +1792,6 @@
         {
           "state": "ME",
           "count": 2
-        },
-        {
-          "state": "MI",
-          "count": 1
         },
         {
           "state": "KS",
@@ -1848,6 +1809,9 @@
     {
       "sport": "Waterski/Wakeboard",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "waterskiwakeboard",
+      "url": "https://www.teamusa.com/news/waterskiwakeboard",
       "athleteCount": 13,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -1890,6 +1854,9 @@
     {
       "sport": "Curling",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "curling",
+      "url": "https://www.teamusa.com/news/curling",
       "athleteCount": 257,
       "medaledAthleteCount": 10,
       "totalMedals": 12,
@@ -1954,7 +1921,10 @@
     {
       "sport": "Para Taekwondo",
       "category": "Paralympic",
-      "athleteCount": 3,
+      "season": "Summer",
+      "slug": "para-taekwondo",
+      "url": "https://www.teamusa.com/news/para-taekwondo",
+      "athleteCount": 5,
       "medaledAthleteCount": 1,
       "totalMedals": 2,
       "medalBreakdown": {
@@ -1963,8 +1933,8 @@
         "bronze": 2
       },
       "heightStats": {
-        "n": 2,
-        "meanCm": 172,
+        "n": 4,
+        "meanCm": 175,
         "medianCm": 183,
         "p10Cm": 160,
         "p90Cm": 183,
@@ -1973,11 +1943,15 @@
       },
       "topHometownStates": [
         {
+          "state": "MI",
+          "count": 2
+        },
+        {
           "state": "TX",
           "count": 1
         },
         {
-          "state": "MI",
+          "state": "NC",
           "count": 1
         },
         {
@@ -1994,6 +1968,9 @@
     {
       "sport": "Diving",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "diving",
+      "url": "https://www.teamusa.com/news/diving",
       "athleteCount": 204,
       "medaledAthleteCount": 20,
       "totalMedals": 33,
@@ -2061,7 +2038,10 @@
     {
       "sport": "Soccer 7-A-Side",
       "category": "Paralympic",
-      "athleteCount": 4,
+      "season": "Summer",
+      "slug": "soccer-7-a-side",
+      "url": "https://www.teamusa.com/news/soccer-7-a-side",
+      "athleteCount": 6,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
       "medalBreakdown": {
@@ -2070,7 +2050,7 @@
         "bronze": 0
       },
       "heightStats": {
-        "n": 2,
+        "n": 4,
         "meanCm": 186,
         "medianCm": 188,
         "p10Cm": 183,
@@ -2078,7 +2058,16 @@
         "minCm": 183,
         "maxCm": 188
       },
-      "topHometownStates": [],
+      "topHometownStates": [
+        {
+          "state": "CO",
+          "count": 1
+        },
+        {
+          "state": "GA",
+          "count": 1
+        }
+      ],
       "earliestYear": 2004,
       "latestYear": 2012,
       "yearBuckets": {
@@ -2089,6 +2078,9 @@
     {
       "sport": "Gymnastics",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "gymnastics",
+      "url": "https://www.teamusa.com/news/gymnastics",
       "athleteCount": 78,
       "medaledAthleteCount": 19,
       "totalMedals": 50,
@@ -2151,6 +2143,9 @@
     {
       "sport": "Skeleton",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "skeleton",
+      "url": "https://www.teamusa.com/news/skeleton",
       "athleteCount": 32,
       "medaledAthleteCount": 2,
       "totalMedals": 2,
@@ -2213,6 +2208,9 @@
     {
       "sport": "Fencing",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "fencing",
+      "url": "https://www.teamusa.com/news/fencing",
       "athleteCount": 53,
       "medaledAthleteCount": 16,
       "totalMedals": 28,
@@ -2275,6 +2273,9 @@
     {
       "sport": "Rugby",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "rugby",
+      "url": "https://www.teamusa.com/news/rugby",
       "athleteCount": 86,
       "medaledAthleteCount": 12,
       "totalMedals": 12,
@@ -2336,31 +2337,34 @@
     {
       "sport": "Table Tennis",
       "category": "Olympic",
-      "athleteCount": 111,
-      "medaledAthleteCount": 3,
-      "totalMedals": 3,
+      "season": "Summer",
+      "slug": "table-tennis",
+      "url": "https://www.teamusa.com/news/table-tennis",
+      "athleteCount": 120,
+      "medaledAthleteCount": 9,
+      "totalMedals": 17,
       "medalBreakdown": {
-        "gold": 0,
-        "silver": 2,
-        "bronze": 1
+        "gold": 4,
+        "silver": 4,
+        "bronze": 9
       },
       "heightStats": {
-        "n": 32,
-        "meanCm": 169,
+        "n": 38,
+        "meanCm": 170,
         "medianCm": 168,
-        "p10Cm": 160,
+        "p10Cm": 157,
         "p90Cm": 183,
         "minCm": 152,
-        "maxCm": 185
+        "maxCm": 188
       },
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 22
+          "count": 24
         },
         {
           "state": "TX",
-          "count": 7
+          "count": 9
         },
         {
           "state": "NJ",
@@ -2368,7 +2372,7 @@
         },
         {
           "state": "NY",
-          "count": 4
+          "count": 5
         },
         {
           "state": "IL",
@@ -2387,19 +2391,22 @@
           "count": 1
         }
       ],
-      "earliestYear": 1988,
+      "earliestYear": 1984,
       "latestYear": 2024,
       "yearBuckets": {
-        "1980": 6,
-        "1990": 16,
-        "2000": 20,
-        "2010": 10,
-        "2020": 10
+        "1980": 9,
+        "1990": 24,
+        "2000": 29,
+        "2010": 13,
+        "2020": 11
       }
     },
     {
       "sport": "Boxing",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "boxing",
+      "url": "https://www.teamusa.com/news/boxing",
       "athleteCount": 145,
       "medaledAthleteCount": 17,
       "totalMedals": 19,
@@ -2467,6 +2474,9 @@
     {
       "sport": "Modern Pentathlon",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "modern-pentathlon",
+      "url": "https://www.teamusa.com/news/modern-pentathlon",
       "athleteCount": 17,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -2529,6 +2539,9 @@
     {
       "sport": "Baseball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "baseball",
+      "url": "https://www.teamusa.com/news/baseball",
       "athleteCount": 61,
       "medaledAthleteCount": 22,
       "totalMedals": 22,
@@ -2587,70 +2600,11 @@
       }
     },
     {
-      "sport": "Canoe/Kayak",
-      "category": "Paralympic",
-      "athleteCount": 9,
-      "medaledAthleteCount": 1,
-      "totalMedals": 6,
-      "medalBreakdown": {
-        "gold": 3,
-        "silver": 2,
-        "bronze": 1
-      },
-      "heightStats": {
-        "n": 5,
-        "meanCm": 171,
-        "medianCm": 168,
-        "p10Cm": 150,
-        "p90Cm": 193,
-        "minCm": 150,
-        "maxCm": 193
-      },
-      "topHometownStates": [
-        {
-          "state": "MI",
-          "count": 1
-        },
-        {
-          "state": "NM",
-          "count": 1
-        },
-        {
-          "state": "WA",
-          "count": 1
-        },
-        {
-          "state": "VA",
-          "count": 1
-        },
-        {
-          "state": "CO",
-          "count": 1
-        },
-        {
-          "state": "NC",
-          "count": 1
-        },
-        {
-          "state": "AZ",
-          "count": 1
-        },
-        {
-          "state": "HI",
-          "count": 1
-        }
-      ],
-      "earliestYear": 2002,
-      "latestYear": 2020,
-      "yearBuckets": {
-        "2000": 5,
-        "2010": 8,
-        "2020": 1
-      }
-    },
-    {
       "sport": "Racquetball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "racquetball",
+      "url": "https://www.teamusa.com/news/racquetball",
       "athleteCount": 16,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -2697,7 +2651,10 @@
     {
       "sport": "Para Shooting",
       "category": "Paralympic",
-      "athleteCount": 15,
+      "season": "Summer",
+      "slug": "para-shooting",
+      "url": "https://www.teamusa.com/news/para-shooting",
+      "athleteCount": 16,
       "medaledAthleteCount": 2,
       "totalMedals": 2,
       "medalBreakdown": {
@@ -2717,7 +2674,7 @@
       "topHometownStates": [
         {
           "state": "TX",
-          "count": 2
+          "count": 3
         },
         {
           "state": "CO",
@@ -2759,6 +2716,9 @@
     {
       "sport": "Weightlifting",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "weightlifting",
+      "url": "https://www.teamusa.com/news/weightlifting",
       "athleteCount": 43,
       "medaledAthleteCount": 7,
       "totalMedals": 11,
@@ -2824,6 +2784,9 @@
     {
       "sport": "Team Handball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "team-handball",
+      "url": "https://www.teamusa.com/news/team-handball",
       "athleteCount": 126,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -2882,6 +2845,9 @@
     {
       "sport": "Water Polo",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "water-polo",
+      "url": "https://www.teamusa.com/news/water-polo",
       "athleteCount": 56,
       "medaledAthleteCount": 37,
       "totalMedals": 59,
@@ -2942,6 +2908,9 @@
     {
       "sport": "Wrestling",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "wrestling",
+      "url": "https://www.teamusa.com/news/wrestling",
       "athleteCount": 72,
       "medaledAthleteCount": 15,
       "totalMedals": 23,
@@ -3006,6 +2975,9 @@
     {
       "sport": "Archery",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "archery",
+      "url": "https://www.teamusa.com/news/archery",
       "athleteCount": 32,
       "medaledAthleteCount": 6,
       "totalMedals": 11,
@@ -3067,66 +3039,11 @@
       }
     },
     {
-      "sport": "Para Swimming",
-      "category": "Olympic",
-      "athleteCount": 19,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 18,
-        "meanCm": 160,
-        "medianCm": 165,
-        "p10Cm": 130,
-        "p90Cm": 188,
-        "minCm": 91,
-        "maxCm": 188
-      },
-      "topHometownStates": [
-        {
-          "state": "CA",
-          "count": 2
-        },
-        {
-          "state": "MI",
-          "count": 2
-        },
-        {
-          "state": "NC",
-          "count": 2
-        },
-        {
-          "state": "CO",
-          "count": 2
-        },
-        {
-          "state": "MO",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        },
-        {
-          "state": "CT",
-          "count": 1
-        },
-        {
-          "state": "MA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Biathlon",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "biathlon",
+      "url": "https://www.teamusa.com/news/biathlon",
       "athleteCount": 66,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -3189,6 +3106,9 @@
     {
       "sport": "Surfing",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "surfing",
+      "url": "https://www.teamusa.com/news/surfing",
       "athleteCount": 12,
       "medaledAthleteCount": 2,
       "totalMedals": 2,
@@ -3228,57 +3148,76 @@
     },
     {
       "sport": "Sailing",
-      "category": "Paralympic",
-      "athleteCount": 10,
-      "medaledAthleteCount": 5,
-      "totalMedals": 5,
+      "category": "Olympic",
+      "season": "Summer",
+      "slug": "sailing",
+      "url": "https://www.teamusa.com/news/sailing",
+      "athleteCount": 64,
+      "medaledAthleteCount": 8,
+      "totalMedals": 8,
       "medalBreakdown": {
         "gold": 1,
         "silver": 4,
-        "bronze": 0
+        "bronze": 3
       },
       "heightStats": {
-        "n": 7,
-        "meanCm": 177,
-        "medianCm": 180,
-        "p10Cm": 168,
-        "p90Cm": 185,
-        "minCm": 168,
-        "maxCm": 185
+        "n": 53,
+        "meanCm": 175,
+        "medianCm": 175,
+        "p10Cm": 163,
+        "p90Cm": 188,
+        "minCm": 157,
+        "maxCm": 191
       },
       "topHometownStates": [
         {
+          "state": "FL",
+          "count": 15
+        },
+        {
           "state": "CA",
+          "count": 11
+        },
+        {
+          "state": "TX",
+          "count": 5
+        },
+        {
+          "state": "VI",
           "count": 2
         },
         {
-          "state": "NJ",
-          "count": 1
+          "state": "RI",
+          "count": 2
         },
         {
-          "state": "ME",
-          "count": 1
+          "state": "NY",
+          "count": 2
         },
         {
-          "state": "FL",
-          "count": 1
+          "state": "WI",
+          "count": 2
         },
         {
-          "state": "MA",
-          "count": 1
+          "state": "MD",
+          "count": 2
         }
       ],
       "earliestYear": 2004,
-      "latestYear": 2016,
+      "latestYear": 2024,
       "yearBuckets": {
-        "2000": 5,
-        "2010": 8
+        "2000": 7,
+        "2010": 26,
+        "2020": 27
       }
     },
     {
       "sport": "Wheelchair Basketball",
       "category": "Paralympic",
-      "athleteCount": 62,
+      "season": "Summer",
+      "slug": "wheelchair-basketball",
+      "url": "https://www.teamusa.com/news/wheelchair-basketball",
+      "athleteCount": 63,
       "medaledAthleteCount": 58,
       "totalMedals": 122,
       "medalBreakdown": {
@@ -3287,8 +3226,8 @@
         "bronze": 27
       },
       "heightStats": {
-        "n": 44,
-        "meanCm": 165,
+        "n": 45,
+        "meanCm": 166,
         "medianCm": 163,
         "p10Cm": 155,
         "p90Cm": 183,
@@ -3343,6 +3282,9 @@
     {
       "sport": "Tennis",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "tennis",
+      "url": "https://www.teamusa.com/news/tennis",
       "athleteCount": 44,
       "medaledAthleteCount": 11,
       "totalMedals": 23,
@@ -3405,7 +3347,10 @@
     {
       "sport": "Goalball",
       "category": "Paralympic",
-      "athleteCount": 20,
+      "season": "Summer",
+      "slug": "goalball",
+      "url": "https://www.teamusa.com/news/goalball",
+      "athleteCount": 23,
       "medaledAthleteCount": 15,
       "totalMedals": 31,
       "medalBreakdown": {
@@ -3414,10 +3359,10 @@
         "bronze": 10
       },
       "heightStats": {
-        "n": 17,
-        "meanCm": 177,
+        "n": 20,
+        "meanCm": 176,
         "medianCm": 180,
-        "p10Cm": 163,
+        "p10Cm": 165,
         "p90Cm": 193,
         "minCm": 155,
         "maxCm": 196
@@ -3433,7 +3378,7 @@
         },
         {
           "state": "GA",
-          "count": 2
+          "count": 3
         },
         {
           "state": "FL",
@@ -3468,7 +3413,10 @@
     {
       "sport": "Judo",
       "category": "Olympic",
-      "athleteCount": 31,
+      "season": "Summer",
+      "slug": "judo",
+      "url": "https://www.teamusa.com/news/judo",
+      "athleteCount": 35,
       "medaledAthleteCount": 3,
       "totalMedals": 4,
       "medalBreakdown": {
@@ -3477,25 +3425,29 @@
         "bronze": 1
       },
       "heightStats": {
-        "n": 15,
-        "meanCm": 173,
+        "n": 16,
+        "meanCm": 172,
         "medianCm": 173,
-        "p10Cm": 160,
+        "p10Cm": 157,
         "p90Cm": 185,
         "minCm": 157,
         "maxCm": 188
       },
       "topHometownStates": [
         {
+          "state": "NJ",
+          "count": 5
+        },
+        {
           "state": "FL",
           "count": 5
         },
         {
-          "state": "NJ",
-          "count": 4
+          "state": "NY",
+          "count": 3
         },
         {
-          "state": "NY",
+          "state": "CO",
           "count": 3
         },
         {
@@ -3513,40 +3465,68 @@
         {
           "state": "GA",
           "count": 1
-        },
-        {
-          "state": "OH",
-          "count": 1
         }
       ],
       "earliestYear": 2008,
       "latestYear": 2024,
       "yearBuckets": {
         "2000": 1,
-        "2010": 10,
-        "2020": 8
+        "2010": 13,
+        "2020": 10
       }
     },
     {
       "sport": "Para Table Tennis",
-      "category": "Olympic",
-      "athleteCount": 4,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-table-tennis",
+      "url": "https://www.teamusa.com/news/para-table-tennis",
+      "athleteCount": 8,
+      "medaledAthleteCount": 3,
+      "totalMedals": 6,
       "medalBreakdown": {
-        "gold": 0,
+        "gold": 2,
         "silver": 0,
-        "bronze": 0
+        "bronze": 4
       },
-      "heightStats": null,
-      "topHometownStates": [],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
+      "heightStats": {
+        "n": 2,
+        "meanCm": 169,
+        "medianCm": 175,
+        "p10Cm": 163,
+        "p90Cm": 175,
+        "minCm": 163,
+        "maxCm": 175
+      },
+      "topHometownStates": [
+        {
+          "state": "FL",
+          "count": 2
+        },
+        {
+          "state": "NY",
+          "count": 1
+        },
+        {
+          "state": "MN",
+          "count": 1
+        }
+      ],
+      "earliestYear": 1996,
+      "latestYear": 2024,
+      "yearBuckets": {
+        "1990": 1,
+        "2000": 2,
+        "2010": 3,
+        "2020": 6
+      }
     },
     {
       "sport": "Alpine Skiing",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "alpine-skiing",
+      "url": "https://www.teamusa.com/news/alpine-skiing",
       "athleteCount": 63,
       "medaledAthleteCount": 17,
       "totalMedals": 62,
@@ -3614,6 +3594,9 @@
     {
       "sport": "Rowing",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "rowing",
+      "url": "https://www.teamusa.com/news/rowing",
       "athleteCount": 145,
       "medaledAthleteCount": 35,
       "totalMedals": 41,
@@ -3680,58 +3663,11 @@
       }
     },
     {
-      "sport": "Sitting Volleyball",
-      "category": "Olympic",
-      "athleteCount": 7,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 6,
-        "meanCm": 187,
-        "medianCm": 188,
-        "p10Cm": 175,
-        "p90Cm": 196,
-        "minCm": 175,
-        "maxCm": 196
-      },
-      "topHometownStates": [
-        {
-          "state": "KY",
-          "count": 1
-        },
-        {
-          "state": "CO",
-          "count": 1
-        },
-        {
-          "state": "NE",
-          "count": 1
-        },
-        {
-          "state": "TX",
-          "count": 1
-        },
-        {
-          "state": "WA",
-          "count": 1
-        },
-        {
-          "state": "IL",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Skateboarding",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "skateboarding",
+      "url": "https://www.teamusa.com/news/skateboarding",
       "athleteCount": 29,
       "medaledAthleteCount": 4,
       "totalMedals": 5,
@@ -3782,64 +3718,12 @@
       }
     },
     {
-      "sport": "Triathlon",
-      "category": "Paralympic",
-      "athleteCount": 7,
-      "medaledAthleteCount": 2,
-      "totalMedals": 10,
-      "medalBreakdown": {
-        "gold": 6,
-        "silver": 3,
-        "bronze": 1
-      },
-      "heightStats": {
-        "n": 5,
-        "meanCm": 166,
-        "medianCm": 163,
-        "p10Cm": 155,
-        "p90Cm": 175,
-        "minCm": 155,
-        "maxCm": 175
-      },
-      "topHometownStates": [
-        {
-          "state": "GA",
-          "count": 2
-        },
-        {
-          "state": "CA",
-          "count": 1
-        },
-        {
-          "state": "NJ",
-          "count": 1
-        },
-        {
-          "state": "NY",
-          "count": 1
-        },
-        {
-          "state": "FL",
-          "count": 1
-        },
-        {
-          "state": "TX",
-          "count": 1
-        }
-      ],
-      "earliestYear": 1992,
-      "latestYear": 2020,
-      "yearBuckets": {
-        "1990": 2,
-        "2000": 2,
-        "2010": 7,
-        "2020": 4
-      }
-    },
-    {
       "sport": "Wheelchair Tennis",
       "category": "Paralympic",
-      "athleteCount": 12,
+      "season": "Summer",
+      "slug": "wheelchair-tennis",
+      "url": "https://www.teamusa.com/news/wheelchair-tennis",
+      "athleteCount": 13,
       "medaledAthleteCount": 3,
       "totalMedals": 16,
       "medalBreakdown": {
@@ -3848,9 +3732,9 @@
         "bronze": 4
       },
       "heightStats": {
-        "n": 9,
-        "meanCm": 170,
-        "medianCm": 170,
+        "n": 10,
+        "meanCm": 171,
+        "medianCm": 178,
         "p10Cm": 152,
         "p90Cm": 183,
         "minCm": 152,
@@ -3902,7 +3786,10 @@
     {
       "sport": "Para Alpine Skiing",
       "category": "Paralympic",
-      "athleteCount": 46,
+      "season": "Winter",
+      "slug": "para-alpine-skiing",
+      "url": "https://www.teamusa.com/news/para-alpine-skiing",
+      "athleteCount": 55,
       "medaledAthleteCount": 14,
       "totalMedals": 39,
       "medalBreakdown": {
@@ -3911,8 +3798,8 @@
         "bronze": 16
       },
       "heightStats": {
-        "n": 41,
-        "meanCm": 170,
+        "n": 42,
+        "meanCm": 169,
         "medianCm": 175,
         "p10Cm": 155,
         "p90Cm": 185,
@@ -3922,11 +3809,11 @@
       "topHometownStates": [
         {
           "state": "CO",
-          "count": 11
+          "count": 14
         },
         {
           "state": "UT",
-          "count": 5
+          "count": 6
         },
         {
           "state": "WA",
@@ -3949,7 +3836,7 @@
           "count": 2
         },
         {
-          "state": "NY",
+          "state": "OR",
           "count": 2
         }
       ],
@@ -3964,6 +3851,9 @@
     {
       "sport": "Roller Sports",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "roller-sports",
+      "url": "https://www.teamusa.com/news/roller-sports",
       "athleteCount": 16,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -4004,71 +3894,12 @@
       "yearBuckets": {}
     },
     {
-      "sport": "Sailing",
-      "category": "Olympic",
-      "athleteCount": 54,
-      "medaledAthleteCount": 3,
-      "totalMedals": 3,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 3
-      },
-      "heightStats": {
-        "n": 46,
-        "meanCm": 175,
-        "medianCm": 175,
-        "p10Cm": 163,
-        "p90Cm": 188,
-        "minCm": 157,
-        "maxCm": 191
-      },
-      "topHometownStates": [
-        {
-          "state": "FL",
-          "count": 14
-        },
-        {
-          "state": "CA",
-          "count": 9
-        },
-        {
-          "state": "TX",
-          "count": 5
-        },
-        {
-          "state": "VI",
-          "count": 2
-        },
-        {
-          "state": "RI",
-          "count": 2
-        },
-        {
-          "state": "NY",
-          "count": 2
-        },
-        {
-          "state": "WI",
-          "count": 2
-        },
-        {
-          "state": "MD",
-          "count": 2
-        }
-      ],
-      "earliestYear": 2008,
-      "latestYear": 2024,
-      "yearBuckets": {
-        "2000": 2,
-        "2010": 18,
-        "2020": 27
-      }
-    },
-    {
       "sport": "Paratriathlon",
       "category": "Paralympic",
-      "athleteCount": 18,
+      "season": "Summer",
+      "slug": "paratriathlon",
+      "url": "https://www.teamusa.com/news/paratriathlon",
+      "athleteCount": 19,
       "medaledAthleteCount": 9,
       "totalMedals": 27,
       "medalBreakdown": {
@@ -4130,6 +3961,9 @@
     {
       "sport": "3x3 Basketball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "3x3-basketball",
+      "url": "https://www.teamusa.com/news/3x3-basketball",
       "athleteCount": 6,
       "medaledAthleteCount": 4,
       "totalMedals": 4,
@@ -4182,7 +4016,10 @@
     {
       "sport": "Para-Cycling",
       "category": "Paralympic",
-      "athleteCount": 58,
+      "season": "Summer",
+      "slug": "para-cycling",
+      "url": "https://www.teamusa.com/news/para-cycling",
+      "athleteCount": 73,
       "medaledAthleteCount": 30,
       "totalMedals": 104,
       "medalBreakdown": {
@@ -4191,46 +4028,46 @@
         "bronze": 32
       },
       "heightStats": {
-        "n": 35,
-        "meanCm": 176,
+        "n": 46,
+        "meanCm": 175,
         "medianCm": 175,
-        "p10Cm": 163,
-        "p90Cm": 188,
-        "minCm": 157,
+        "p10Cm": 160,
+        "p90Cm": 185,
+        "minCm": 150,
         "maxCm": 198
       },
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 7
+          "count": 8
+        },
+        {
+          "state": "CO",
+          "count": 6
         },
         {
           "state": "WA",
           "count": 5
         },
         {
-          "state": "NY",
+          "state": "AZ",
           "count": 4
         },
         {
-          "state": "CO",
-          "count": 3
+          "state": "NY",
+          "count": 4
         },
         {
           "state": "MI",
           "count": 3
         },
         {
-          "state": "PA",
+          "state": "OR",
           "count": 3
         },
         {
-          "state": "OR",
-          "count": 2
-        },
-        {
-          "state": "AZ",
-          "count": 2
+          "state": "PA",
+          "count": 3
         }
       ],
       "earliestYear": 2000,
@@ -4244,6 +4081,9 @@
     {
       "sport": "Equestrian",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "equestrian",
+      "url": "https://www.teamusa.com/news/equestrian",
       "athleteCount": 40,
       "medaledAthleteCount": 16,
       "totalMedals": 36,
@@ -4310,7 +4150,10 @@
     {
       "sport": "Sled Hockey",
       "category": "Paralympic",
-      "athleteCount": 33,
+      "season": "Winter",
+      "slug": "sled-hockey",
+      "url": "https://www.teamusa.com/news/sled-hockey",
+      "athleteCount": 36,
       "medaledAthleteCount": 33,
       "totalMedals": 80,
       "medalBreakdown": {
@@ -4319,7 +4162,7 @@
         "bronze": 5
       },
       "heightStats": {
-        "n": 33,
+        "n": 36,
         "meanCm": 169,
         "medianCm": 175,
         "p10Cm": 140,
@@ -4372,6 +4215,9 @@
     {
       "sport": "Ski Jumping",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "ski-jumping",
+      "url": "https://www.teamusa.com/news/ski-jumping",
       "athleteCount": 24,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -4426,6 +4272,9 @@
     {
       "sport": "Beach Volleyball",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "beach-volleyball",
+      "url": "https://www.teamusa.com/news/beach-volleyball",
       "athleteCount": 12,
       "medaledAthleteCount": 4,
       "totalMedals": 10,
@@ -4470,7 +4319,10 @@
     {
       "sport": "Para Archery",
       "category": "Paralympic",
-      "athleteCount": 16,
+      "season": "Summer",
+      "slug": "para-archery",
+      "url": "https://www.teamusa.com/news/para-archery",
+      "athleteCount": 21,
       "medaledAthleteCount": 8,
       "totalMedals": 17,
       "medalBreakdown": {
@@ -4479,18 +4331,18 @@
         "bronze": 7
       },
       "heightStats": {
-        "n": 4,
-        "meanCm": 174,
+        "n": 5,
+        "meanCm": 177,
         "medianCm": 183,
         "p10Cm": 157,
-        "p90Cm": 188,
+        "p90Cm": 191,
         "minCm": 157,
-        "maxCm": 188
+        "maxCm": 191
       },
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 2
+          "count": 3
         },
         {
           "state": "FL",
@@ -4513,11 +4365,11 @@
           "count": 1
         },
         {
-          "state": "PA",
+          "state": "NY",
           "count": 1
         },
         {
-          "state": "IN",
+          "state": "PA",
           "count": 1
         }
       ],
@@ -4535,6 +4387,9 @@
     {
       "sport": "Nordic Combined",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "nordic-combined",
+      "url": "https://www.teamusa.com/news/nordic-combined",
       "athleteCount": 11,
       "medaledAthleteCount": 2,
       "totalMedals": 3,
@@ -4580,66 +4435,11 @@
       }
     },
     {
-      "sport": "Para-Cycling",
-      "category": "Olympic",
-      "athleteCount": 15,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 11,
-        "meanCm": 172,
-        "medianCm": 175,
-        "p10Cm": 155,
-        "p90Cm": 183,
-        "minCm": 150,
-        "maxCm": 185
-      },
-      "topHometownStates": [
-        {
-          "state": "CO",
-          "count": 3
-        },
-        {
-          "state": "AZ",
-          "count": 2
-        },
-        {
-          "state": "OH",
-          "count": 2
-        },
-        {
-          "state": "IN",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        },
-        {
-          "state": "CA",
-          "count": 1
-        },
-        {
-          "state": "LA",
-          "count": 1
-        },
-        {
-          "state": "OR",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Golf",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "golf",
+      "url": "https://www.teamusa.com/news/golf",
       "athleteCount": 27,
       "medaledAthleteCount": 4,
       "totalMedals": 4,
@@ -4701,6 +4501,9 @@
     {
       "sport": "Bowling",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "bowling",
+      "url": "https://www.teamusa.com/news/bowling",
       "athleteCount": 9,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -4755,18 +4558,21 @@
     {
       "sport": "Wheelchair Curling",
       "category": "Paralympic",
-      "athleteCount": 13,
-      "medaledAthleteCount": 1,
-      "totalMedals": 1,
+      "season": "Winter",
+      "slug": "wheelchair-curling",
+      "url": "https://www.teamusa.com/news/wheelchair-curling",
+      "athleteCount": 17,
+      "medaledAthleteCount": 2,
+      "totalMedals": 4,
       "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
+        "gold": 2,
+        "silver": 1,
         "bronze": 1
       },
       "heightStats": {
-        "n": 6,
+        "n": 7,
         "meanCm": 177,
-        "medianCm": 183,
+        "medianCm": 180,
         "p10Cm": 140,
         "p90Cm": 196,
         "minCm": 140,
@@ -4775,7 +4581,11 @@
       "topHometownStates": [
         {
           "state": "WI",
-          "count": 7
+          "count": 8
+        },
+        {
+          "state": "MA",
+          "count": 2
         },
         {
           "state": "TX",
@@ -4783,10 +4593,6 @@
         },
         {
           "state": "NY",
-          "count": 1
-        },
-        {
-          "state": "MA",
           "count": 1
         },
         {
@@ -4798,13 +4604,19 @@
           "count": 1
         },
         {
+          "state": "MT",
+          "count": 1
+        },
+        {
           "state": "CO",
           "count": 1
         }
       ],
-      "earliestYear": 2004,
+      "earliestYear": 1912,
       "latestYear": 2026,
       "yearBuckets": {
+        "1910": 1,
+        "1920": 1,
         "2000": 3,
         "2010": 7,
         "2020": 10
@@ -4813,6 +4625,9 @@
     {
       "sport": "Squash",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "squash",
+      "url": "https://www.teamusa.com/news/squash",
       "athleteCount": 8,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -4847,7 +4662,10 @@
     {
       "sport": "Para Powerlifting",
       "category": "Paralympic",
-      "athleteCount": 2,
+      "season": "Summer",
+      "slug": "para-powerlifting",
+      "url": "https://www.teamusa.com/news/para-powerlifting",
+      "athleteCount": 5,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
       "medalBreakdown": {
@@ -4855,14 +4673,30 @@
         "silver": 0,
         "bronze": 0
       },
-      "heightStats": null,
+      "heightStats": {
+        "n": 3,
+        "meanCm": 170,
+        "medianCm": 175,
+        "p10Cm": 160,
+        "p90Cm": 175,
+        "minCm": 160,
+        "maxCm": 175
+      },
       "topHometownStates": [
+        {
+          "state": "FL",
+          "count": 2
+        },
         {
           "state": "MI",
           "count": 1
         },
         {
           "state": "CA",
+          "count": 1
+        },
+        {
+          "state": "LA",
           "count": 1
         }
       ],
@@ -4875,6 +4709,9 @@
     {
       "sport": "Wheelchair Fencing",
       "category": "Paralympic",
+      "season": "Summer",
+      "slug": "wheelchair-fencing",
+      "url": "https://www.teamusa.com/news/wheelchair-fencing",
       "athleteCount": 11,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -4937,6 +4774,9 @@
     {
       "sport": "Luge",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "luge",
+      "url": "https://www.teamusa.com/news/luge",
       "athleteCount": 25,
       "medaledAthleteCount": 3,
       "totalMedals": 3,
@@ -4995,7 +4835,10 @@
     {
       "sport": "Para-Rowing",
       "category": "Paralympic",
-      "athleteCount": 25,
+      "season": "Summer",
+      "slug": "para-rowing",
+      "url": "https://www.teamusa.com/news/para-rowing",
+      "athleteCount": 26,
       "medaledAthleteCount": 16,
       "totalMedals": 40,
       "medalBreakdown": {
@@ -5004,7 +4847,7 @@
         "bronze": 4
       },
       "heightStats": {
-        "n": 23,
+        "n": 24,
         "meanCm": 178,
         "medianCm": 178,
         "p10Cm": 163,
@@ -5015,7 +4858,7 @@
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 4
+          "count": 5
         },
         {
           "state": "MA",
@@ -5057,6 +4900,9 @@
     {
       "sport": "Para Biathlon",
       "category": "Paralympic",
+      "season": "Winter",
+      "slug": "para-biathlon",
+      "url": "https://www.teamusa.com/news/para-biathlon",
       "athleteCount": 4,
       "medaledAthleteCount": 2,
       "totalMedals": 35,
@@ -5100,123 +4946,11 @@
       }
     },
     {
-      "sport": "Track and Field",
-      "category": "Paralympic",
-      "athleteCount": 2,
-      "medaledAthleteCount": 1,
-      "totalMedals": 12,
-      "medalBreakdown": {
-        "gold": 8,
-        "silver": 2,
-        "bronze": 2
-      },
-      "heightStats": null,
-      "topHometownStates": [],
-      "earliestYear": 1980,
-      "latestYear": 2008,
-      "yearBuckets": {
-        "1980": 2,
-        "1990": 3,
-        "2000": 4
-      }
-    },
-    {
-      "sport": "Para Nordic Skiing",
-      "category": "Olympic",
-      "athleteCount": 8,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 4,
-        "meanCm": 181,
-        "medianCm": 183,
-        "p10Cm": 173,
-        "p90Cm": 193,
-        "minCm": 173,
-        "maxCm": 193
-      },
-      "topHometownStates": [
-        {
-          "state": "MT",
-          "count": 2
-        },
-        {
-          "state": "MI",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        },
-        {
-          "state": "ID",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Wheelchair Basketball",
-      "category": "Olympic",
-      "athleteCount": 1,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 180,
-        "medianCm": 180,
-        "p10Cm": 180,
-        "p90Cm": 180,
-        "minCm": 180,
-        "maxCm": 180
-      },
-      "topHometownStates": [
-        {
-          "state": "GA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Para Shooting",
-      "category": "Olympic",
-      "athleteCount": 1,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": null,
-      "topHometownStates": [
-        {
-          "state": "TX",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Breaking",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "breaking",
+      "url": "https://www.teamusa.com/news/breaking",
       "athleteCount": 13,
       "medaledAthleteCount": 1,
       "totalMedals": 1,
@@ -5275,46 +5009,11 @@
       }
     },
     {
-      "sport": "Para Archery",
-      "category": "Olympic",
-      "athleteCount": 5,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 191,
-        "medianCm": 191,
-        "p10Cm": 191,
-        "p90Cm": 191,
-        "minCm": 191,
-        "maxCm": 191
-      },
-      "topHometownStates": [
-        {
-          "state": "CA",
-          "count": 1
-        },
-        {
-          "state": "NY",
-          "count": 1
-        },
-        {
-          "state": "SC",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Badminton",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "badminton",
+      "url": "https://www.teamusa.com/news/badminton",
       "athleteCount": 18,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -5355,43 +5054,12 @@
       }
     },
     {
-      "sport": "Wheelchair Rugby",
-      "category": "Olympic",
-      "athleteCount": 2,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 2,
-        "meanCm": 184,
-        "medianCm": 185,
-        "p10Cm": 183,
-        "p90Cm": 185,
-        "minCm": 183,
-        "maxCm": 185
-      },
-      "topHometownStates": [
-        {
-          "state": "HI",
-          "count": 1
-        },
-        {
-          "state": "GA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Para Judo",
       "category": "Paralympic",
-      "athleteCount": 7,
+      "season": "Summer",
+      "slug": "para-judo",
+      "url": "https://www.teamusa.com/news/para-judo",
+      "athleteCount": 11,
       "medaledAthleteCount": 5,
       "totalMedals": 7,
       "medalBreakdown": {
@@ -5400,18 +5068,18 @@
         "bronze": 4
       },
       "heightStats": {
-        "n": 6,
-        "meanCm": 172,
+        "n": 9,
+        "meanCm": 171,
         "medianCm": 173,
-        "p10Cm": 155,
+        "p10Cm": 152,
         "p90Cm": 188,
-        "minCm": 155,
+        "minCm": 152,
         "maxCm": 188
       },
       "topHometownStates": [
         {
           "state": "CA",
-          "count": 2
+          "count": 3
         },
         {
           "state": "IL",
@@ -5423,6 +5091,14 @@
         },
         {
           "state": "MN",
+          "count": 1
+        },
+        {
+          "state": "MO",
+          "count": 1
+        },
+        {
+          "state": "PA",
           "count": 1
         },
         {
@@ -5445,6 +5121,9 @@
     {
       "sport": "Sport Climbing",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "sport-climbing",
+      "url": "https://www.teamusa.com/news/sport-climbing",
       "athleteCount": 10,
       "medaledAthleteCount": 3,
       "totalMedals": 3,
@@ -5505,6 +5184,9 @@
     {
       "sport": "Para-Equestrian",
       "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-equestrian",
+      "url": "https://www.teamusa.com/news/para-equestrian",
       "athleteCount": 11,
       "medaledAthleteCount": 4,
       "totalMedals": 14,
@@ -5563,6 +5245,9 @@
     {
       "sport": "Artistic Gymnastics",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "artistic-gymnastics",
+      "url": "https://www.teamusa.com/news/artistic-gymnastics",
       "athleteCount": 6,
       "medaledAthleteCount": 5,
       "totalMedals": 22,
@@ -5616,143 +5301,11 @@
       }
     },
     {
-      "sport": "Sled Hockey",
-      "category": "Olympic",
-      "athleteCount": 3,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 3,
-        "meanCm": 174,
-        "medianCm": 175,
-        "p10Cm": 168,
-        "p90Cm": 180,
-        "minCm": 168,
-        "maxCm": 180
-      },
-      "topHometownStates": [
-        {
-          "state": "WI",
-          "count": 1
-        },
-        {
-          "state": "OH",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Judo",
-      "category": "Paralympic",
-      "athleteCount": 4,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 157,
-        "medianCm": 157,
-        "p10Cm": 157,
-        "p90Cm": 157,
-        "minCm": 157,
-        "maxCm": 157
-      },
-      "topHometownStates": [
-        {
-          "state": "CO",
-          "count": 2
-        },
-        {
-          "state": "CA",
-          "count": 1
-        },
-        {
-          "state": "NJ",
-          "count": 1
-        }
-      ],
-      "earliestYear": 2012,
-      "latestYear": 2020,
-      "yearBuckets": {
-        "2010": 3,
-        "2020": 2
-      }
-    },
-    {
-      "sport": "Table Tennis",
-      "category": "Paralympic",
-      "athleteCount": 9,
-      "medaledAthleteCount": 6,
-      "totalMedals": 14,
-      "medalBreakdown": {
-        "gold": 4,
-        "silver": 2,
-        "bronze": 8
-      },
-      "heightStats": {
-        "n": 6,
-        "meanCm": 172,
-        "medianCm": 178,
-        "p10Cm": 157,
-        "p90Cm": 188,
-        "minCm": 157,
-        "maxCm": 188
-      },
-      "topHometownStates": [
-        {
-          "state": "CA",
-          "count": 2
-        },
-        {
-          "state": "TX",
-          "count": 2
-        },
-        {
-          "state": "NY",
-          "count": 1
-        },
-        {
-          "state": "PA",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        },
-        {
-          "state": "FL",
-          "count": 1
-        }
-      ],
-      "earliestYear": 1984,
-      "latestYear": 2020,
-      "yearBuckets": {
-        "1980": 3,
-        "1990": 8,
-        "2000": 9,
-        "2010": 3,
-        "2020": 1
-      }
-    },
-    {
       "sport": "Ski Mountaineering",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "ski-mountaineering",
+      "url": "https://www.teamusa.com/news/ski-mountaineering",
       "athleteCount": 15,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -5801,55 +5354,12 @@
       "yearBuckets": {}
     },
     {
-      "sport": "Para Alpine Skiing",
-      "category": "Olympic",
-      "athleteCount": 9,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 145,
-        "medianCm": 145,
-        "p10Cm": 145,
-        "p90Cm": 145,
-        "minCm": 145,
-        "maxCm": 145
-      },
-      "topHometownStates": [
-        {
-          "state": "CO",
-          "count": 3
-        },
-        {
-          "state": "MN",
-          "count": 1
-        },
-        {
-          "state": "UT",
-          "count": 1
-        },
-        {
-          "state": "NJ",
-          "count": 1
-        },
-        {
-          "state": "OR",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Paracanoe",
       "category": "Paralympic",
-      "athleteCount": 3,
+      "season": "Summer",
+      "slug": "paracanoe",
+      "url": "https://www.teamusa.com/news/paracanoe",
+      "athleteCount": 5,
       "medaledAthleteCount": 2,
       "totalMedals": 5,
       "medalBreakdown": {
@@ -5858,12 +5368,12 @@
         "bronze": 1
       },
       "heightStats": {
-        "n": 1,
-        "meanCm": 191,
+        "n": 2,
+        "meanCm": 190,
         "medianCm": 191,
-        "p10Cm": 191,
+        "p10Cm": 188,
         "p90Cm": 191,
-        "minCm": 191,
+        "minCm": 188,
         "maxCm": 191
       },
       "topHometownStates": [
@@ -5873,6 +5383,10 @@
         },
         {
           "state": "OH",
+          "count": 1
+        },
+        {
+          "state": "HI",
           "count": 1
         },
         {
@@ -5889,8 +5403,11 @@
     },
     {
       "sport": "Boccia",
-      "category": "Olympic",
-      "athleteCount": 5,
+      "category": "Paralympic",
+      "season": "Summer",
+      "slug": "boccia",
+      "url": "https://www.teamusa.com/news/boccia",
+      "athleteCount": 8,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
       "medalBreakdown": {
@@ -5899,127 +5416,25 @@
         "bronze": 0
       },
       "heightStats": {
-        "n": 5,
-        "meanCm": 167,
+        "n": 7,
+        "meanCm": 165,
         "medianCm": 170,
-        "p10Cm": 155,
+        "p10Cm": 152,
         "p90Cm": 175,
-        "minCm": 155,
+        "minCm": 152,
         "maxCm": 175
       },
       "topHometownStates": [
+        {
+          "state": "NY",
+          "count": 2
+        },
         {
           "state": "IL",
           "count": 2
         },
         {
-          "state": "NY",
-          "count": 1
-        },
-        {
           "state": "OH",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Para Snowboarding",
-      "category": "Olympic",
-      "athleteCount": 2,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": null,
-      "topHometownStates": [],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Paratriathlon",
-      "category": "Olympic",
-      "athleteCount": 1,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": null,
-      "topHometownStates": [],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Para Judo",
-      "category": "Olympic",
-      "athleteCount": 4,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 3,
-        "meanCm": 169,
-        "medianCm": 175,
-        "p10Cm": 152,
-        "p90Cm": 180,
-        "minCm": 152,
-        "maxCm": 180
-      },
-      "topHometownStates": [
-        {
-          "state": "MO",
-          "count": 1
-        },
-        {
-          "state": "PA",
-          "count": 1
-        },
-        {
-          "state": "CA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Boccia",
-      "category": "Paralympic",
-      "athleteCount": 3,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 2,
-        "meanCm": 161,
-        "medianCm": 170,
-        "p10Cm": 152,
-        "p90Cm": 170,
-        "minCm": 152,
-        "maxCm": 170
-      },
-      "topHometownStates": [
-        {
-          "state": "NY",
           "count": 1
         }
       ],
@@ -6034,6 +5449,9 @@
     {
       "sport": "Short Track Speedskating",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "short-track-speedskating",
+      "url": "https://www.teamusa.com/news/short-track-speedskating",
       "athleteCount": 6,
       "medaledAthleteCount": 1,
       "totalMedals": 1,
@@ -6080,33 +5498,11 @@
       }
     },
     {
-      "sport": "Wheelchair Tennis",
-      "category": "Olympic",
-      "athleteCount": 1,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 178,
-        "medianCm": 178,
-        "p10Cm": 178,
-        "p90Cm": 178,
-        "minCm": 178,
-        "maxCm": 178
-      },
-      "topHometownStates": [],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Basque Pelota",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "basque-pelota",
+      "url": "https://www.teamusa.com/news/basque-pelota",
       "athleteCount": 1,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -6130,72 +5526,11 @@
       "yearBuckets": {}
     },
     {
-      "sport": "Para Taekwondo",
-      "category": "Olympic",
-      "athleteCount": 2,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 2,
-        "meanCm": 179,
-        "medianCm": 183,
-        "p10Cm": 175,
-        "p90Cm": 183,
-        "minCm": 175,
-        "maxCm": 183
-      },
-      "topHometownStates": [
-        {
-          "state": "NC",
-          "count": 1
-        },
-        {
-          "state": "MI",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Para-Rowing",
-      "category": "Olympic",
-      "athleteCount": 1,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 178,
-        "medianCm": 178,
-        "p10Cm": 178,
-        "p90Cm": 178,
-        "minCm": 178,
-        "maxCm": 178
-      },
-      "topHometownStates": [
-        {
-          "state": "CA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Para Badminton",
       "category": "Paralympic",
+      "season": "Summer",
+      "slug": "para-badminton",
+      "url": "https://www.teamusa.com/news/para-badminton",
       "athleteCount": 2,
       "medaledAthleteCount": 2,
       "totalMedals": 2,
@@ -6230,89 +5565,11 @@
       }
     },
     {
-      "sport": "Goalball",
-      "category": "Olympic",
-      "athleteCount": 3,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 3,
-        "meanCm": 173,
-        "medianCm": 170,
-        "p10Cm": 165,
-        "p90Cm": 183,
-        "minCm": 165,
-        "maxCm": 183
-      },
-      "topHometownStates": [
-        {
-          "state": "GA",
-          "count": 1
-        },
-        {
-          "state": "NY",
-          "count": 1
-        },
-        {
-          "state": "AL",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Para Table Tennis",
-      "category": "Paralympic",
-      "athleteCount": 4,
-      "medaledAthleteCount": 3,
-      "totalMedals": 6,
-      "medalBreakdown": {
-        "gold": 2,
-        "silver": 0,
-        "bronze": 4
-      },
-      "heightStats": {
-        "n": 2,
-        "meanCm": 169,
-        "medianCm": 175,
-        "p10Cm": 163,
-        "p90Cm": 175,
-        "minCm": 163,
-        "maxCm": 175
-      },
-      "topHometownStates": [
-        {
-          "state": "FL",
-          "count": 2
-        },
-        {
-          "state": "NY",
-          "count": 1
-        },
-        {
-          "state": "MN",
-          "count": 1
-        }
-      ],
-      "earliestYear": 1996,
-      "latestYear": 2024,
-      "yearBuckets": {
-        "1990": 1,
-        "2000": 2,
-        "2010": 3,
-        "2020": 6
-      }
-    },
-    {
       "sport": "Rifle Shooting",
       "category": "Olympic",
+      "season": "Summer",
+      "slug": "rifle-shooting",
+      "url": "https://www.teamusa.com/news/rifle-shooting",
       "athleteCount": 2,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
@@ -6345,180 +5602,11 @@
       "yearBuckets": {}
     },
     {
-      "sport": "Soccer 7-A-Side",
-      "category": "Olympic",
-      "athleteCount": 2,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 2,
-        "meanCm": 186,
-        "medianCm": 188,
-        "p10Cm": 183,
-        "p90Cm": 188,
-        "minCm": 183,
-        "maxCm": 188
-      },
-      "topHometownStates": [
-        {
-          "state": "CO",
-          "count": 1
-        },
-        {
-          "state": "GA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Wheelchair Curling",
-      "category": "Olympic",
-      "athleteCount": 4,
-      "medaledAthleteCount": 1,
-      "totalMedals": 3,
-      "medalBreakdown": {
-        "gold": 2,
-        "silver": 1,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 180,
-        "medianCm": 180,
-        "p10Cm": 180,
-        "p90Cm": 180,
-        "minCm": 180,
-        "maxCm": 180
-      },
-      "topHometownStates": [
-        {
-          "state": "MA",
-          "count": 1
-        },
-        {
-          "state": "WI",
-          "count": 1
-        },
-        {
-          "state": "MT",
-          "count": 1
-        }
-      ],
-      "earliestYear": 1912,
-      "latestYear": 1920,
-      "yearBuckets": {
-        "1910": 1,
-        "1920": 1
-      }
-    },
-    {
-      "sport": "Paracanoe",
-      "category": "Olympic",
-      "athleteCount": 2,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 188,
-        "medianCm": 188,
-        "p10Cm": 188,
-        "p90Cm": 188,
-        "minCm": 188,
-        "maxCm": 188
-      },
-      "topHometownStates": [
-        {
-          "state": "HI",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
-      "sport": "Swimming",
-      "category": "Paralympic",
-      "athleteCount": 1,
-      "medaledAthleteCount": 1,
-      "totalMedals": 1,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 1
-      },
-      "heightStats": {
-        "n": 1,
-        "meanCm": 163,
-        "medianCm": 163,
-        "p10Cm": 163,
-        "p90Cm": 163,
-        "minCm": 163,
-        "maxCm": 163
-      },
-      "topHometownStates": [
-        {
-          "state": "PA",
-          "count": 1
-        }
-      ],
-      "earliestYear": 2008,
-      "latestYear": 2012,
-      "yearBuckets": {
-        "2000": 1,
-        "2010": 1
-      }
-    },
-    {
-      "sport": "Para Powerlifting",
-      "category": "Olympic",
-      "athleteCount": 3,
-      "medaledAthleteCount": 0,
-      "totalMedals": 0,
-      "medalBreakdown": {
-        "gold": 0,
-        "silver": 0,
-        "bronze": 0
-      },
-      "heightStats": {
-        "n": 3,
-        "meanCm": 170,
-        "medianCm": 175,
-        "p10Cm": 160,
-        "p90Cm": 175,
-        "minCm": 160,
-        "maxCm": 175
-      },
-      "topHometownStates": [
-        {
-          "state": "FL",
-          "count": 2
-        },
-        {
-          "state": "LA",
-          "count": 1
-        }
-      ],
-      "earliestYear": null,
-      "latestYear": null,
-      "yearBuckets": {}
-    },
-    {
       "sport": "Speed Skating",
       "category": "Olympic",
+      "season": "Winter",
+      "slug": "speed-skating",
+      "url": "https://www.teamusa.com/news/speed-skating",
       "athleteCount": 1,
       "medaledAthleteCount": 0,
       "totalMedals": 0,
