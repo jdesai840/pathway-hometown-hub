@@ -1,25 +1,20 @@
 import { useEffect } from "react";
 import { useApp } from "./store.js";
-import { fetchArchetypes, fetchSportCatalog } from "./lib/api.js";
+import { fetchHubs, fetchSportCatalog } from "./lib/api.js";
 import Intro from "./components/Intro.jsx";
-import Capture from "./components/Capture.jsx";
-import Questions from "./components/Questions.jsx";
-import Results from "./components/Results.jsx";
-import SpatialScene from "./components/SpatialScene.jsx";
-import EnterSpatialButton from "./components/EnterSpatialButton.jsx";
+import MapExplorer from "./components/MapExplorer.jsx";
 
 export default function App() {
   const step = useApp((s) => s.step);
-  const setArchetypes = useApp((s) => s.setArchetypes);
-  const setSportCatalog = useApp((s) => s.setSportCatalog);
-  const archetypes = useApp((s) => s.archetypes);
+  const hubsDoc = useApp((s) => s.hubsDoc);
   const sportCatalog = useApp((s) => s.sportCatalog);
-  const matches = useApp((s) => s.matches);
+  const setHubsDoc = useApp((s) => s.setHubsDoc);
+  const setSportCatalog = useApp((s) => s.setSportCatalog);
 
   useEffect(() => {
-    if (!archetypes) fetchArchetypes().then(setArchetypes).catch(console.error);
+    if (!hubsDoc) fetchHubs().then(setHubsDoc).catch(console.error);
     if (!sportCatalog) fetchSportCatalog().then(setSportCatalog).catch(console.error);
-  }, [archetypes, sportCatalog, setArchetypes, setSportCatalog]);
+  }, [hubsDoc, sportCatalog, setHubsDoc, setSportCatalog]);
 
   return (
     <div className="min-h-full">
@@ -29,26 +24,14 @@ export default function App() {
       >
         Skip to main content
       </a>
-      <header className="px-6 py-4 flex items-center justify-between border-b border-slate-800">
-        <p className="font-bold tracking-tight">Find Your Archetype</p>
-        <p className="text-xs text-slate-400">Olympic &amp; Paralympic — equally</p>
+      <header className="px-6 py-3 flex items-center justify-between border-b border-slate-800 h-14">
+        <p className="font-bold tracking-tight">Hometown Hubs · Team USA</p>
+        <p className="text-xs text-slate-400">Olympic &amp; Paralympic — equally · Powered by Gemini</p>
       </header>
 
       <div id="main">
         {step === "intro" && <Intro />}
-        {step === "capture" && <Capture />}
-        {step === "questions" && <Questions />}
-        {step === "results" && (
-          <>
-            <Results />
-            {matches && (
-              <div className="h-[60vh] mt-2" aria-label="3D archetype scene">
-                <SpatialScene />
-              </div>
-            )}
-            <EnterSpatialButton />
-          </>
-        )}
+        {step === "explore" && <MapExplorer />}
       </div>
     </div>
   );

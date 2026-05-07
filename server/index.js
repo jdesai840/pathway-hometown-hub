@@ -1,19 +1,21 @@
 import express from "express";
 import cors from "cors";
-import { archetypeMatch } from "./routes/archetypeMatch.js";
+import { geoQuery } from "./routes/geoQuery.js";
+import { voiceQuery } from "./routes/voiceQuery.js";
 import { narrate } from "./routes/narrate.js";
-import { getArchetypes } from "./routes/getArchetypes.js";
+import { getHubs } from "./routes/getHubs.js";
 import { getSportCatalog } from "./routes/getSportCatalog.js";
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: "5mb" }));
+app.use(express.json({ limit: "20mb" })); // generous for inline audio uploads
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-app.get("/api/archetypes", getArchetypes);
+app.get("/api/hubs", getHubs);
 app.get("/api/sport-catalog", getSportCatalog);
-app.post("/api/archetype-match", archetypeMatch);
+app.post("/api/geo-query", geoQuery);
+app.post("/api/voice-query", voiceQuery);
 app.post("/api/narrate", narrate);
 
 const port = Number(process.env.PORT) || 8080;

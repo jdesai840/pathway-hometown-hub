@@ -8,9 +8,9 @@ async function postJSON(path, body) {
   return res.json();
 }
 
-export async function fetchArchetypes() {
-  const res = await fetch("/api/archetypes");
-  if (!res.ok) throw new Error(`/api/archetypes ${res.status}`);
+export async function fetchHubs() {
+  const res = await fetch("/api/hubs");
+  if (!res.ok) throw new Error(`/api/hubs ${res.status}`);
   return res.json();
 }
 
@@ -20,10 +20,14 @@ export async function fetchSportCatalog() {
   return res.json();
 }
 
-export function postArchetypeMatch({ biometrics, transcript }) {
-  return postJSON("/api/archetype-match", { biometrics, transcript });
+export function postGeoQuery({ question }) {
+  return postJSON("/api/geo-query", { question });
 }
 
-export function postNarrate({ archetypeId, sketchPngBase64 }) {
-  return postJSON("/api/narrate", { archetypeId, sketchPngBase64 });
+export function postVoiceQuery({ audioBase64, mimeType }) {
+  return postJSON("/api/voice-query", { audioBase64, mimeType });
+}
+
+export function postNarrate({ state, sport }) {
+  return postJSON("/api/narrate", { state, sport });
 }
