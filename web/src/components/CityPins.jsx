@@ -8,8 +8,9 @@ import { latLngToECEF } from "../lib/ecef.js";
 
 const DEG2RAD = Math.PI / 180;
 
-// How many cities (by athlete count) get a visible HTML label by default.
-const TOP_LABEL_COUNT = 40;
+// When NO sport filter is active, label this many top cities by athlete count.
+// When a sport IS filtered, every visible city gets a label (usually < 50).
+const NO_FILTER_LABEL_COUNT = 60;
 
 // Reference camera-to-pin distance at which the pin renders at "scale 1".
 // Smaller distances → smaller scale (so pins shrink as you zoom in).
@@ -21,23 +22,54 @@ export default function CityPins() {
   const cityHubsDoc = useApp((s) => s.cityHubsDoc);
   const setSelectedCityKey = useApp((s) => s.setSelectedCityKey);
   const selectedCityKey = useApp((s) => s.selectedCityKey);
+  const sportFilter = useApp((s) => s.sportFilter);
+  const categoryFilter = useApp((s) => s.categoryFilter);
 
   const cities = cityHubsDoc?.cities || [];
-  const max = useMemo(
-    () => Math.max(1, ...cities.map((c) => c.athleteCount)),
-    [cities]
-  );
-  // Cities with always-on labels: top N by athlete count.
-  const labelSet = useMemo(() => {
-    const sorted = [...cities].sort((a, b) => b.athleteCount - a.athleteCount);
-    return new Set(sorted.slice(0, TOP_LABEL_COUNT).map((c) => `${c.state}|${c.cityKey}`));
-  }, [cities]);
 
-  if (!cities.length) return null;
+  // Per-city filter mask: which cities have at least one hub matching the
+  // current sport + category filter? When filters are off, every city qualifies.
+  const filteredCityKeys = useMemo(() => {
+    if (!cityHubsDoc) return null;
+    if (!sportFilter && !categoryFilter) return null; // null = no filter, show all
+    const set = new Set();
+    const sportLower = sportFilter?.toLowerCase();
+    for (const h of cityHubsDoc.hubs) {
+      if (sportLower && !h.sport.toLowerCase().includes(sportLower)) continue;
+      if (categoryFilter && h.category !== categoryFilter) continue;
+      set.add(`${h.state}|${h.cityKey}`);
+    }
+    return set;
+  }, [cityHubsDoc, sportFilter, categoryFilter]);
+
+  const visibleCities = useMemo(
+    () => (filteredCityKeys ? cities.filter((c) => filteredCityKeys.has(`${c.state}|${c.cityKey}`)) : cities),
+    [cities, filteredCityKeys]
+  );
+
+  const max = useMemo(
+    () => Math.max(1, ...visibleCities.map((c) => c.athleteCount)),
+    [visibleCities]
+  );
+
+  // Label visibility:
+  // - Filter active: every visible city gets a label (set is small).
+  // - No filter: top N cities by overall athlete count.
+  // - Selected city always gets a label regardless.
+  const labelSet = useMemo(() => {
+    if (filteredCityKeys) {
+      // every visible city is "interesting" because the user opted in via filter
+      return new Set(visibleCities.map((c) => `${c.state}|${c.cityKey}`));
+    }
+    const sorted = [...visibleCities].sort((a, b) => b.athleteCount - a.athleteCount);
+    return new Set(sorted.slice(0, NO_FILTER_LABEL_COUNT).map((c) => `${c.state}|${c.cityKey}`));
+  }, [visibleCities, filteredCityKeys]);
+
+  if (!visibleCities.length) return null;
 
   return (
     <>
-      {cities.map((c) => {
+      {visibleCities.map((c) => {
         const key = `${c.state}|${c.cityKey}`;
         const isSelected = selectedCityKey === key;
         const showLabel = isSelected || labelSet.has(key);
