@@ -5,6 +5,8 @@ import ChatThread from "./ChatThread.jsx";
 import HubDetail from "./HubDetail.jsx";
 import EnterSpatialButton from "./EnterSpatialButton.jsx";
 import MapHud from "./MapHud.jsx";
+// Note: HubDetail is still wired to state-level data; once city pins land in
+// the next pass, we'll add a CityDetail component alongside it.
 
 // Main exploration screen: stylized 3D US map fills the viewport with overlay
 // UI panels for the agent + filters + per-state detail.
