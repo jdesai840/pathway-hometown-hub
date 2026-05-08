@@ -166,10 +166,20 @@ export async function tour(req, res) {
   try {
     const vertex = new VertexAI({ project: PROJECT, location: LOCATION });
     const systemPrompt = geoSystemPrompt(hubsDoc) + "\n\n" + TOUR_SYSTEM_PROMPT_TAIL;
+    // Vertex AI requires all function declarations in a single tool block
+    // ("Multiple tools are supported only when they are all search tools").
+    const mergedTools = [
+      {
+        functionDeclarations: [
+          ...(geoTools[0]?.functionDeclarations || []),
+          ...(TOUR_EXTRA_TOOLS[0]?.functionDeclarations || []),
+        ],
+      },
+    ];
     const model = vertex.getGenerativeModel({
       model: MODEL,
       systemInstruction: { role: "system", parts: [{ text: systemPrompt }] },
-      tools: [...geoTools, ...TOUR_EXTRA_TOOLS],
+      tools: mergedTools,
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode?.AUTO || "AUTO" } },
       generationConfig: { temperature: 0.6 },
     });
