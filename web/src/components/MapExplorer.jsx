@@ -5,9 +5,8 @@ import ChatThread from "./ChatThread.jsx";
 import HubDetail from "./HubDetail.jsx";
 import CityDetail from "./CityDetail.jsx";
 import MapHud from "./MapHud.jsx";
+import ClimateLegend from "./ClimateLegend.jsx";
 
-// Main exploration screen: 2D Google Map fills the viewport with overlay UI
-// panels for the agent + filters + per-city / per-state detail.
 export default function MapExplorer() {
   return (
     <div className="relative w-full h-[calc(100vh-3.5rem)]">
@@ -15,14 +14,14 @@ export default function MapExplorer() {
         <MapScene />
       </div>
 
-      {/* Top-left: voice/text agent + filters + chat thread */}
-      <div className="absolute top-4 left-4 w-[380px] max-w-[42vw] space-y-3 z-20">
+      <div className="absolute top-4 left-4 w-[400px] max-w-[42vw] space-y-2.5 z-20">
         <VoiceMic />
         <SportFilter />
         <ChatThread />
       </div>
 
       <MapHud />
+      <ClimateLegend />
       <HubDetail />
       <CityDetail />
     </div>

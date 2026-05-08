@@ -20,6 +20,7 @@ export const useApp = create((set) => ({
   highlightedStates: [], // 2-letter codes currently emphasized on the map
   selectedState: null, // 2-letter code the user clicked on
   selectedCityKey: null, // "STATE|cityKey" for pin click
+  climateOverlay: false, // when true, pins recolor by NOAA climate region
 
   // Multi-turn chat with the geo agent.
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
@@ -37,6 +38,7 @@ export const useApp = create((set) => ({
   setCategoryFilter: (categoryFilter) => set({ categoryFilter }),
   setSelectedState: (selectedState) => set({ selectedState }),
   setSelectedCityKey: (selectedCityKey) => set({ selectedCityKey }),
+  setClimateOverlay: (climateOverlay) => set({ climateOverlay }),
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
   rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),

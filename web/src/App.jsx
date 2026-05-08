@@ -20,9 +20,7 @@ export default function App() {
     if (!cityHubsDoc) fetchCityHubs().then(setCityHubsDoc).catch(console.error);
     if (!sportCatalog) fetchSportCatalog().then(setSportCatalog).catch(console.error);
     if (mapsApiKey == null) {
-      fetchConfig()
-        .then((c) => setMapsApiKey(c.mapsApiKey))
-        .catch(console.error);
+      fetchConfig().then((c) => setMapsApiKey(c.mapsApiKey)).catch(console.error);
     }
   }, [hubsDoc, cityHubsDoc, sportCatalog, mapsApiKey, setHubsDoc, setCityHubsDoc, setSportCatalog, setMapsApiKey]);
 
@@ -34,9 +32,19 @@ export default function App() {
       >
         Skip to main content
       </a>
-      <header className="px-6 py-3 flex items-center justify-between border-b border-slate-800 h-14">
-        <p className="font-bold tracking-tight">Hometown Hubs · Team USA</p>
-        <p className="text-xs text-slate-400">Olympic &amp; Paralympic — equally · Powered by Gemini</p>
+      <header className="px-5 py-3 flex items-center justify-between border-b border-slate-800/60 h-14 backdrop-blur bg-slate-950/40">
+        <div className="flex items-center gap-2.5">
+          <span
+            className="inline-block w-2.5 h-2.5 rounded-full bg-gradient-to-r from-olympic to-paralympic shadow-md shadow-blue-500/40"
+            aria-hidden="true"
+          />
+          <p className="font-display font-bold tracking-tight text-slate-50">
+            Hometown Hubs · Team USA
+          </p>
+        </div>
+        <p className="hidden md:block text-[11px] uppercase tracking-widest text-slate-400 font-semibold">
+          Powered by Gemini · Google Cloud
+        </p>
       </header>
 
       <div id="main">

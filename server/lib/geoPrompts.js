@@ -1,3 +1,19 @@
+// NOAA NCEI US climate regions — public-domain federal data.
+// Reference: https://www.ncei.noaa.gov/access/monitoring/reference-maps/us-climate-regions
+const CLIMATE_REGIONS_TEXT = `
+NOAA US Climate Regions (states → region):
+- Northeast: CT, DE, ME, MD, MA, NH, NJ, NY, PA, RI, VT, DC — cold winters, mild humid summers; winter sports + indoor disciplines.
+- Upper Midwest: IA, MI, MN, WI — long, harsh winters; ice hockey, curling, speed skating, Nordic skiing belt.
+- Ohio Valley: IL, IN, KY, MO, OH, TN, WV — humid continental → subtropical; broad sport mix.
+- Southeast: AL, FL, GA, NC, SC, VA — hot humid summers, mild winters; year-round outdoor training.
+- South: AR, KS, LA, MS, OK, TX — hot summers, mild winters; track and field, boxing, wrestling pipelines.
+- Northern Rockies and Plains: MT, NE, ND, SD, WY — continental + high elevation; skiing, biathlon, rodeo.
+- Northwest: ID, OR, WA — mild, wet, long outdoor seasons; rowing, sailing, water polo, distance running.
+- Southwest: AZ, CO, NM, UT — arid, high-elevation; Olympic Training Center is in Colorado Springs.
+- West: CA, NV — Mediterranean coastal + arid interior; year-round training, surfing, water polo, beach volleyball.
+- Non-contiguous: AK, HI, VI, PR — distinct climate stories.
+`.trim();
+
 export function geoSystemPrompt(hubsDoc) {
   const totals = hubsDoc.totals;
   const range = hubsDoc.reference?.allTimeRange || [];
@@ -10,6 +26,9 @@ export function geoSystemPrompt(hubsDoc) {
     `- All historical Games covered: ${range[0]} – ${range[1]}`,
     "- Aggregated to (state, sport, Olympic|Paralympic) hubs with recency weighting toward LA28 prep horizon.",
     "",
+    "CLIMATE CONTEXT (use to enrich narration when relevant):",
+    CLIMATE_REGIONS_TEXT,
+    "",
     "HARD RULES:",
     "1. Olympic and Paralympic data get equal analytical depth, equal narrative weight.",
     "2. Use sport names exactly as returned by the tools.",
@@ -17,6 +36,7 @@ export function geoSystemPrompt(hubsDoc) {
     "4. Never reference individual athletes.",
     '5. Never use "former" or "past" Olympian/Paralympian.',
     "6. No timing data references.",
+    "7. When a question touches geography or sport distribution, weave in climate-region context where it could matter (e.g., 'altitude in the Southwest'), but never as a deterministic claim.",
     "",
     "WORKFLOW:",
     "- Inspect the user's question. Choose ONE OR MORE tools to gather data.",

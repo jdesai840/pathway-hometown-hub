@@ -1,22 +1,24 @@
-// Bottom-left control hints + reset-view button for the 2D map.
+// Bottom-left HUD: control hints + reset-view button.
 export default function MapHud() {
   function reset() {
     window.dispatchEvent(new CustomEvent("map:reset-view"));
   }
 
   return (
-    <div className="absolute bottom-4 left-4 z-20 flex items-end gap-3 pointer-events-none">
-      <div className="rounded-2xl bg-slate-900/85 border border-slate-800 px-3 py-2 text-[11px] text-slate-200 leading-relaxed pointer-events-auto">
-        <div className="font-semibold text-slate-50 mb-0.5">Map controls</div>
-        <div>Drag — pan · Scroll / pinch — zoom · Click a pin for detail</div>
-        <div className="text-slate-400">Powered by Google Maps Platform</div>
+    <div className="absolute bottom-4 left-4 z-20 flex items-end gap-2.5 pointer-events-none">
+      <div className="glass rounded-2xl px-3 py-2 text-[11px] text-slate-200 leading-relaxed pointer-events-auto">
+        <div className="font-semibold text-slate-50 mb-0.5">Map</div>
+        <div className="text-slate-300">
+          Drag pan · Scroll zoom · <span className="text-slate-400">Click pin for detail</span>
+        </div>
+        <div className="text-slate-500 text-[10px] mt-0.5">Google Maps Platform</div>
       </div>
       <button
         onClick={reset}
-        aria-label="Reset map view to USA"
-        className="pointer-events-auto rounded-full bg-slate-800/90 hover:bg-slate-700 text-slate-100 text-xs font-semibold px-4 py-2 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-white/40"
+        aria-label="Reset map view"
+        className="pointer-events-auto rounded-full glass hover:bg-slate-800/80 text-slate-50 text-xs font-semibold px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-white/40 transition"
       >
-        Reset to USA
+        Reset view
       </button>
     </div>
   );
