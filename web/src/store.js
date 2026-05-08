@@ -21,6 +21,9 @@ export const useApp = create((set) => ({
   selectedState: null, // 2-letter code the user clicked on
   selectedCityKey: null, // "STATE|cityKey" for pin click
   climateOverlay: false, // when true, pins recolor by NOAA climate region
+  tour: null, // { title, summary, stops: [...] }
+  tourState: "idle", // idle | loading | playing | paused | done
+  tourIndex: 0,
 
   // Multi-turn chat with the geo agent.
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
@@ -39,6 +42,10 @@ export const useApp = create((set) => ({
   setSelectedState: (selectedState) => set({ selectedState }),
   setSelectedCityKey: (selectedCityKey) => set({ selectedCityKey }),
   setClimateOverlay: (climateOverlay) => set({ climateOverlay }),
+  setTour: (tour) => set({ tour, tourIndex: 0, tourState: tour ? "playing" : "idle" }),
+  setTourState: (tourState) => set({ tourState }),
+  setTourIndex: (tourIndex) => set({ tourIndex }),
+  endTour: () => set({ tour: null, tourState: "idle", tourIndex: 0 }),
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
   rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),

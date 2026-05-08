@@ -10,6 +10,8 @@ import { getHubs } from "./routes/getHubs.js";
 import { getCityHubs } from "./routes/getCityHubs.js";
 import { getSportCatalog } from "./routes/getSportCatalog.js";
 import { getConfig } from "./routes/getConfig.js";
+import { tour } from "./routes/tour.js";
+import { tts } from "./routes/tts.js";
 
 const app = express();
 app.use(cors());
@@ -24,6 +26,8 @@ app.get("/api/sport-catalog", getSportCatalog);
 app.post("/api/geo-query", geoQuery);
 app.post("/api/voice-query", voiceQuery);
 app.post("/api/narrate", narrate);
+app.post("/api/tour", tour);
+app.post("/api/tts", tts);
 
 // Static serving — production. The multi-stage Dockerfile copies the built
 // frontend into /app/server/public. Dev uses Vite on :5173 with proxy to :8080,

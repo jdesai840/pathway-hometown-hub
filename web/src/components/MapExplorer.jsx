@@ -6,6 +6,8 @@ import HubDetail from "./HubDetail.jsx";
 import CityDetail from "./CityDetail.jsx";
 import MapHud from "./MapHud.jsx";
 import ClimateLegend from "./ClimateLegend.jsx";
+import TourLauncher from "./TourLauncher.jsx";
+import TourPlayerInside from "./TourPlayerInside.jsx";
 
 export default function MapExplorer() {
   return (
@@ -24,6 +26,9 @@ export default function MapExplorer() {
       <ClimateLegend />
       <HubDetail />
       <CityDetail />
+      <TourLauncher />
+      {/* Tour player must be rendered INSIDE the Map so useMap() works */}
+      <TourPlayerInside />
     </div>
   );
 }

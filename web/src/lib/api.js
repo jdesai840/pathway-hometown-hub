@@ -43,3 +43,11 @@ export function postVoiceQuery({ audioBase64, mimeType, history }) {
 export function postNarrate({ state, sport }) {
   return postJSON("/api/narrate", { state, sport });
 }
+
+export function postTour({ state, sport, theme, interests }) {
+  return postJSON("/api/tour", { state, sport, theme, interests });
+}
+
+export function postTts({ text, voice, speakingRate }) {
+  return postJSON("/api/tts", { text, voice, speakingRate });
+}
