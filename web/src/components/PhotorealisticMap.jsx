@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
-import { useThree } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import { TilesRenderer, TilesPlugin } from "3d-tiles-renderer/r3f";
 import { GoogleCloudAuthPlugin } from "3d-tiles-renderer/plugins";
@@ -10,6 +10,7 @@ import {
   CONUS_CENTER_LAT,
   CONUS_CENTER_LNG,
 } from "../lib/ecef.js";
+import { useApp } from "../store.js";
 import CityPins from "./CityPins.jsx";
 import StateBorders from "./StateBorders.jsx";
 
@@ -26,6 +27,7 @@ const TILESET_URL = "https://tile.googleapis.com/v1/3dtiles/root.json";
 // coordinates so they line up with the photorealistic tile geometry.
 export default function PhotorealisticMap({ apiKey }) {
   const { camera } = useThree();
+  const controlsRef = useRef(null);
 
   // Pre-compute the CONUS frame (target on the surface, north vector for camera up)
   const conus = useMemo(() => {
@@ -71,14 +73,18 @@ export default function PhotorealisticMap({ apiKey }) {
         <StateBorders />
       </TilesRenderer>
       <OrbitControls
+        ref={controlsRef}
         target={conus.target.toArray()}
         enableDamping
         dampingFactor={0.08}
         rotateSpeed={0.5}
         zoomSpeed={1.0}
-        // Disable pan — pan with a globe target tends to drag the user off-Earth.
-        // Reset button restores CONUS view if needed.
-        enablePan={false}
+        // Pan IS enabled — moves both camera + target tangent to the camera direction.
+        // At planetary scale this drags the focus across the surface.
+        enablePan
+        screenSpacePanning
+        panSpeed={1.0}
+        keyPanSpeed={20_000}
         // Globe scale: target ECEF magnitude is ~6.4 million m (Earth radius).
         // Camera should be 0.5–25 million meters from target.
         minDistance={500_000}
@@ -88,6 +94,50 @@ export default function PhotorealisticMap({ apiKey }) {
         maxPolarAngle={Math.PI / 2 - 0.05}
         makeDefault
       />
+      <CityFocus controlsRef={controlsRef} />
     </>
   );
+}
+
+// Smoothly fly the camera target to the selected city when one is clicked.
+function CityFocus({ controlsRef }) {
+  const cityHubsDoc = useApp((s) => s.cityHubsDoc);
+  const selectedCityKey = useApp((s) => s.selectedCityKey);
+  const { camera } = useThree();
+  const [target, setTarget] = useState(null);
+
+  useEffect(() => {
+    if (!selectedCityKey || !cityHubsDoc) {
+      setTarget(null);
+      return;
+    }
+    const c = cityHubsDoc.cities.find(
+      (x) => `${x.state}|${x.cityKey}` === selectedCityKey
+    );
+    if (!c) return;
+    setTarget({ pos: latLngToECEF(c.lat, c.lng, 0), lat: c.lat, lng: c.lng });
+  }, [selectedCityKey, cityHubsDoc]);
+
+  useFrame(() => {
+    if (!target || !controlsRef.current) return;
+    const ctl = controlsRef.current;
+    // Lerp the target toward the city's ECEF surface point
+    ctl.target.lerp(target.pos, 0.1);
+    // Pull camera in if it's far away — keep current view direction relative to target
+    const desiredDist = 1_500_000; // 1500 km altitude focus
+    const dir = camera.position.clone().sub(ctl.target);
+    if (dir.length() > desiredDist + 100_000) {
+      dir.setLength(desiredDist);
+      camera.position.copy(ctl.target).add(dir);
+    }
+    // Update the camera's "up" to local north at the new target so north stays up
+    camera.up.copy(localNorth(target.lat, target.lng));
+    ctl.update();
+    // Settle
+    if (ctl.target.distanceTo(target.pos) < 1000) {
+      setTarget(null);
+    }
+  });
+
+  return null;
 }

@@ -42,7 +42,10 @@ export default function MapScene() {
         far: 5e7,
       }}
       shadows={false}
-      // Don't auto-set the camera position — we manage it in PhotorealisticMap
+      // logarithmicDepthBuffer is critical at planetary scale — without it the
+      // depth buffer can't resolve pin geometry against the photorealistic
+      // tiles (near=1m, far=50,000km is a ratio way past 24-bit precision).
+      gl={{ logarithmicDepthBuffer: true, antialias: true }}
       onCreated={({ camera }) => {
         camera.lookAt(target);
         camera.updateProjectionMatrix();
