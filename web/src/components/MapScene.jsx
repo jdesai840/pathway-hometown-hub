@@ -3,28 +3,6 @@ import { useEffect } from "react";
 import { useApp } from "../store.js";
 import CityMarkers from "./CityMarkers.jsx";
 
-// Custom dark map style — modern, low-distraction, parity-friendly.
-// We hide POI clutter, dim road labels, and brighten admin (state) boundaries
-// so the city pins stand out against a clean basemap.
-const MAP_STYLE = [
-  { elementType: "geometry", stylers: [{ color: "#0b1220" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#9ca3af" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#0b1220" }] },
-  { featureType: "administrative.country", elementType: "geometry.stroke", stylers: [{ color: "#475569" }] },
-  { featureType: "administrative.province", elementType: "geometry.stroke", stylers: [{ color: "#64748b" }, { weight: 1.5 }] },
-  { featureType: "administrative.province", elementType: "labels.text.fill", stylers: [{ color: "#cbd5e1" }] },
-  { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#e2e8f0" }] },
-  { featureType: "landscape", elementType: "geometry", stylers: [{ color: "#0e1626" }] },
-  { featureType: "landscape.natural", elementType: "geometry", stylers: [{ color: "#101a2c" }] },
-  { featureType: "poi", stylers: [{ visibility: "off" }] },
-  { featureType: "transit", stylers: [{ visibility: "off" }] },
-  { featureType: "road", elementType: "geometry", stylers: [{ color: "#1e293b" }] },
-  { featureType: "road", elementType: "labels", stylers: [{ visibility: "off" }] },
-  { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#334155" }] },
-  { featureType: "water", elementType: "geometry", stylers: [{ color: "#04111c" }] },
-  { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#475569" }] },
-];
-
 const US_BOUNDS = {
   north: 49.5,
   south: 24.0,
@@ -32,6 +10,11 @@ const US_BOUNDS = {
   east: -66.0,
 };
 const US_CENTER = { lat: 39.5, lng: -98.35 };
+
+// Google's native HYBRID map type: satellite imagery + roads/labels overlay.
+// Feels "alive" without the 3D camera-orientation pain. AdvancedMarkers need
+// a Map ID — DEMO_MAP_ID is provided by Google for prototyping.
+const HYBRID_MAP_ID = "DEMO_MAP_ID";
 
 export default function MapScene() {
   const mapsApiKey = useApp((s) => s.mapsApiKey);
@@ -50,17 +33,20 @@ export default function MapScene() {
   return (
     <APIProvider apiKey={mapsApiKey}>
       <Map
+        mapId={HYBRID_MAP_ID}
+        mapTypeId="hybrid"
         defaultCenter={US_CENTER}
         defaultZoom={4}
         minZoom={3}
-        maxZoom={14}
+        maxZoom={16}
         gestureHandling="greedy"
         disableDefaultUI={false}
         zoomControl={true}
         mapTypeControl={false}
         streetViewControl={false}
         fullscreenControl={false}
-        styles={MAP_STYLE}
+        rotateControl={false}
+        tilt={0}
         restriction={{
           latLngBounds: { north: 60, south: 18, west: -135, east: -60 },
           strictBounds: false,
@@ -75,7 +61,6 @@ export default function MapScene() {
   );
 }
 
-// Listens for the HUD "Reset to USA" event and snaps the map to a US-bounded view.
 function ResetHandler() {
   const map = useMap();
   useEffect(() => {

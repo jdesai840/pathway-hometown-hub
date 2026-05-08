@@ -4,15 +4,13 @@ import { MarkerClusterer, SuperClusterAlgorithm } from "@googlemaps/markercluste
 import { useApp } from "../store.js";
 import { STATE_TO_CLIMATE, CLIMATE_REGIONS } from "../data/climate-regions.js";
 
-// City pins on the Google Maps 2D basemap, clustered for performance.
-// 1801 individual markers tank pan/zoom; MarkerClusterer + SuperCluster handles
-// 10k+ effortlessly and adds the bonus that nearby pins merge into a single
-// numeric cluster bubble that expands on zoom.
+// Animated HTML markers via AdvancedMarkerElement. Each pin breathes with a
+// CSS pulse, clusters glow and scale up on hover. Hybrid satellite map shows
+// through the semi-transparent layouts.
 //
 // NIL-compliant: aggregate counts only.
 export default function CityMarkers() {
   const map = useMap();
-  const coreLib = useMapsLibrary("core");
   const markerLib = useMapsLibrary("marker");
 
   const cityHubsDoc = useApp((s) => s.cityHubsDoc);
@@ -50,12 +48,9 @@ export default function CityMarkers() {
   const markersRef = useRef([]);
   const clustererRef = useRef(null);
 
-  // Build markers + cluster on every visible-set change. Heavy work but bounded
-  // by visibleCities (≤1801 worst case; usually much less when filtered).
   useEffect(() => {
-    if (!map || !markerLib || !coreLib) return;
+    if (!map || !markerLib) return;
 
-    // Tear down previous batch
     if (clustererRef.current) {
       clustererRef.current.clearMarkers();
       clustererRef.current = null;
@@ -66,7 +61,6 @@ export default function CityMarkers() {
     for (const c of visibleCities) {
       const intensity = c.athleteCount / max;
       const norm = Math.pow(intensity, 0.4);
-      const radius = Math.round(8 + norm * 12); // 8–20 px
       const total = c.olympicAthletes + c.paralympicAthletes;
       const paraRatio = total > 0 ? c.paralympicAthletes / total : 0;
       const fillColor = climateOverlay
@@ -74,67 +68,58 @@ export default function CityMarkers() {
         : blend("#3b82f6", "#f59e0b", paraRatio);
       const key = `${c.state}|${c.cityKey}`;
       const isSelected = key === selectedCityKey;
-      const fontSize = c.athleteCount >= 100 ? 11 : c.athleteCount >= 10 ? 12 : 13;
 
-      const svg = buildPinSvg({
-        radius,
+      const el = buildPinElement({
+        count: c.athleteCount,
         color: fillColor,
-        countText: String(c.athleteCount),
-        fontSize,
-        ringStroke: isSelected ? "#ffffff" : "#0b1220",
-        ringWidth: isSelected ? 3 : 2,
+        intensity: norm,
+        selected: isSelected,
       });
 
-      const marker = new markerLib.Marker({
+      const marker = new markerLib.AdvancedMarkerElement({
+        map: null, // clusterer manages map attachment
         position: { lat: c.lat, lng: c.lng },
         title: `${c.city}, ${c.state} — ${c.athleteCount} Team USA athletes`,
-        icon: {
-          url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
-          size: new coreLib.Size(radius * 2 + 6, radius * 2 + 6),
-          anchor: new coreLib.Point(radius + 3, radius + 3),
-          scaledSize: new coreLib.Size(radius * 2 + 6, radius * 2 + 6),
-        },
+        content: el,
         zIndex: Math.floor(c.athleteCount),
       });
       marker.addListener("click", () => setSelectedCityKey(key));
+      marker.cityKey = key; // for cluster lookup
       markers.push(marker);
     }
     markersRef.current = markers;
 
-    // Cluster — SuperCluster algorithm is fast and handles 1800+ markers well
+    // Cluster — animated, pulsing, hover-scaling
     clustererRef.current = new MarkerClusterer({
       map,
       markers,
       algorithm: new SuperClusterAlgorithm({
-        radius: 60, // pixel cluster radius
-        maxZoom: 9, // stop clustering past zoom 9
+        radius: 80,
+        maxZoom: 9,
         minPoints: 3,
       }),
       renderer: {
         render: ({ count, position, markers: clusterMarkers }) => {
-          // Tally the actual athlete count, not just marker count
           let totalAth = 0;
-          let oly = 0;
-          let para = 0;
           for (const m of clusterMarkers) {
-            const t = m.getTitle();
+            const t = m.title || "";
             const m2 = t.match(/—\s*(\d+)/);
             if (m2) totalAth += Number(m2[1]);
           }
-          // We don't have direct para/oly per marker without re-keying — fall back to "blend"
-          const size = Math.min(80, 30 + Math.sqrt(totalAth) * 1.6);
-          const svg = buildClusterSvg({ size, count: totalAth, label: count });
-          return new markerLib.Marker({
+          const el = buildClusterElement(totalAth);
+          const cluster = new markerLib.AdvancedMarkerElement({
             position,
-            icon: {
-              url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
-              size: new coreLib.Size(size + 6, size + 6),
-              anchor: new coreLib.Point(size / 2 + 3, size / 2 + 3),
-              scaledSize: new coreLib.Size(size + 6, size + 6),
-            },
+            content: el,
             zIndex: 1000 + count,
-            title: `${totalAth} athletes across ${count} cities — click to zoom`,
+            title: `${totalAth} athletes here — click to zoom in`,
           });
+          // Click cluster: zoom in
+          cluster.addListener("click", () => {
+            const z = map.getZoom() ?? 4;
+            map.setZoom(Math.min(z + 2, 14));
+            map.panTo(position);
+          });
+          return cluster;
         },
       },
     });
@@ -146,7 +131,7 @@ export default function CityMarkers() {
       }
       markersRef.current = [];
     };
-  }, [map, markerLib, coreLib, visibleCities, max, climateOverlay, selectedCityKey, setSelectedCityKey]);
+  }, [map, markerLib, visibleCities, max, climateOverlay, selectedCityKey, setSelectedCityKey]);
 
   // Pan + zoom to selected city
   useEffect(() => {
@@ -154,7 +139,7 @@ export default function CityMarkers() {
     const c = cityHubsDoc.cities.find((x) => `${x.state}|${x.cityKey}` === selectedCityKey);
     if (!c) return;
     map.panTo({ lat: c.lat, lng: c.lng });
-    if ((map.getZoom() ?? 0) < 7) map.setZoom(7);
+    if ((map.getZoom() ?? 0) < 8) map.setZoom(8);
   }, [map, cityHubsDoc, selectedCityKey]);
 
   return null;
@@ -165,44 +150,36 @@ function climateColorForState(state) {
   return CLIMATE_REGIONS[id]?.color || "#94a3b8";
 }
 
-function buildPinSvg({ radius, color, countText, fontSize, ringStroke, ringWidth }) {
-  const size = radius * 2 + 6;
-  const cx = size / 2;
-  const cy = size / 2;
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
-  <defs>
-    <filter id="g" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2"/>
-    </filter>
-  </defs>
-  <circle cx="${cx}" cy="${cy}" r="${radius + 2}" fill="${color}" opacity="0.32" filter="url(#g)"/>
-  <circle cx="${cx}" cy="${cy}" r="${radius}" fill="${color}" stroke="${ringStroke}" stroke-width="${ringWidth}"/>
-  <text x="${cx}" y="${cy + fontSize * 0.35}" text-anchor="middle" font-family="ui-sans-serif, system-ui, Inter, sans-serif" font-size="${fontSize}" font-weight="700" fill="#0b1220">${countText}</text>
-</svg>`;
+// Build an HTML element for a city pin. Pulsing ring, count chip, scales on hover.
+function buildPinElement({ count, color, intensity, selected }) {
+  const size = Math.round(22 + intensity * 28); // 22–50 px
+  const fontSize = count >= 100 ? 11 : count >= 10 ? 12 : 13;
+  const wrap = document.createElement("div");
+  wrap.className = "hh-pin" + (selected ? " hh-pin-selected" : "");
+  wrap.style.setProperty("--hh-color", color);
+  wrap.style.setProperty("--hh-size", `${size}px`);
+  wrap.innerHTML = `
+    <span class="hh-pin-pulse" aria-hidden="true"></span>
+    <span class="hh-pin-dot">
+      <span class="hh-pin-count" style="font-size:${fontSize}px">${count}</span>
+    </span>
+  `;
+  return wrap;
 }
 
-function buildClusterSvg({ size, count, label }) {
-  const r = size / 2;
-  const cx = r + 3;
-  const cy = r + 3;
-  const fontSize = count >= 1000 ? 13 : count >= 100 ? 15 : 17;
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="${size + 6}" height="${size + 6}" viewBox="0 0 ${size + 6} ${size + 6}">
-  <defs>
-    <radialGradient id="grd" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#e2e8f0" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#475569" stop-opacity="0.95"/>
-    </radialGradient>
-    <filter id="g2" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3"/>
-    </filter>
-  </defs>
-  <circle cx="${cx}" cy="${cy}" r="${r + 3}" fill="#3b82f6" opacity="0.25" filter="url(#g2)"/>
-  <circle cx="${cx}" cy="${cy}" r="${r}" fill="url(#grd)" stroke="#0b1220" stroke-width="2"/>
-  <text x="${cx}" y="${cy + 1}" text-anchor="middle" font-family="ui-sans-serif, system-ui, Inter, sans-serif" font-size="${fontSize}" font-weight="800" fill="#0b1220">${count}</text>
-  <text x="${cx}" y="${cy + fontSize - 1}" text-anchor="middle" font-family="ui-sans-serif, system-ui, Inter, sans-serif" font-size="9" font-weight="600" fill="#0b1220" opacity="0.7">${label} cities</text>
-</svg>`;
+// Build an HTML element for a cluster bubble. JUST the count — no "X cities" line.
+function buildClusterElement(totalAthletes) {
+  const size = Math.min(76, Math.round(34 + Math.sqrt(totalAthletes) * 1.5));
+  const fontSize = totalAthletes >= 1000 ? 14 : totalAthletes >= 100 ? 16 : 18;
+  const el = document.createElement("div");
+  el.className = "hh-cluster";
+  el.style.setProperty("--hh-cluster-size", `${size}px`);
+  el.innerHTML = `
+    <span class="hh-cluster-pulse" aria-hidden="true"></span>
+    <span class="hh-cluster-glow" aria-hidden="true"></span>
+    <span class="hh-cluster-text" style="font-size:${fontSize}px">${totalAthletes}</span>
+  `;
+  return el;
 }
 
 function blend(hexA, hexB, t) {

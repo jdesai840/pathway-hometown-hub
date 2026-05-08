@@ -39,18 +39,129 @@
   }
 }
 
-/* Custom scrollbar for the chat thread + side panels */
-*::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* Scrollbar */
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 4px; }
+*::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.45); }
+
+/* ============================================================
+   Map markers — HTML AdvancedMarker styling
+   ============================================================ */
+
+/* Individual city pin */
+.hh-pin {
+  --hh-color: #3b82f6;
+  --hh-size: 28px;
+  position: relative;
+  width: var(--hh-size);
+  height: var(--hh-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transform: translateZ(0);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-*::-webkit-scrollbar-track {
-  background: transparent;
+.hh-pin:hover {
+  transform: scale(1.18);
+  z-index: 9999;
 }
-*::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
-  border-radius: 4px;
+.hh-pin-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: var(--hh-color);
+  opacity: 0;
+  animation: hh-pulse 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
-*::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.45);
+.hh-pin-dot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--hh-color) 90%, white 35%), var(--hh-color) 75%);
+  border: 2px solid rgba(11, 18, 32, 0.85);
+  box-shadow:
+    0 0 0 2px rgba(255, 255, 255, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 0 18px color-mix(in srgb, var(--hh-color) 40%, transparent);
+}
+.hh-pin-count {
+  font-family: "Inter", sans-serif;
+  font-weight: 800;
+  color: #0b1220;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.hh-pin-selected .hh-pin-dot {
+  border-color: #ffffff;
+  box-shadow:
+    0 0 0 3px rgba(255, 255, 255, 0.35),
+    0 4px 18px rgba(0, 0, 0, 0.6),
+    0 0 28px color-mix(in srgb, var(--hh-color) 70%, transparent);
+}
+.hh-pin-selected .hh-pin-pulse {
+  animation-duration: 1.2s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes hh-pulse {
+  0% { transform: scale(0.85); opacity: 0.45; }
+  70% { transform: scale(1.9); opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
+
+/* Cluster bubble */
+.hh-cluster {
+  --hh-cluster-size: 56px;
+  position: relative;
+  width: var(--hh-cluster-size);
+  height: var(--hh-cluster-size);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hh-cluster:hover {
+  transform: scale(1.12);
+  z-index: 9999;
+}
+.hh-cluster-pulse {
+  position: absolute;
+  inset: -6px;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.45), rgba(245, 158, 11, 0.45));
+  filter: blur(6px);
+  animation: hh-cluster-pulse 3s ease-in-out infinite;
+}
+.hh-cluster-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #3b82f6 0%, #f59e0b 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.95);
+}
+.hh-cluster-text {
+  position: relative;
+  z-index: 2;
+  font-family: "Inter Tight", "Inter", sans-serif;
+  font-weight: 800;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes hh-cluster-pulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
 }
