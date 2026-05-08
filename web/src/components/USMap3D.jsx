@@ -2,12 +2,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import { useApp, computeStateIntensity } from "../store.js";
-import { loadUsStates, featureToShapes, featureCenter } from "../lib/usMap.js";
+import { loadUsStates, featureToShapes } from "../lib/usMap.js";
 
 // Stylized 3D US map — extruded states from Albers-projected TopoJSON.
-// Replaces the photorealistic globe. US-only by design, locked camera.
+// Each state has a colored fill (intensity-driven) plus a crisp outline so
+// the borders read clearly even at low contrast.
 
-const BASE_DEPTH = 0.01;
+const BASE_DEPTH = 0.005;
 const MAX_HEIGHT = 0.18;
 const STATE_PULSE_HZ = 4;
 
@@ -70,7 +71,7 @@ export default function USMap3D() {
 }
 
 function StateMesh({ feature, intensity, split, highlighted, selected, onSelect }) {
-  const { extrudeGeom, color } = useMemo(() => {
+  const { extrudeGeom, edgeGeom, color, depth } = useMemo(() => {
     const shapes = featureToShapes(feature);
     const total = split.Olympic + split.Paralympic;
     const paraRatio = total > 0 ? split.Paralympic / total : 0;
@@ -81,16 +82,22 @@ function StateMesh({ feature, intensity, split, highlighted, selected, onSelect 
       bevelEnabled: false,
       curveSegments: 4,
     });
-    // Lay flat: rotate the XY-projected geometry onto the XZ ground plane.
     geom.rotateX(-Math.PI / 2);
+    const edgeGeom = new THREE.EdgesGeometry(geom, 1);
     return {
       extrudeGeom: geom,
+      edgeGeom,
       color: blend("#3b82f6", "#f59e0b", paraRatio),
+      depth,
     };
   }, [feature, intensity, split.Olympic, split.Paralympic]);
 
-  // Cleanup geometry on unmount/recompute
-  useEffect(() => () => extrudeGeom.dispose(), [extrudeGeom]);
+  useEffect(() => {
+    return () => {
+      extrudeGeom.dispose();
+      edgeGeom.dispose();
+    };
+  }, [extrudeGeom, edgeGeom]);
 
   const ref = useRef();
   useFrame(({ clock }) => {
@@ -104,34 +111,51 @@ function StateMesh({ feature, intensity, split, highlighted, selected, onSelect 
   });
 
   const baseEmissive = highlighted
-    ? new THREE.Color(color).multiplyScalar(0.35)
+    ? new THREE.Color(color).multiplyScalar(0.4)
     : selected
-    ? new THREE.Color(color).multiplyScalar(0.18)
+    ? new THREE.Color(color).multiplyScalar(0.2)
     : new THREE.Color("#000000");
 
+  // Edge color brightens for highlighted/selected; otherwise a soft white-ish
+  // line that reads against the dark background and contrasts state fills.
+  const edgeColor = highlighted
+    ? "#ffffff"
+    : selected
+    ? "#e5e7eb"
+    : "#1f2937"; // slate-800 — visible but not loud
+
   return (
-    <mesh
-      ref={ref}
-      geometry={extrudeGeom}
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        onSelect();
-      }}
-      onPointerOver={() => (document.body.style.cursor = "pointer")}
-      onPointerOut={() => (document.body.style.cursor = "default")}
-      castShadow
-      receiveShadow
-    >
-      <meshStandardMaterial
-        color={color}
-        emissive={baseEmissive}
-        emissiveIntensity={highlighted ? 1.0 : selected ? 0.5 : 0}
-        metalness={0.05}
-        roughness={0.7}
-        transparent
-        opacity={intensity > 0 ? 1 : 0.55}
-      />
-    </mesh>
+    <group ref={ref}>
+      <mesh
+        geometry={extrudeGeom}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
+        onPointerOver={() => (document.body.style.cursor = "pointer")}
+        onPointerOut={() => (document.body.style.cursor = "default")}
+        castShadow
+        receiveShadow
+      >
+        <meshStandardMaterial
+          color={color}
+          emissive={baseEmissive}
+          emissiveIntensity={highlighted ? 1.0 : selected ? 0.55 : 0}
+          metalness={0.05}
+          roughness={0.65}
+          transparent
+          opacity={intensity > 0 ? 1 : 0.6}
+        />
+      </mesh>
+      <lineSegments geometry={edgeGeom}>
+        <lineBasicMaterial
+          color={edgeColor}
+          transparent
+          opacity={highlighted || selected ? 0.95 : 0.55}
+          linewidth={1}
+        />
+      </lineSegments>
+    </group>
   );
 }
 

@@ -4,6 +4,7 @@ import SportFilter from "./SportFilter.jsx";
 import ChatThread from "./ChatThread.jsx";
 import HubDetail from "./HubDetail.jsx";
 import EnterSpatialButton from "./EnterSpatialButton.jsx";
+import MapHud from "./MapHud.jsx";
 
 // Main exploration screen: stylized 3D US map fills the viewport with overlay
 // UI panels for the agent + filters + per-state detail.
@@ -21,6 +22,7 @@ export default function MapExplorer() {
         <ChatThread />
       </div>
 
+      <MapHud />
       <HubDetail />
       <EnterSpatialButton />
     </div>
