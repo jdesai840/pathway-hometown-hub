@@ -40,11 +40,13 @@ export default function CityPins() {
 }
 
 function CityPin({ city, intensity, selected, onSelect }) {
-  // Pin geometry: tall cylinder, taller for cities with more athletes.
-  // Sized in METERS (ECEF frame); ~50–250km tall so visible from camera at ~3000km altitude.
-  const norm = Math.pow(intensity, 0.45);
-  const heightM = 50_000 + norm * 250_000;
-  const radiusM = 8_000 + norm * 18_000;
+  // Pin sizing in METERS. Bigger than before so they read at typical altitudes.
+  // EastNorthUpFrame: +X east, +Y north, +Z up (away from Earth center).
+  // Three.js cylinderGeometry defaults its axis to +Y, so we rotate 90° around
+  // X to align the cylinder's axis with +Z (vertical / up).
+  const norm = Math.pow(intensity, 0.4);
+  const heightM = 80_000 + norm * 350_000; // 80–430 km tall
+  const radiusM = 12_000 + norm * 22_000; // 12–34 km radius
   const total = city.olympicAthletes + city.paralympicAthletes;
   const paraRatio = total > 0 ? city.paralympicAthletes / total : 0;
   const color = blend("#3b82f6", "#f59e0b", paraRatio);
@@ -55,8 +57,10 @@ function CityPin({ city, intensity, selected, onSelect }) {
       lon={city.lng * DEG2RAD}
       height={0}
     >
+      {/* Vertical pin — rotated so cylinder long axis = +Z up */}
       <mesh
         position={[0, 0, heightM / 2]}
+        rotation={[Math.PI / 2, 0, 0]}
         onPointerDown={(e) => {
           e.stopPropagation();
           onSelect();
@@ -64,21 +68,38 @@ function CityPin({ city, intensity, selected, onSelect }) {
         onPointerOver={() => (document.body.style.cursor = "pointer")}
         onPointerOut={() => (document.body.style.cursor = "default")}
       >
-        <cylinderGeometry args={[radiusM, radiusM * 0.7, heightM, 12]} />
+        <cylinderGeometry args={[radiusM * 0.6, radiusM, heightM, 16]} />
         <meshStandardMaterial
           color={color}
-          emissive={selected ? new THREE.Color(color) : new THREE.Color("#000")}
-          emissiveIntensity={selected ? 0.8 : 0}
-          metalness={0.2}
+          emissive={new THREE.Color(color)}
+          emissiveIntensity={selected ? 1.2 : 0.45}
+          metalness={0.25}
           roughness={0.4}
           transparent
-          opacity={selected ? 1 : 0.9}
+          opacity={selected ? 1 : 0.95}
         />
       </mesh>
-      {/* Glowing base ring at ground level for visibility */}
-      <mesh position={[0, 0, 1000]} rotation={[0, 0, 0]}>
-        <ringGeometry args={[radiusM * 0.9, radiusM * 1.6, 24]} />
-        <meshBasicMaterial color={color} transparent opacity={0.55} side={THREE.DoubleSide} />
+      {/* Sphere head on top so the pin reads from far away */}
+      <mesh
+        position={[0, 0, heightM]}
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          onSelect();
+        }}
+      >
+        <sphereGeometry args={[radiusM * 1.4, 16, 12]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={new THREE.Color(color)}
+          emissiveIntensity={selected ? 1.4 : 0.6}
+          metalness={0.3}
+          roughness={0.35}
+        />
+      </mesh>
+      {/* Ground ring for additional visibility — flat on surface (XY plane in ENU) */}
+      <mesh position={[0, 0, 500]}>
+        <ringGeometry args={[radiusM * 1.0, radiusM * 2.4, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={0.6} side={THREE.DoubleSide} />
       </mesh>
     </EastNorthUpFrame>
   );

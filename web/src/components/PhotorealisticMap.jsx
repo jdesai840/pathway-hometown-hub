@@ -11,6 +11,7 @@ import {
   CONUS_CENTER_LNG,
 } from "../lib/ecef.js";
 import CityPins from "./CityPins.jsx";
+import StateBorders from "./StateBorders.jsx";
 
 const TILESET_URL = "https://tile.googleapis.com/v1/3dtiles/root.json";
 
@@ -64,9 +65,10 @@ export default function PhotorealisticMap({ apiKey }) {
           plugin={GoogleCloudAuthPlugin}
           args={{ apiToken: apiKey, autoRefreshToken: true }}
         />
-        {/* City pins live INSIDE the TilesRenderer so EastNorthUpFrame uses
-            the same ellipsoid the tiles are projected onto. */}
+        {/* City pins + state borders live INSIDE the TilesRenderer so they
+            inherit the same ellipsoid frame the photorealistic tiles use. */}
         <CityPins />
+        <StateBorders />
       </TilesRenderer>
       <OrbitControls
         target={conus.target.toArray()}
