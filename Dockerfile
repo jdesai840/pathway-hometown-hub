@@ -29,6 +29,7 @@ COPY server/ ./
 # include the JSON files for local-fallback / docker-without-GCS smoke tests.
 COPY data/hubs.json /app/data/hubs.json
 COPY data/sport-catalog.json /app/data/sport-catalog.json
+COPY data/city-hubs.json /app/data/city-hubs.json
 
 # Drop the built frontend into the path index.js looks for static files at
 COPY --from=web-build /web/dist ./public

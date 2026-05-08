@@ -3,6 +3,7 @@ import VoiceMic from "./VoiceMic.jsx";
 import SportFilter from "./SportFilter.jsx";
 import ChatThread from "./ChatThread.jsx";
 import HubDetail from "./HubDetail.jsx";
+import CityDetail from "./CityDetail.jsx";
 import EnterSpatialButton from "./EnterSpatialButton.jsx";
 import MapHud from "./MapHud.jsx";
 // Note: HubDetail is still wired to state-level data; once city pins land in
@@ -26,6 +27,7 @@ export default function MapExplorer() {
 
       <MapHud />
       <HubDetail />
+      <CityDetail />
       <EnterSpatialButton />
     </div>
   );

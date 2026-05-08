@@ -1,27 +1,30 @@
 import { useEffect } from "react";
 import { useApp } from "./store.js";
-import { fetchHubs, fetchSportCatalog, fetchConfig } from "./lib/api.js";
+import { fetchHubs, fetchCityHubs, fetchSportCatalog, fetchConfig } from "./lib/api.js";
 import Intro from "./components/Intro.jsx";
 import MapExplorer from "./components/MapExplorer.jsx";
 
 export default function App() {
   const step = useApp((s) => s.step);
   const hubsDoc = useApp((s) => s.hubsDoc);
+  const cityHubsDoc = useApp((s) => s.cityHubsDoc);
   const sportCatalog = useApp((s) => s.sportCatalog);
   const mapsApiKey = useApp((s) => s.mapsApiKey);
   const setHubsDoc = useApp((s) => s.setHubsDoc);
+  const setCityHubsDoc = useApp((s) => s.setCityHubsDoc);
   const setSportCatalog = useApp((s) => s.setSportCatalog);
   const setMapsApiKey = useApp((s) => s.setMapsApiKey);
 
   useEffect(() => {
     if (!hubsDoc) fetchHubs().then(setHubsDoc).catch(console.error);
+    if (!cityHubsDoc) fetchCityHubs().then(setCityHubsDoc).catch(console.error);
     if (!sportCatalog) fetchSportCatalog().then(setSportCatalog).catch(console.error);
     if (mapsApiKey == null) {
       fetchConfig()
         .then((c) => setMapsApiKey(c.mapsApiKey))
         .catch(console.error);
     }
-  }, [hubsDoc, sportCatalog, mapsApiKey, setHubsDoc, setSportCatalog, setMapsApiKey]);
+  }, [hubsDoc, cityHubsDoc, sportCatalog, mapsApiKey, setHubsDoc, setCityHubsDoc, setSportCatalog, setMapsApiKey]);
 
   return (
     <div className="min-h-full">

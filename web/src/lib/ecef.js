@@ -29,3 +29,29 @@ export function latLngToECEF(latDeg, lngDeg, altMeters = 0) {
 /** Approximate CONUS center (lat 39.5, lng -98.35). */
 export const CONUS_CENTER_LAT = 39.5;
 export const CONUS_CENTER_LNG = -98.35;
+
+/**
+ * Local north direction (unit vector) at a lat/lng point on the WGS84 ellipsoid.
+ * In ECEF coordinates: north = derivative of position w.r.t. latitude (normalized).
+ *   north = (-sinLat * cosLng, -sinLat * sinLng, cosLat)
+ */
+export function localNorth(latDeg, lngDeg) {
+  const lat = THREE.MathUtils.degToRad(latDeg);
+  const lng = THREE.MathUtils.degToRad(lngDeg);
+  return new THREE.Vector3(
+    -Math.sin(lat) * Math.cos(lng),
+    -Math.sin(lat) * Math.sin(lng),
+    Math.cos(lat)
+  );
+}
+
+/** Surface normal (outward, "up" in ENU frame) at a lat/lng. */
+export function surfaceNormal(latDeg, lngDeg) {
+  const lat = THREE.MathUtils.degToRad(latDeg);
+  const lng = THREE.MathUtils.degToRad(lngDeg);
+  return new THREE.Vector3(
+    Math.cos(lat) * Math.cos(lng),
+    Math.cos(lat) * Math.sin(lng),
+    Math.sin(lat)
+  );
+}

@@ -9,6 +9,7 @@ function cryptoRandom() {
 export const useApp = create((set) => ({
   step: "intro", // intro | explore
   hubsDoc: null, // /api/hubs response
+  cityHubsDoc: null, // /api/city-hubs response
   sportCatalog: null, // /api/sport-catalog response
   mapsApiKey: null, // /api/config — public, restricted by HTTP referrer in GCP
 
@@ -18,6 +19,7 @@ export const useApp = create((set) => ({
   categoryFilter: null, // "Olympic" | "Paralympic" | null
   highlightedStates: [], // 2-letter codes currently emphasized on the map
   selectedState: null, // 2-letter code the user clicked on
+  selectedCityKey: null, // "STATE|cityKey" for pin click
 
   // Multi-turn chat with the geo agent.
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
@@ -27,12 +29,14 @@ export const useApp = create((set) => ({
 
   setStep: (step) => set({ step }),
   setHubsDoc: (hubsDoc) => set({ hubsDoc }),
+  setCityHubsDoc: (cityHubsDoc) => set({ cityHubsDoc }),
   setSportCatalog: (sportCatalog) => set({ sportCatalog }),
   setMapsApiKey: (mapsApiKey) => set({ mapsApiKey }),
   setMode: (mode) => set({ mode }),
   setSportFilter: (sportFilter) => set({ sportFilter }),
   setCategoryFilter: (categoryFilter) => set({ categoryFilter }),
   setSelectedState: (selectedState) => set({ selectedState }),
+  setSelectedCityKey: (selectedCityKey) => set({ selectedCityKey }),
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
   rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),

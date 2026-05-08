@@ -2,11 +2,13 @@ import { Canvas } from "@react-three/fiber";
 import { XR, createXRStore } from "@react-three/xr";
 import { useApp } from "../store.js";
 import PhotorealisticMap from "./PhotorealisticMap.jsx";
+import { latLngToECEF, CONUS_CENTER_LAT, CONUS_CENTER_LNG } from "../lib/ecef.js";
 
 export const xrStore = createXRStore({ hand: true, controller: true });
 
-// Photorealistic 3D Earth, camera initialized over CONUS. Without a Maps API
-// key the tile renderer can't fetch tiles — we show a friendly message instead.
+// Photorealistic 3D Earth, camera initialized over CONUS with proper north-up
+// orientation. Without a Maps API key the tile renderer can't fetch tiles —
+// we show a friendly message instead.
 export default function MapScene() {
   const mapsApiKey = useApp((s) => s.mapsApiKey);
 
@@ -26,11 +28,25 @@ export default function MapScene() {
     );
   }
 
+  // Pre-compute initial camera position + target in ECEF so the Canvas's
+  // initial frame is correct (no flash of mis-oriented Earth).
+  const target = latLngToECEF(CONUS_CENTER_LAT, CONUS_CENTER_LNG, 0);
+  const cameraStart = latLngToECEF(CONUS_CENTER_LAT, CONUS_CENTER_LNG, 3_000_000);
+
   return (
     <Canvas
-      // Globe needs lots of headroom — far plane out to ~50,000 km.
-      camera={{ position: [0, 0, 1.2e7], fov: 45, near: 1, far: 5e7 }}
+      camera={{
+        position: cameraStart.toArray(),
+        fov: 45,
+        near: 1,
+        far: 5e7,
+      }}
       shadows={false}
+      // Don't auto-set the camera position — we manage it in PhotorealisticMap
+      onCreated={({ camera }) => {
+        camera.lookAt(target);
+        camera.updateProjectionMatrix();
+      }}
     >
       <XR store={xrStore}>
         <color attach="background" args={["#000814"]} />

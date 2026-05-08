@@ -8,11 +8,14 @@
     "scrape:athletes": "node scrape-athletes.mjs",
     "group": "node group-by-sport.mjs",
     "catalog": "node build-sport-catalog.mjs",
+    "city-coords": "node build-city-coords.mjs",
+    "city-hubs": "node aggregate-cities.mjs",
     "hubs": "node aggregate-hubs.mjs",
     "distill": "node distill-sports.mjs",
     "cluster": "node cluster-archetypes.mjs"
   },
   "dependencies": {
-    "@google-cloud/vertexai": "^1.10.0"
+    "@google-cloud/vertexai": "^1.10.0",
+    "jszip": "^3.10.1"
   }
 }

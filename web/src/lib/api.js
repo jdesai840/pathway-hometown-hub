@@ -20,6 +20,12 @@ export async function fetchHubs() {
   return res.json();
 }
 
+export async function fetchCityHubs() {
+  const res = await fetch("/api/city-hubs");
+  if (!res.ok) throw new Error(`/api/city-hubs ${res.status}`);
+  return res.json();
+}
+
 export async function fetchSportCatalog() {
   const res = await fetch("/api/sport-catalog");
   if (!res.ok) throw new Error(`/api/sport-catalog ${res.status}`);
