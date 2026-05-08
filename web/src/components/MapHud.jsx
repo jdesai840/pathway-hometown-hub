@@ -1,5 +1,4 @@
-// Bottom-left control hints + reset-view button. Lives outside the Canvas so
-// it's just plain HTML overlay.
+// Bottom-left control hints + reset-view button for the 2D map.
 export default function MapHud() {
   function reset() {
     window.dispatchEvent(new CustomEvent("map:reset-view"));
@@ -9,8 +8,8 @@ export default function MapHud() {
     <div className="absolute bottom-4 left-4 z-20 flex items-end gap-3 pointer-events-none">
       <div className="rounded-2xl bg-slate-900/85 border border-slate-800 px-3 py-2 text-[11px] text-slate-200 leading-relaxed pointer-events-auto">
         <div className="font-semibold text-slate-50 mb-0.5">Map controls</div>
-        <div>Drag — orbit · Right-drag — pan · Scroll / pinch — zoom</div>
-        <div className="text-slate-400">Photorealistic 3D Tiles · Google Maps Platform</div>
+        <div>Drag — pan · Scroll / pinch — zoom · Click a pin for detail</div>
+        <div className="text-slate-400">Powered by Google Maps Platform</div>
       </div>
       <button
         onClick={reset}

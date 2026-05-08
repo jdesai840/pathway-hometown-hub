@@ -4,13 +4,10 @@ import SportFilter from "./SportFilter.jsx";
 import ChatThread from "./ChatThread.jsx";
 import HubDetail from "./HubDetail.jsx";
 import CityDetail from "./CityDetail.jsx";
-import EnterSpatialButton from "./EnterSpatialButton.jsx";
 import MapHud from "./MapHud.jsx";
-// Note: HubDetail is still wired to state-level data; once city pins land in
-// the next pass, we'll add a CityDetail component alongside it.
 
-// Main exploration screen: stylized 3D US map fills the viewport with overlay
-// UI panels for the agent + filters + per-state detail.
+// Main exploration screen: 2D Google Map fills the viewport with overlay UI
+// panels for the agent + filters + per-city / per-state detail.
 export default function MapExplorer() {
   return (
     <div className="relative w-full h-[calc(100vh-3.5rem)]">
@@ -28,7 +25,6 @@ export default function MapExplorer() {
       <MapHud />
       <HubDetail />
       <CityDetail />
-      <EnterSpatialButton />
     </div>
   );
 }
