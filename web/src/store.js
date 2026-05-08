@@ -1,5 +1,10 @@
 import { create } from "zustand";
 
+function cryptoRandom() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) return crypto.randomUUID();
+  return Math.random().toString(36).slice(2);
+}
+
 // Single source of truth shared between 2D UI, the spatial scene, and the voice agent.
 export const useApp = create((set) => ({
   step: "intro", // intro | explore
@@ -11,12 +16,12 @@ export const useApp = create((set) => ({
   mode: "recency", // "recency" | "all_time"
   sportFilter: null, // string or null
   categoryFilter: null, // "Olympic" | "Paralympic" | null
-  highlightedStates: [], // 2-letter codes the agent told us to spotlight
+  highlightedStates: [], // 2-letter codes currently emphasized on the map
   selectedState: null, // 2-letter code the user clicked on
-  intent: null, // last agent intent string ("filter_by_sport", etc.)
-  agentNarration: null,
-  agentFacts: [],
-  agentTranscript: null,
+
+  // Multi-turn chat with the geo agent.
+  // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
+  chatMessages: [],
 
   inXR: false,
 
@@ -28,14 +33,10 @@ export const useApp = create((set) => ({
   setSportFilter: (sportFilter) => set({ sportFilter }),
   setCategoryFilter: (categoryFilter) => set({ categoryFilter }),
   setSelectedState: (selectedState) => set({ selectedState }),
-  applyAgentResponse: (resp) =>
-    set({
-      highlightedStates: resp?.highlights || [],
-      intent: resp?.intent || null,
-      agentNarration: resp?.narration || null,
-      agentFacts: resp?.facts || [],
-      agentTranscript: resp?.transcript || null,
-    }),
+  addChatMessage: (msg) =>
+    set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
+  rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),
+  clearChat: () => set({ chatMessages: [], highlightedStates: [] }),
   setInXR: (inXR) => set({ inXR }),
 }));
 

@@ -30,8 +30,17 @@ function buildToolHandlers(hubsDoc) {
   };
 }
 
+// Convert a frontend chatMessages-style history into Gemini contents.
+// History entries: {role: 'user'|'model', text}
+function historyToContents(history) {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter((m) => m && (m.role === "user" || m.role === "model") && typeof m.text === "string")
+    .map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
+}
+
 export async function geoQuery(req, res) {
-  const { question, transcript } = req.body || {};
+  const { question, transcript, history } = req.body || {};
   const text = (question || transcript || "").toString().trim();
   if (!text) return res.status(400).json({ error: "question is required" });
 
@@ -65,7 +74,8 @@ export async function geoQuery(req, res) {
       generationConfig: { temperature: 0.3 },
     });
 
-    const contents = [{ role: "user", parts: [{ text }] }];
+    // Multi-turn: prior conversation comes first, then the new user message.
+    const contents = [...historyToContents(history), { role: "user", parts: [{ text }] }];
 
     // Multi-step function-calling loop — Gemini may call multiple tools.
     for (let step = 0; step < 4; step++) {

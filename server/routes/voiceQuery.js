@@ -27,11 +27,18 @@ function buildToolHandlers(hubsDoc) {
   };
 }
 
+function historyToContents(history) {
+  if (!Array.isArray(history)) return [];
+  return history
+    .filter((m) => m && (m.role === "user" || m.role === "model") && typeof m.text === "string")
+    .map((m) => ({ role: m.role, parts: [{ text: m.text }] }));
+}
+
 // Multimodal Gemini audio input. The browser records audio via MediaRecorder
-// and posts {audioBase64, mimeType} (e.g., "audio/webm;codecs=opus" or "audio/mp4").
-// Gemini transcribes + interprets in one round trip.
+// and posts {audioBase64, mimeType, history?}. Gemini transcribes + interprets
+// in one round trip with multi-turn context.
 export async function voiceQuery(req, res) {
-  const { audioBase64, mimeType } = req.body || {};
+  const { audioBase64, mimeType, history } = req.body || {};
   if (!audioBase64) return res.status(400).json({ error: "audioBase64 required" });
 
   let hubsDoc;
@@ -63,6 +70,7 @@ export async function voiceQuery(req, res) {
     const handlers = buildToolHandlers(hubsDoc);
 
     const contents = [
+      ...historyToContents(history),
       {
         role: "user",
         parts: [

@@ -26,12 +26,12 @@ export async function fetchSportCatalog() {
   return res.json();
 }
 
-export function postGeoQuery({ question }) {
-  return postJSON("/api/geo-query", { question });
+export function postGeoQuery({ question, history }) {
+  return postJSON("/api/geo-query", { question, history });
 }
 
-export function postVoiceQuery({ audioBase64, mimeType }) {
-  return postJSON("/api/voice-query", { audioBase64, mimeType });
+export function postVoiceQuery({ audioBase64, mimeType, history }) {
+  return postJSON("/api/voice-query", { audioBase64, mimeType, history });
 }
 
 export function postNarrate({ state, sport }) {
