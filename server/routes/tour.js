@@ -20,7 +20,11 @@ output a STRICT JSON tour script:
       "city": "...", "state": "..", "lat": <num>, "lng": <num>,
       "zoom": <int 6-10>,
       "narration": "...",
-      "highlightSports": ["..."]
+      "highlightSports": ["..."],
+      "viewpoint": { "lat": <num>, "lng": <num>, "name": "..." },
+      "landmarks": [
+        { "name": "...", "wikipedia": "Article_Title" }
+      ]
     }
   ]
 }
@@ -33,14 +37,30 @@ NARRATION REQUIREMENTS — these are STRICT, not suggestions:
 - If the city has both Olympic AND Paralympic athletes, mention both with
   counts. Equal narrative weight.
 - Weave in WHY: climate, infrastructure, training centers, geography, culture.
-  Use NOAA climate region context (Northeast, Upper Midwest, etc.) when
-  relevant. Mention real things ("U.S. Olympic Training Center", "Lake Placid
-  bobsled track", "Twin Cities ice culture") when they fit.
+  Use NOAA climate region context when relevant. Mention real things
+  ("U.S. Olympic Training Center", "Lake Placid bobsled track", "Twin Cities
+  ice culture") when they fit.
 - Conversational second person.
 - Conditional language only ('could', 'may', 'potentially'). Never guarantee.
 
 NEVER use vague filler like "a range of sports", "across many disciplines",
 "may create opportunities". Be specific or don't say it.
+
+VIEWPOINT (cinematic camera target):
+- Pick a lat/lng for a SPECIFIC iconic spot in the city — downtown skyline,
+  a major university campus, a known athletic facility, a famous park.
+- The viewpoint should be visually interesting from above (~1km altitude).
+  Avoid pure suburban sprawl or open water.
+- Examples: "Charlotte uptown skyline" 35.2271,-80.8431; "Duke University
+  campus" 36.0014,-78.9382; "Lake Placid Olympic Center" 44.2795,-73.9799.
+- Include a short 'name' label for the viewpoint.
+
+LANDMARKS (1-3 per stop):
+- Real, well-known places that match what your narration mentions —
+  universities, training centers, stadiums, famous parks.
+- 'wikipedia' is the EXACT Wikipedia article title (with underscores), e.g.,
+  "Duke_University", "Charlotte,_North_Carolina", "U.S._Olympic_%26_Paralympic_Training_Center".
+- Skip obscure landmarks; prefer ones with strong Wikipedia presence.
 
 ABSOLUTE RULES:
 - NEVER name an individual athlete.
@@ -49,10 +69,9 @@ ABSOLUTE RULES:
 - Use sport names exactly as in the candidate data.
 
 STOP SELECTION:
-- 4-6 stops with non-trivial presence (athleteCount >= 4 ideally; relax if
-  the only candidates are smaller).
+- 4-6 stops with non-trivial presence (athleteCount >= 4 ideally).
 - Order in a sensible geographic flow when possible.
-- Use REAL lat/lng from candidate data — don't invent.
+- Use REAL lat/lng from candidate data for the city's main lat/lng.
 - 'highlightSports' is 1-3 sport names from the city's actual breakdown.
 `.trim();
 

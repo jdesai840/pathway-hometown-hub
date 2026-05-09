@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import { useApp } from "../store.js";
 import { postTts } from "../lib/api.js";
+import LiveCaption from "./LiveCaption.jsx";
+import LandmarkPopouts from "./LandmarkPopouts.jsx";
 
 // Two-phase per stop:
 //   Phase A — 2D map: pan/zoom to the city, narration starts on the basemap.
@@ -142,6 +144,12 @@ export default function TourPlayer() {
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnded} />
+      <LiveCaption
+        audioRef={audioRef}
+        narration={stop?.narration}
+        visible={Boolean(stop) && tourState !== "idle"}
+      />
+      <LandmarkPopouts landmarks={stop?.landmarks} visible={Boolean(stop)} />
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(620px,94vw)] glass-strong rounded-2xl p-4 shadow-2xl animate-slide-up">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="min-w-0">
