@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../store.js";
-import IntroMap from "./IntroMap.jsx";
+import Intro3DMap from "./Intro3DMap.jsx";
 
 export default function Intro() {
   const setStep = useApp((s) => s.setStep);
@@ -41,8 +41,8 @@ export default function Intro() {
         />
       </div>
 
-      {/* Animated hometown-pin canvas */}
-      <IntroMap igniting={igniting} />
+      {/* Photorealistic 3D Tiles aerial dolly over the US */}
+      <Intro3DMap igniting={igniting} />
 
       {/* Radial ignite flash */}
       <div
@@ -64,14 +64,10 @@ export default function Intro() {
             : "opacity-100 translate-y-0"
         }`}
       >
-        <p className="uppercase tracking-[0.22em] text-[11px] text-slate-300 font-semibold animate-fade-in">
-          Powered by Gemini · Built on Google Cloud · Road to LA28
-        </p>
-
         {/* Brand wordmark */}
         <h1
           id="intro-heading"
-          className="mt-5 font-display font-extrabold tracking-tight leading-[0.95] animate-slide-up"
+          className="font-display font-extrabold tracking-tight leading-[0.95] animate-slide-up"
           style={{
             fontSize: "clamp(72px, 12vw, 168px)",
             letterSpacing: "-0.04em",
@@ -102,7 +98,7 @@ export default function Intro() {
         </p>
 
         <p
-          className="mt-6 text-base md:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed animate-slide-up"
+          className="mt-6 text-base md:text-lg text-slate-100 max-w-2xl mx-auto leading-relaxed animate-slide-up drop-shadow-[0_2px_12px_rgba(0,0,0,0.65)]"
           style={{ animationDelay: "120ms" }}
         >
           Every Olympic and Paralympic athlete's hometown — equal prominence,
