@@ -15,6 +15,7 @@
     "@react-three/fiber": "^8.17.10",
     "@react-three/xr": "^6.6.2",
     "@vis.gl/react-google-maps": "^1.8.3",
+    "3d-tiles-renderer": "^0.4.24",
     "framer-motion": "^12.38.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

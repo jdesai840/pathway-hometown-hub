@@ -24,6 +24,7 @@ export const useApp = create((set) => ({
   tour: null, // { title, summary, stops: [...] }
   tourState: "idle", // idle | loading | playing | paused | done
   tourIndex: 0,
+  tourCinematic: false, // when true, the photorealistic 3D city viewport is active
 
   // Multi-turn chat with the geo agent.
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
@@ -42,10 +43,13 @@ export const useApp = create((set) => ({
   setSelectedState: (selectedState) => set({ selectedState }),
   setSelectedCityKey: (selectedCityKey) => set({ selectedCityKey }),
   setClimateOverlay: (climateOverlay) => set({ climateOverlay }),
-  setTour: (tour) => set({ tour, tourIndex: 0, tourState: tour ? "playing" : "idle" }),
+  setTour: (tour) =>
+    set({ tour, tourIndex: 0, tourState: tour ? "playing" : "idle", tourCinematic: false }),
   setTourState: (tourState) => set({ tourState }),
-  setTourIndex: (tourIndex) => set({ tourIndex }),
-  endTour: () => set({ tour: null, tourState: "idle", tourIndex: 0 }),
+  setTourIndex: (tourIndex) => set({ tourIndex, tourCinematic: false }),
+  setTourCinematic: (tourCinematic) => set({ tourCinematic }),
+  endTour: () =>
+    set({ tour: null, tourState: "idle", tourIndex: 0, tourCinematic: false }),
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
   rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),

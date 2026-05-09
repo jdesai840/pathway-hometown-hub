@@ -3,9 +3,15 @@ import { useMap } from "@vis.gl/react-google-maps";
 import { useApp } from "../store.js";
 import { postTts } from "../lib/api.js";
 
-// Drives a tour: glides the map between stops, plays Cloud TTS audio for each
-// stop's narration, advances on audio-end or manual skip. Visual: bottom panel
-// showing current stop + progress + controls.
+// Two-phase per stop:
+//   Phase A — 2D map: pan/zoom to the city, narration starts on the basemap.
+//   Phase B — Cinematic: ~40% into the audio, fade to photorealistic 3D
+//             flyover of the city while narration finishes.
+// On audio end, fade back to 2D and advance to next stop.
+
+const CINEMATIC_TRIGGER_FRACTION = 0.35; // when audio passes 35% played, switch to 3D
+const CINEMATIC_MIN_DELAY_MS = 2200;     // never switch sooner than this
+
 export default function TourPlayer() {
   const map = useMap();
   const tour = useApp((s) => s.tour);
@@ -13,12 +19,13 @@ export default function TourPlayer() {
   const tourState = useApp((s) => s.tourState);
   const setTourIndex = useApp((s) => s.setTourIndex);
   const setTourState = useApp((s) => s.setTourState);
+  const setTourCinematic = useApp((s) => s.setTourCinematic);
   const endTour = useApp((s) => s.endTour);
-  const setSelectedCityKey = useApp((s) => s.setSelectedCityKey);
 
   const audioRef = useRef(null);
-  const [audioCache, setAudioCache] = useState({}); // idx -> objectURL
+  const [audioCache, setAudioCache] = useState({});
   const [synthErr, setSynthErr] = useState(null);
+  const cinematicTimerRef = useRef(null);
 
   // Pre-fetch all narration audio when tour starts
   useEffect(() => {
@@ -41,28 +48,27 @@ export default function TourPlayer() {
           }
         } catch (err) {
           console.error(`tts failed for stop ${i}`, err);
-          setSynthErr("Voice narration unavailable — falling back to text only.");
+          setSynthErr("Voice narration unavailable — text only.");
         }
       }
     })();
     return () => {
       cancelled = true;
-      // revoke object URLs to free memory
       Object.values(audioCache).forEach((u) => URL.revokeObjectURL(u));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
-  // When the active stop changes, pan the map and play audio for that stop
+  // When the active stop changes, pan the 2D map and play audio
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
     if (!stop) return;
 
+    setTourCinematic(false); // start each stop on 2D
     map.panTo({ lat: stop.lat, lng: stop.lng });
     map.setZoom(stop.zoom || 8);
 
-    // Play audio if cached
     const audio = audioRef.current;
     if (audio) {
       audio.pause();
@@ -73,11 +79,34 @@ export default function TourPlayer() {
         audio.play().catch(() => {});
       }
     }
-  }, [tour, map, tourIndex, tourState, audioCache]);
 
-  // When audio ends, advance
+    // Schedule the cinematic switch — 35% into audio (with a min delay so the
+    // 2D card has time to land), or fall back to a 4-second timeout if audio
+    // duration isn't yet known.
+    if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+    function scheduleCinematic() {
+      const dur = audio?.duration;
+      let triggerMs;
+      if (Number.isFinite(dur) && dur > 0) {
+        triggerMs = Math.max(CINEMATIC_MIN_DELAY_MS, dur * 1000 * CINEMATIC_TRIGGER_FRACTION);
+      } else {
+        triggerMs = 4000;
+      }
+      cinematicTimerRef.current = setTimeout(() => {
+        setTourCinematic(true);
+      }, triggerMs);
+    }
+    if (audio?.duration) scheduleCinematic();
+    else if (audio) audio.addEventListener("loadedmetadata", scheduleCinematic, { once: true });
+
+    return () => {
+      if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+    };
+  }, [tour, map, tourIndex, tourState, audioCache, setTourCinematic]);
+
   function onAudioEnded() {
     if (!tour) return;
+    setTourCinematic(false);
     if (tourIndex < tour.stops.length - 1) {
       setTourIndex(tourIndex + 1);
     } else {
@@ -93,7 +122,7 @@ export default function TourPlayer() {
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnded} />
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 w-[min(560px,92vw)] glass-strong rounded-2xl p-4 shadow-2xl animate-slide-up">
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(620px,94vw)] glass-strong rounded-2xl p-4 shadow-2xl animate-slide-up">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="min-w-0">
             <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
@@ -113,7 +142,7 @@ export default function TourPlayer() {
         </div>
 
         {stop && (
-          <p className="text-sm text-slate-100 leading-relaxed mb-3">
+          <p className="text-[13px] text-slate-100 leading-relaxed mb-3">
             {stop.narration}
           </p>
         )}
@@ -131,7 +160,6 @@ export default function TourPlayer() {
           </div>
         )}
 
-        {/* Progress dots */}
         <div className="flex items-center gap-1.5 mb-3">
           {tour.stops.map((s, i) => (
             <button
@@ -149,7 +177,6 @@ export default function TourPlayer() {
           ))}
         </div>
 
-        {/* Controls */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
             <span className="num">

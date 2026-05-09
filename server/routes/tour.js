@@ -19,39 +19,51 @@ You are now generating an AI TOUR for the user. A tour is a sequence of 4–6
 geographic stops (US cities) that tell a cohesive story about Team USA based
 on what the user wants to explore.
 
-Use the geo tools to gather data, then output STRICT JSON only:
+WORKFLOW (MANDATORY):
+1. First, call top_cities_for_state OR top_cities_for_sport to pick candidate stops.
+2. For EVERY chosen stop, you MUST call city_sport_breakdown(state, city) to
+   get the specific sport list with athlete counts and year ranges. Do NOT
+   write narration without doing this — generic narration is unacceptable.
+3. After all breakdowns are loaded, output the final JSON.
+
+OUTPUT (strict JSON):
 {
-  "title": "...",                       // short tour title
-  "summary": "...",                     // 1-2 sentences setting the stage
+  "title": "...",
+  "summary": "1-2 sentences setting the stage",
   "stops": [
     {
-      "city": "...",                    // exact city name from city-hub data
-      "state": "..",                    // 2-letter state code
-      "lat": <number>,                  // copy from city data
-      "lng": <number>,
-      "zoom": <integer 6-10>,           // suggested map zoom for this stop
-      "narration": "...",               // 2-3 sentences, conversational, second person
-      "highlightSports": ["..."]        // 1-3 sport names connected to this stop
-    },
-    ...
+      "city": "...", "state": "..", "lat": <num>, "lng": <num>,
+      "zoom": <int 6-10>,
+      "narration": "...",
+      "highlightSports": ["..."]
+    }
   ]
 }
 
-NARRATION RULES:
-- Second person, warm, conversational tone (this will be spoken aloud).
-- 2-3 sentences per stop. Roughly 25-50 words.
-- Olympic and Paralympic context with equal weight when relevant.
-- Conditional language ("could", "may"). Never guarantee outcomes.
-- Use sport names exactly as in the data. NEVER name individual athletes.
+NARRATION REQUIREMENTS — these are STRICT:
+- 3-5 sentences per stop, ~50-90 words. Concrete and specific, not generic.
+- MUST cite at least 2 specific sports with athlete counts (e.g., "23 athletes
+  in Track and Field, 18 in Swimming"). Use real numbers from city_sport_breakdown.
+- MUST mention the era / year range for at least one notable sport at that city
+  (e.g., "Curling has been on the city's roster since 2006").
+- If both Olympic AND Paralympic athletes exist at the stop, mention both with
+  counts. Equal narrative weight.
+- Weave in WHY this place produces these athletes — climate, infrastructure,
+  geography, culture (e.g., "high-altitude training near the Olympic Training
+  Center", "Lake Placid's bobsled track legacy", "Twin Cities ice culture").
+- Conversational second person. Conditional language only ("could", "may").
+- NEVER name individual athletes. Sport names exactly as in the data.
 - NEVER use "former" or "past" Olympian/Paralympian.
 - NEVER reference timing or scoring data.
-- Weave in climate-region context when meaningful (altitude, latitude, etc.).
-- Connect stops with smooth narrative transitions ("From here, we head to...").
+- Connect stops with smooth narrative transitions.
+
+NEVER use vague filler like "a range of sports", "across many disciplines",
+"may create opportunities". Be specific or don't say it.
 
 STOP SELECTION:
-- Pick 4-6 cities with real Team USA presence in the relevant data.
-- Order them in a sensible geographic or thematic flow.
-- Use the city's REAL lat/lng from the tool results — do not invent coords.
+- 4-6 cities with real, NON-TRIVIAL Team USA presence (athleteCount >= 4 ideally).
+- Order in a geographic or thematic flow.
+- Use the REAL lat/lng from tool results — don't invent.
 `.trim();
 
 function buildToolHandlers(hubsDoc, cityHubsDoc) {
@@ -87,6 +99,30 @@ function buildToolHandlers(hubsDoc, cityHubsDoc) {
         .sort((a, b) => b.sportAthletes - a.sportAthletes)
         .slice(0, limit);
     },
+    // CRITICAL — this is what gives narration its concreteness.
+    // Returns the full per-sport breakdown for a city: every sport with its
+    // category, athlete count, year range. Gemini is required (per system
+    // prompt) to call this for EVERY stop before writing narration.
+    city_sport_breakdown: ({ state, city }) => {
+      if (!cityHubsDoc || !state || !city) return [];
+      const stateUpper = state.toUpperCase();
+      const cityLower = city.toLowerCase();
+      const matched = cityHubsDoc.hubs.filter(
+        (h) =>
+          h.state === stateUpper &&
+          (h.city.toLowerCase() === cityLower || h.cityKey === cityLower)
+      );
+      return matched
+        .sort((a, b) => b.athleteCount - a.athleteCount)
+        .map((h) => ({
+          sport: h.sport,
+          category: h.category,
+          athleteCount: h.athleteCount,
+          earliestYear: h.earliestYear,
+          latestYear: h.latestYear,
+          medalCount: h.medalCount,
+        }));
+    },
   };
 }
 
@@ -117,6 +153,19 @@ const TOUR_EXTRA_TOOLS = [
             limit: { type: "integer" },
           },
           required: ["sport"],
+        },
+      },
+      {
+        name: "city_sport_breakdown",
+        description:
+          "Per-city sport breakdown: every sport at that city with category (Olympic|Paralympic), athlete count, year range. REQUIRED for every tour stop before writing narration.",
+        parameters: {
+          type: "object",
+          properties: {
+            state: { type: "string" },
+            city: { type: "string" },
+          },
+          required: ["state", "city"],
         },
       },
     ],
@@ -198,7 +247,8 @@ export async function tour(req, res) {
 
     const contents = [{ role: "user", parts: [{ text: userPrompt }] }];
 
-    for (let step = 0; step < 6; step++) {
+    // Bumped to allow more tool calls — each stop needs ≥1 city_sport_breakdown
+    for (let step = 0; step < 14; step++) {
       const result = await model.generateContent({ contents });
       const candidate = result.response.candidates?.[0];
       const part = candidate?.content?.parts?.[0];

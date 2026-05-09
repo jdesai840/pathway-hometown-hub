@@ -7,7 +7,7 @@ import CityDetail from "./CityDetail.jsx";
 import MapHud from "./MapHud.jsx";
 import ClimateLegend from "./ClimateLegend.jsx";
 import TourLauncher from "./TourLauncher.jsx";
-import TourPlayerInside from "./TourPlayerInside.jsx";
+import CityCinematic from "./CityCinematic.jsx";
 
 export default function MapExplorer() {
   return (
@@ -27,8 +27,8 @@ export default function MapExplorer() {
       <HubDetail />
       <CityDetail />
       <TourLauncher />
-      {/* Tour player must be rendered INSIDE the Map so useMap() works */}
-      <TourPlayerInside />
+      {/* Photorealistic 3D city viewport, fades in mid-narration during a tour stop */}
+      <CityCinematic />
     </div>
   );
 }
