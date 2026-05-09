@@ -49,8 +49,19 @@ export default function LiveCaption({ audioRef, narration, visible }) {
   if (!visible || sentences.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[150px] z-50 flex justify-center px-6">
-      <div className="max-w-3xl w-full text-center">
+    <div className="pointer-events-none fixed inset-x-0 bottom-[120px] z-50 flex justify-center px-8">
+      <div className="max-w-4xl w-full text-center relative">
+        {/* Soft gradient backdrop behind the caption for legibility against
+            varied photorealistic terrain */}
+        <div
+          aria-hidden="true"
+          className="absolute -inset-x-12 -inset-y-8 -z-10"
+          style={{
+            background:
+              "radial-gradient(ellipse at center, rgba(11,18,32,0.65) 0%, rgba(11,18,32,0.3) 50%, transparent 80%)",
+            filter: "blur(8px)",
+          }}
+        />
         {sentences.map((s, i) => {
           const isActive = i === activeIdx;
           const isPast = i < activeIdx;
@@ -61,15 +72,15 @@ export default function LiveCaption({ audioRef, narration, visible }) {
                 isActive
                   ? "text-white opacity-100 scale-100"
                   : isPast
-                  ? "text-slate-400 opacity-50 scale-[0.98]"
-                  : "text-slate-500 opacity-30 scale-[0.97]"
+                  ? "text-slate-300 opacity-45 scale-[0.97]"
+                  : "text-slate-400 opacity-25 scale-[0.96]"
               } font-display font-bold tracking-tight leading-snug`}
               style={{
-                fontSize: isActive ? "clamp(20px, 2.6vw, 32px)" : "clamp(16px, 1.8vw, 22px)",
+                fontSize: isActive ? "clamp(22px, 2.8vw, 36px)" : "clamp(15px, 1.7vw, 22px)",
                 textShadow: isActive
-                  ? "0 2px 14px rgba(0,0,0,0.85), 0 0 32px rgba(59,130,246,0.25)"
-                  : "0 1px 6px rgba(0,0,0,0.7)",
-                marginTop: i === 0 ? 0 : "0.35em",
+                  ? "0 2px 18px rgba(0,0,0,0.95), 0 0 40px rgba(59,130,246,0.35), 0 0 80px rgba(245,158,11,0.15)"
+                  : "0 1px 8px rgba(0,0,0,0.85)",
+                marginTop: i === 0 ? 0 : "0.4em",
               }}
             >
               {s}

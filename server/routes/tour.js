@@ -225,6 +225,24 @@ export async function tour(req, res) {
       return res.status(500).json({ error: "tour json not found", raw: text });
     }
     const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
+
+    // DEFENSIVE: Gemini occasionally invents or rounds lat/lng even when told
+    // to copy them. Override every stop's lat/lng from canonical city data
+    // using a (state, city) match. The viewpoint stays as-is (Gemini's
+    // intentional pick for the cinematic).
+    const candidateMap = new Map(
+      candidates.map((c) => [`${c.state}|${c.city.toLowerCase()}`, c])
+    );
+    if (Array.isArray(parsed?.stops)) {
+      parsed.stops = parsed.stops.map((s) => {
+        const key = `${(s.state || "").toUpperCase()}|${(s.city || "").toLowerCase()}`;
+        const canon = candidateMap.get(key);
+        if (canon) {
+          return { ...s, lat: canon.lat, lng: canon.lng };
+        }
+        return s;
+      });
+    }
     res.json(parsed);
   } catch (err) {
     console.error("tour failed", err);

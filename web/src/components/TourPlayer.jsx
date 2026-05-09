@@ -5,21 +5,14 @@ import { postTts } from "../lib/api.js";
 import LiveCaption from "./LiveCaption.jsx";
 import LandmarkPopouts from "./LandmarkPopouts.jsx";
 
-// Two-phase per stop:
-//   Phase A — 2D map: pan/zoom to the city, narration starts on the basemap.
-//   Phase B — Cinematic: ~35% into the audio, fade to photorealistic 3D
-//             flyover of the city while narration finishes.
-// On audio end, fade back to 2D and advance to next stop.
-
-const CINEMATIC_TRIGGER_FRACTION = 0.18; // ~end of first sentence
-const CINEMATIC_MIN_DELAY_MS = 1800;     // never sooner than this
+const CINEMATIC_TRIGGER_FRACTION = 0.18;
+const CINEMATIC_MIN_DELAY_MS = 1800;
 
 export default function TourPlayer() {
   const map = useMap();
   const tour = useApp((s) => s.tour);
   const tourIndex = useApp((s) => s.tourIndex);
   const tourState = useApp((s) => s.tourState);
-  // Subscribe so captions/popouts re-render at the cinematic transition
   const cinematic = useApp((s) => s.tourCinematic);
   const setTourIndex = useApp((s) => s.setTourIndex);
   const setTourState = useApp((s) => s.setTourState);
@@ -30,14 +23,8 @@ export default function TourPlayer() {
   const [audioCache, setAudioCache] = useState({});
   const [synthErr, setSynthErr] = useState(null);
   const cinematicTimerRef = useRef(null);
-
-  // Tracks which (tour, index) we have currently loaded into the <audio> element.
-  // Used to avoid restarting audio when audioCache updates for OTHER stops
-  // (background pre-fetch). Without this guard, every cached stop's TTS arriving
-  // re-triggers the play effect → audio restarts → first word repeats.
   const loadedKeyRef = useRef(null);
 
-  // Pre-fetch all narration audio when tour starts
   useEffect(() => {
     if (!tour) return;
     let cancelled = false;
@@ -59,7 +46,7 @@ export default function TourPlayer() {
           }
         } catch (err) {
           console.error(`tts failed for stop ${i}`, err);
-          setSynthErr("Voice narration unavailable — text only.");
+          setSynthErr("Voice narration unavailable.");
         }
       }
     })();
@@ -70,15 +57,16 @@ export default function TourPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
-  // Effect A: when stop changes, pan map + reset cinematic flag.
-  // Does NOT touch audio — that's effect B's job.
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
     if (!stop) return;
     setTourCinematic(false);
     map.panTo({ lat: stop.lat, lng: stop.lng });
-    map.setZoom(stop.zoom || 8);
+    // 2D city zoom: deeper than Gemini's suggested zoom — we want street-level
+    // texture for the first sentence so the user can SEE the city before the
+    // photorealistic cinematic kicks in. Clamp to 11 minimum.
+    map.setZoom(Math.max(11, stop.zoom || 11));
     return () => {
       if (cinematicTimerRef.current) {
         clearTimeout(cinematicTimerRef.current);
@@ -87,25 +75,19 @@ export default function TourPlayer() {
     };
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
-  // Effect B: load + play audio for the current stop.
-  // Guarded by loadedKeyRef so audioCache updates for OTHER stops don't restart
-  // the currently-playing audio.
   useEffect(() => {
     if (!tour || tourState !== "playing") return;
     const url = audioCache[tourIndex];
     const audio = audioRef.current;
     if (!url || !audio) return;
-
     const key = `${tour.title}|${tourIndex}`;
-    if (loadedKeyRef.current === key) return; // already loaded for this stop
-
+    if (loadedKeyRef.current === key) return;
     loadedKeyRef.current = key;
     audio.pause();
     audio.currentTime = 0;
     audio.src = url;
     audio.play().catch(() => {});
 
-    // Schedule cinematic switch using the audio's actual duration
     function scheduleCinematic() {
       if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
       const dur = audio.duration;
@@ -123,7 +105,6 @@ export default function TourPlayer() {
     else audio.addEventListener("loadedmetadata", scheduleCinematic, { once: true });
   }, [tour, tourState, tourIndex, audioCache, setTourCinematic]);
 
-  // Reset loaded key when tour ends so the next tour starts fresh
   useEffect(() => {
     if (!tour) loadedKeyRef.current = null;
   }, [tour]);
@@ -146,8 +127,8 @@ export default function TourPlayer() {
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnded} />
-      {/* Captions + landmark popouts only render during the photorealistic
-          cinematic phase — they shouldn't clutter the 2D map intro of a stop */}
+
+      {/* Caption + landmark popouts ONLY during cinematic */}
       <LiveCaption
         audioRef={audioRef}
         narration={stop?.narration}
@@ -157,110 +138,101 @@ export default function TourPlayer() {
         landmarks={stop?.landmarks}
         visible={Boolean(stop) && cinematic}
       />
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(620px,94vw)] glass-strong rounded-2xl p-4 shadow-2xl animate-slide-up">
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">
-              {tour.title}
+
+      {/* Compact control bar — slim and out-of-the-way. NO narration text in
+          either phase, so the only place the user sees the script is the
+          futuristic LiveCaption during cinematic. During 2D the bar shows
+          where we are; the map is the focus. */}
+      <div
+        className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${
+          cinematic ? "bottom-6" : "bottom-4"
+        }`}
+      >
+        <div className="glass-strong rounded-full px-4 py-2 shadow-2xl flex items-center gap-3 min-w-[460px] max-w-[92vw]">
+          <button
+            onClick={() => setTourIndex(Math.max(0, tourIndex - 1))}
+            disabled={tourIndex === 0}
+            aria-label="Previous stop"
+            className="w-8 h-8 rounded-full bg-slate-800/70 hover:bg-slate-700/80 text-slate-100 text-sm border border-slate-700/50 disabled:opacity-30 transition flex items-center justify-center"
+          >
+            ←
+          </button>
+
+          {tourState === "playing" ? (
+            <button
+              onClick={() => {
+                audioRef.current?.pause();
+                setTourState("paused");
+              }}
+              aria-label="Pause"
+              className="w-9 h-9 rounded-full bg-white text-slate-900 transition flex items-center justify-center"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+            </button>
+          ) : (
+            <button
+              onClick={() => {
+                audioRef.current?.play().catch(() => {});
+                setTourState("playing");
+              }}
+              aria-label={tourState === "done" ? "Replay" : "Resume"}
+              className="w-9 h-9 rounded-full bg-white text-slate-900 transition flex items-center justify-center"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>
+            </button>
+          )}
+
+          <button
+            onClick={() => {
+              if (isLast) endTour();
+              else setTourIndex(tourIndex + 1);
+            }}
+            aria-label={isLast ? "End tour" : "Next stop"}
+            className="w-8 h-8 rounded-full bg-slate-800/70 hover:bg-slate-700/80 text-slate-100 text-sm border border-slate-700/50 transition flex items-center justify-center"
+          >
+            →
+          </button>
+
+          {/* Center label: stop number + city */}
+          <div className="flex-1 px-2 min-w-0 text-center">
+            <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-semibold">
+              Stop <span className="num">{tourIndex + 1}</span> / {tour.stops.length}
+              {tour.title && <span className="text-slate-500"> · {tour.title}</span>}
             </p>
-            <h3 className="font-display font-extrabold text-slate-50 text-lg leading-tight tracking-tight mt-0.5">
+            <p className="font-display font-bold text-slate-50 text-sm leading-tight tracking-tight truncate">
               {stop ? `${stop.city}, ${stop.state}` : ""}
-            </h3>
+            </p>
           </div>
+
+          {/* Progress dots */}
+          <div className="flex items-center gap-1.5">
+            {tour.stops.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setTourIndex(i)}
+                aria-label={`Stop ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all ${
+                  i === tourIndex
+                    ? "w-6 bg-white"
+                    : i < tourIndex
+                    ? "w-1.5 bg-slate-300/70"
+                    : "w-1.5 bg-slate-700/70"
+                }`}
+              />
+            ))}
+          </div>
+
           <button
             onClick={endTour}
             aria-label="End tour"
-            className="text-slate-400 hover:text-white px-2 focus:outline-none focus:ring-2 focus:ring-white/40 rounded transition shrink-0"
+            className="w-8 h-8 rounded-full text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center justify-center"
           >
             ✕
           </button>
         </div>
-
-        {stop && (
-          <p className="text-[13px] text-slate-100 leading-relaxed mb-3">
-            {stop.narration}
-          </p>
+        {synthErr && (
+          <p className="text-center text-[10px] text-amber-300 mt-1.5">{synthErr}</p>
         )}
-
-        {Array.isArray(stop?.highlightSports) && stop.highlightSports.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {stop.highlightSports.map((s) => (
-              <span
-                key={s}
-                className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800/60 text-slate-200 border border-slate-700/50"
-              >
-                {s}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="flex items-center gap-1.5 mb-3">
-          {tour.stops.map((s, i) => (
-            <button
-              key={i}
-              onClick={() => setTourIndex(i)}
-              aria-label={`Stop ${i + 1}`}
-              className={`h-1 rounded-full transition-all ${
-                i === tourIndex
-                  ? "flex-[2] bg-white"
-                  : i < tourIndex
-                  ? "flex-1 bg-slate-300/70"
-                  : "flex-1 bg-slate-700/70"
-              }`}
-            />
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-            <span className="num">
-              Stop {tourIndex + 1} / {tour.stops.length}
-            </span>
-            {synthErr && <span className="text-amber-300">· {synthErr}</span>}
-          </div>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setTourIndex(Math.max(0, tourIndex - 1))}
-              disabled={tourIndex === 0}
-              aria-label="Previous stop"
-              className="px-3 py-1.5 rounded-full bg-slate-800/70 hover:bg-slate-700/80 text-[11px] text-slate-100 border border-slate-700/50 disabled:opacity-40 transition"
-            >
-              ←
-            </button>
-            {tourState === "playing" ? (
-              <button
-                onClick={() => {
-                  audioRef.current?.pause();
-                  setTourState("paused");
-                }}
-                className="px-3.5 py-1.5 rounded-full bg-white text-slate-900 text-[11px] font-semibold transition"
-              >
-                Pause
-              </button>
-            ) : (
-              <button
-                onClick={() => {
-                  audioRef.current?.play().catch(() => {});
-                  setTourState("playing");
-                }}
-                className="px-3.5 py-1.5 rounded-full bg-white text-slate-900 text-[11px] font-semibold transition"
-              >
-                {tourState === "done" ? "Replay" : "Resume"}
-              </button>
-            )}
-            <button
-              onClick={() => {
-                if (isLast) endTour();
-                else setTourIndex(tourIndex + 1);
-              }}
-              aria-label={isLast ? "End tour" : "Next stop"}
-              className="px-3 py-1.5 rounded-full bg-slate-800/70 hover:bg-slate-700/80 text-[11px] text-slate-100 border border-slate-700/50 transition"
-            >
-              {isLast ? "Finish" : "→"}
-            </button>
-          </div>
-        </div>
       </div>
     </>
   );
