@@ -117,8 +117,8 @@ function CinematicCamera({ lat, lng, playing }) {
     // Initial position so tile renderer can pre-load while user is still on 2D
     const startPos = new THREE.Vector3()
       .copy(frame.center)
-      .addScaledVector(frame.eastVec, 1900)
-      .addScaledVector(frame.upVec, 850);
+      .addScaledVector(frame.eastVec, 1100)
+      .addScaledVector(frame.upVec, 500);
     camera.position.copy(startPos);
     camera.up.copy(frame.upVec);
     camera.lookAt(frame.center);
@@ -127,10 +127,11 @@ function CinematicCamera({ lat, lng, playing }) {
 
   useFrame(() => {
     const elapsed = (performance.now() - t0.current) / 1000;
-    // Gentle orbit: ~80s full revolution. Closer than before.
+    // Tight orbit at building-skyline altitude. Smaller frustum = fewer tiles
+    // to stream + much more detail per tile.
     const angle = (playing ? elapsed * 0.05 : 0) + Math.PI / 5;
-    const radiusM = 1900 + Math.sin(elapsed * 0.18) * 450; // 1450–2350m
-    const altitudeM = 850 + Math.sin(elapsed * 0.13) * 200; // 650–1050m
+    const radiusM = 1100 + Math.sin(elapsed * 0.18) * 250; // 850–1350m
+    const altitudeM = 500 + Math.sin(elapsed * 0.13) * 130; // 370–630m
 
     const tangent = new THREE.Vector3()
       .copy(frame.eastVec).multiplyScalar(Math.cos(angle))
