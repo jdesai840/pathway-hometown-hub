@@ -72,10 +72,11 @@ export default function TourController() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
-  // ── Pan 2D map when stop changes — with slow zoom-in animation ────────────
-  // Snap-zoom feels jarring; instead start at a wider zoom and ease into the
-  // target over ~5 seconds so the user gets a "camera approach" feeling on
-  // the 2D map before the photorealistic cinematic takes over.
+  // ── Pan 2D map when stop changes — jump to city, then slow zoom IN ────────
+  // Snap to the city at city-scale zoom (matches the prior UX), let satellite
+  // tiles arrive for ~350ms, then slowly zoom *deeper* into it. Throttle the
+  // per-frame setZoom calls so the raster basemap doesn't flash white tiles
+  // from tile-fetch thrash.
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
@@ -85,26 +86,40 @@ export default function TourController() {
       stop.viewpoint && typeof stop.viewpoint.lat === "number"
         ? { lat: stop.viewpoint.lat, lng: stop.viewpoint.lng }
         : { lat: stop.lat, lng: stop.lng };
-    const finalZoom = Math.max(11, stop.zoom || 11);
-    const startZoom = Math.max(9, finalZoom - 2);
+
+    const jumpZoom = Math.max(11, stop.zoom || 11);
+    const finalZoom = jumpZoom + 1.5;
     const durationMs = 5000;
+    const settleMs = 350;
+    const ZOOM_EPSILON = 0.05;
 
+    // (1) Snap jump
     map.setCenter(target);
-    map.setZoom(startZoom);
+    map.setZoom(jumpZoom);
 
+    // (2)+(3)+(4) Settle, then slow zoom IN with throttled setZoom
     let cancelled = false;
-    const t0 = performance.now();
-    function tick() {
+    let lastApplied = jumpZoom;
+    const settleTimer = setTimeout(() => {
       if (cancelled) return;
-      const t = Math.min(1, (performance.now() - t0) / durationMs);
-      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-      map.setZoom(startZoom + (finalZoom - startZoom) * eased);
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+      const t0 = performance.now();
+      function tick() {
+        if (cancelled) return;
+        const t = Math.min(1, (performance.now() - t0) / durationMs);
+        const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+        const z = jumpZoom + (finalZoom - jumpZoom) * eased;
+        if (Math.abs(z - lastApplied) >= ZOOM_EPSILON || t === 1) {
+          map.setZoom(z);
+          lastApplied = z;
+        }
+        if (t < 1) requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    }, settleMs);
 
     return () => {
       cancelled = true;
+      clearTimeout(settleTimer);
     };
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
