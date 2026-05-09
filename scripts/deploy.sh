@@ -46,7 +46,7 @@ gcloud run deploy "$SERVICE_NAME" \
   --allow-unauthenticated \
   --memory 1Gi \
   --cpu 1 \
-  --timeout 60s \
+  --timeout 300s \
   --set-env-vars "GCP_PROJECT=$GCP_PROJECT,GCP_LOCATION=$GCP_LOCATION,GCS_BUCKET=$GCS_BUCKET,MAPS_API_KEY=$MAPS_API_KEY,GEMINI_MODEL=$GEMINI_MODEL"
 
 # 3. Resolve the runtime service account and grant required IAM (idempotent)
