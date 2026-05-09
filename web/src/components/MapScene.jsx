@@ -2,7 +2,7 @@ import { APIProvider, Map, useMap } from "@vis.gl/react-google-maps";
 import { useEffect } from "react";
 import { useApp } from "../store.js";
 import CityMarkers from "./CityMarkers.jsx";
-import TourPlayer from "./TourPlayer.jsx";
+import TourController from "./TourController.jsx";
 
 const US_BOUNDS = {
   north: 49.5,
@@ -57,7 +57,7 @@ export default function MapScene() {
       >
         <CityMarkers />
         <ResetHandler />
-        <TourPlayer />
+        <TourController />
       </Map>
     </APIProvider>
   );

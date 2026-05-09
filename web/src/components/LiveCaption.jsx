@@ -1,33 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
+import { useApp } from "../store.js";
 
-// Big elegant caption overlay during cinematic. Mounted for the entire tour
-// so the audio listener stays stable; visibility is controlled via opacity
-// (not conditional return) so we don't drop listeners on phase transitions.
-export default function LiveCaption({ audioRef, narration, visible }) {
-  const [progress, setProgress] = useState(0);
+// Big elegant caption overlay during cinematic. Reads audioCurrentTime +
+// audioDuration from the zustand store (written by TourController on every
+// timeupdate event). Lives at the MapExplorer top level so position:fixed
+// works correctly against the viewport.
+export default function LiveCaption({ narration, visible }) {
+  const audioCurrentTime = useApp((s) => s.audioCurrentTime);
+  const audioDuration = useApp((s) => s.audioDuration);
+  const [resetKey, setResetKey] = useState(0);
 
+  // Force-reset progress visualization when narration changes (new stop)
   useEffect(() => {
-    const audio = audioRef?.current;
-    if (!audio) return;
-    function onTime() {
-      const dur = audio.duration;
-      if (!Number.isFinite(dur) || dur <= 0) return;
-      setProgress(Math.min(1, audio.currentTime / dur));
-    }
-    audio.addEventListener("timeupdate", onTime);
-    audio.addEventListener("durationchange", onTime);
-    return () => {
-      audio.removeEventListener("timeupdate", onTime);
-      audio.removeEventListener("durationchange", onTime);
-    };
-  }, [audioRef]);
-
-  useEffect(() => {
-    setProgress(0);
+    setResetKey((k) => k + 1);
   }, [narration]);
 
   const sentences = useMemo(() => splitSentences(narration || ""), [narration]);
   const totalChars = sentences.reduce((n, s) => n + s.length, 0) || 1;
+
+  const progress =
+    audioDuration > 0 ? Math.min(1, audioCurrentTime / audioDuration) : 0;
 
   let activeIdx = 0;
   let acc = 0;
@@ -42,13 +34,13 @@ export default function LiveCaption({ audioRef, narration, visible }) {
 
   return (
     <div
+      key={resetKey}
       aria-hidden={!visible}
       className={`pointer-events-none fixed inset-x-0 bottom-[110px] z-[60] flex justify-center px-8 transition-opacity duration-500 ${
         visible && sentences.length > 0 ? "opacity-100" : "opacity-0"
       }`}
     >
       <div className="max-w-4xl w-full text-center relative">
-        {/* Soft gradient backdrop for legibility against varied terrain */}
         <div
           aria-hidden="true"
           className="absolute -inset-x-12 -inset-y-10"

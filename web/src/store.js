@@ -25,6 +25,8 @@ export const useApp = create((set) => ({
   tourState: "idle", // idle | loading | playing | paused | done
   tourIndex: 0,
   tourCinematic: false, // when true, the photorealistic 3D city viewport is active
+  audioCurrentTime: 0, // synced from <audio> element in TourController
+  audioDuration: 0,    // ditto
 
   // Multi-turn chat with the geo agent.
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
@@ -44,12 +46,32 @@ export const useApp = create((set) => ({
   setSelectedCityKey: (selectedCityKey) => set({ selectedCityKey }),
   setClimateOverlay: (climateOverlay) => set({ climateOverlay }),
   setTour: (tour) =>
-    set({ tour, tourIndex: 0, tourState: tour ? "playing" : "idle", tourCinematic: false }),
+    set({
+      tour,
+      tourIndex: 0,
+      tourState: tour ? "playing" : "idle",
+      tourCinematic: false,
+      // Clear stale city selection — CityMarkers' pan-on-selection effect
+      // would otherwise fight the tour's panning logic.
+      selectedCityKey: null,
+      audioCurrentTime: 0,
+      audioDuration: 0,
+    }),
   setTourState: (tourState) => set({ tourState }),
-  setTourIndex: (tourIndex) => set({ tourIndex, tourCinematic: false }),
+  setTourIndex: (tourIndex) =>
+    set({ tourIndex, tourCinematic: false, audioCurrentTime: 0, audioDuration: 0 }),
   setTourCinematic: (tourCinematic) => set({ tourCinematic }),
+  setAudioProgress: (audioCurrentTime, audioDuration) =>
+    set({ audioCurrentTime, audioDuration }),
   endTour: () =>
-    set({ tour: null, tourState: "idle", tourIndex: 0, tourCinematic: false }),
+    set({
+      tour: null,
+      tourState: "idle",
+      tourIndex: 0,
+      tourCinematic: false,
+      audioCurrentTime: 0,
+      audioDuration: 0,
+    }),
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
   rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),
