@@ -5,12 +5,12 @@ import { postTts } from "../lib/api.js";
 
 // Two-phase per stop:
 //   Phase A — 2D map: pan/zoom to the city, narration starts on the basemap.
-//   Phase B — Cinematic: ~40% into the audio, fade to photorealistic 3D
+//   Phase B — Cinematic: ~35% into the audio, fade to photorealistic 3D
 //             flyover of the city while narration finishes.
 // On audio end, fade back to 2D and advance to next stop.
 
-const CINEMATIC_TRIGGER_FRACTION = 0.35; // when audio passes 35% played, switch to 3D
-const CINEMATIC_MIN_DELAY_MS = 2200;     // never switch sooner than this
+const CINEMATIC_TRIGGER_FRACTION = 0.18; // ~end of first sentence
+const CINEMATIC_MIN_DELAY_MS = 1800;     // never sooner than this
 
 export default function TourPlayer() {
   const map = useMap();
@@ -27,12 +27,19 @@ export default function TourPlayer() {
   const [synthErr, setSynthErr] = useState(null);
   const cinematicTimerRef = useRef(null);
 
+  // Tracks which (tour, index) we have currently loaded into the <audio> element.
+  // Used to avoid restarting audio when audioCache updates for OTHER stops
+  // (background pre-fetch). Without this guard, every cached stop's TTS arriving
+  // re-triggers the play effect → audio restarts → first word repeats.
+  const loadedKeyRef = useRef(null);
+
   // Pre-fetch all narration audio when tour starts
   useEffect(() => {
     if (!tour) return;
     let cancelled = false;
     setAudioCache({});
     setSynthErr(null);
+    loadedKeyRef.current = null;
     (async () => {
       const results = {};
       for (let i = 0; i < tour.stops.length; i++) {
@@ -59,50 +66,63 @@ export default function TourPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
-  // When the active stop changes, pan the 2D map and play audio
+  // Effect A: when stop changes, pan map + reset cinematic flag.
+  // Does NOT touch audio — that's effect B's job.
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
     if (!stop) return;
-
-    setTourCinematic(false); // start each stop on 2D
+    setTourCinematic(false);
     map.panTo({ lat: stop.lat, lng: stop.lng });
     map.setZoom(stop.zoom || 8);
-
-    const audio = audioRef.current;
-    if (audio) {
-      audio.pause();
-      audio.currentTime = 0;
-      const url = audioCache[tourIndex];
-      if (url) {
-        audio.src = url;
-        audio.play().catch(() => {});
+    return () => {
+      if (cinematicTimerRef.current) {
+        clearTimeout(cinematicTimerRef.current);
+        cinematicTimerRef.current = null;
       }
-    }
+    };
+  }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
-    // Schedule the cinematic switch — 35% into audio (with a min delay so the
-    // 2D card has time to land), or fall back to a 4-second timeout if audio
-    // duration isn't yet known.
-    if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+  // Effect B: load + play audio for the current stop.
+  // Guarded by loadedKeyRef so audioCache updates for OTHER stops don't restart
+  // the currently-playing audio.
+  useEffect(() => {
+    if (!tour || tourState !== "playing") return;
+    const url = audioCache[tourIndex];
+    const audio = audioRef.current;
+    if (!url || !audio) return;
+
+    const key = `${tour.title}|${tourIndex}`;
+    if (loadedKeyRef.current === key) return; // already loaded for this stop
+
+    loadedKeyRef.current = key;
+    audio.pause();
+    audio.currentTime = 0;
+    audio.src = url;
+    audio.play().catch(() => {});
+
+    // Schedule cinematic switch using the audio's actual duration
     function scheduleCinematic() {
-      const dur = audio?.duration;
+      if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+      const dur = audio.duration;
       let triggerMs;
       if (Number.isFinite(dur) && dur > 0) {
         triggerMs = Math.max(CINEMATIC_MIN_DELAY_MS, dur * 1000 * CINEMATIC_TRIGGER_FRACTION);
       } else {
-        triggerMs = 4000;
+        triggerMs = 3500;
       }
       cinematicTimerRef.current = setTimeout(() => {
         setTourCinematic(true);
       }, triggerMs);
     }
-    if (audio?.duration) scheduleCinematic();
-    else if (audio) audio.addEventListener("loadedmetadata", scheduleCinematic, { once: true });
+    if (Number.isFinite(audio.duration) && audio.duration > 0) scheduleCinematic();
+    else audio.addEventListener("loadedmetadata", scheduleCinematic, { once: true });
+  }, [tour, tourState, tourIndex, audioCache, setTourCinematic]);
 
-    return () => {
-      if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
-    };
-  }, [tour, map, tourIndex, tourState, audioCache, setTourCinematic]);
+  // Reset loaded key when tour ends so the next tour starts fresh
+  useEffect(() => {
+    if (!tour) loadedKeyRef.current = null;
+  }, [tour]);
 
   function onAudioEnded() {
     if (!tour) return;

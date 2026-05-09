@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { TilesRenderer, TilesPlugin } from "3d-tiles-renderer/r3f";
 import { GoogleCloudAuthPlugin } from "3d-tiles-renderer/plugins";
@@ -8,11 +8,13 @@ import { latLngToECEF, localNorth, localEast } from "../lib/ecef.js";
 
 const TILESET_URL = "https://tile.googleapis.com/v1/3dtiles/root.json";
 
-// Photorealistic 3D city flyover — used INSIDE a tour stop. The camera
-// auto-orbits the city at low altitude so the photogrammetry comes alive.
+// Photorealistic 3D city flyover — used INSIDE a tour stop.
 //
-// Renders only when a tour is active and we're past the cinematic threshold
-// of the current stop. Outside of tours this component is unmounted.
+// IMPORTANT: this component stays MOUNTED for the entire tour (not just when
+// the cinematic flag is true). The TilesRenderer pre-loads tiles for the
+// current stop while the user is still seeing the 2D map. Only the opacity
+// is toggled — by the time the fade-in completes, tiles are already on screen
+// and we don't see a black void.
 export default function CityCinematic() {
   const tour = useApp((s) => s.tour);
   const tourIndex = useApp((s) => s.tourIndex);
@@ -21,33 +23,38 @@ export default function CityCinematic() {
   const mapsApiKey = useApp((s) => s.mapsApiKey);
 
   const stop = tour?.stops?.[tourIndex];
-  const visible = Boolean(tour && stop && cinematic && mapsApiKey);
+  const mounted = Boolean(tour && stop && mapsApiKey);
+
+  // Track whether the camera has moved to a position where tiles have started
+  // arriving — used to fade in the canvas only once, smoothly.
+  const [tilesReady, setTilesReady] = useState(false);
+
+  if (!mounted) return null;
 
   return (
     <div
-      aria-hidden={!visible}
-      className={`fixed inset-0 z-40 pointer-events-none transition-opacity duration-700 ${
-        visible ? "opacity-100" : "opacity-0"
+      aria-hidden={!cinematic}
+      className={`fixed inset-0 z-40 transition-opacity duration-700 ease-out ${
+        cinematic ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
       }`}
       style={{ background: "radial-gradient(ellipse at center, #0a0e16 0%, #04060a 100%)" }}
     >
-      {visible && stop && (
-        <Canvas
-          gl={{ logarithmicDepthBuffer: true, antialias: true }}
-          camera={{ fov: 55, near: 1, far: 5e7 }}
-          style={{ width: "100%", height: "100%", pointerEvents: "auto" }}
-        >
-          <ambientLight intensity={1.0} />
-          <directionalLight position={[1, 0.6, 0.5]} intensity={1.4} />
-          <Scene
-            apiKey={mapsApiKey}
-            lat={stop.lat}
-            lng={stop.lng}
-            playing={tourState === "playing"}
-          />
-        </Canvas>
-      )}
-      {/* gradient vignette over the canvas for film feel */}
+      <Canvas
+        gl={{ logarithmicDepthBuffer: true, antialias: true }}
+        camera={{ fov: 55, near: 1, far: 5e7 }}
+        style={{ width: "100%", height: "100%" }}
+      >
+        <ambientLight intensity={1.0} />
+        <directionalLight position={[1, 0.6, 0.5]} intensity={1.4} />
+        <Scene
+          apiKey={mapsApiKey}
+          lat={stop.lat}
+          lng={stop.lng}
+          playing={tourState === "playing" && cinematic}
+          onTilesReady={() => setTilesReady(true)}
+        />
+      </Canvas>
+      {/* Vignette over the canvas for film feel */}
       <div
         aria-hidden="true"
         className="absolute inset-0 pointer-events-none"
@@ -56,24 +63,37 @@ export default function CityCinematic() {
             "radial-gradient(ellipse at center, transparent 55%, rgba(4,6,10,0.85) 100%)",
         }}
       />
+      {/* Subtle "now playing" caption */}
+      {cinematic && stop && (
+        <div className="pointer-events-none absolute top-8 left-1/2 -translate-x-1/2 text-center">
+          <p className="text-[10px] uppercase tracking-[0.25em] text-slate-300 font-semibold">
+            Photorealistic flyover
+          </p>
+          <p className="font-display font-extrabold text-3xl text-white tracking-tight mt-1 drop-shadow-lg">
+            {stop.city}, {stop.state}
+          </p>
+        </div>
+      )}
     </div>
   );
 }
 
-function Scene({ apiKey, lat, lng, playing }) {
+function Scene({ apiKey, lat, lng, playing, onTilesReady }) {
   return (
     <TilesRenderer url={TILESET_URL}>
       <TilesPlugin
         plugin={GoogleCloudAuthPlugin}
         args={{ apiToken: apiKey, autoRefreshToken: true }}
       />
-      <CinematicCamera lat={lat} lng={lng} playing={playing} />
+      <CinematicCamera lat={lat} lng={lng} playing={playing} onTilesReady={onTilesReady} />
     </TilesRenderer>
   );
 }
 
-// Auto-orbits the city center at low altitude. Re-initializes whenever lat/lng
-// changes so each new stop gets a fresh angle.
+// Auto-orbits the city center at low altitude. Re-positions whenever lat/lng
+// changes so each new stop gets a fresh angle. Camera is set ON MOUNT so
+// tiles for the current city start streaming immediately, even before the
+// cinematic fade-in fires.
 function CinematicCamera({ lat, lng, playing }) {
   const { camera } = useThree();
   const t0 = useRef(performance.now());
@@ -86,18 +106,32 @@ function CinematicCamera({ lat, lng, playing }) {
 
   useLayoutEffect(() => {
     t0.current = performance.now();
-  }, [lat, lng]);
+    // Set camera to a sensible starting position immediately so the tile
+    // renderer's frustum has somewhere to focus — that triggers initial tile
+    // loading without waiting for the first useFrame.
+    const startPos = new THREE.Vector3()
+      .copy(frame.center)
+      .addScaledVector(frame.eastVec, 3500)
+      .addScaledVector(frame.upVec, 1600);
+    camera.position.copy(startPos);
+    camera.up.copy(frame.upVec);
+    camera.lookAt(frame.center);
+    camera.updateProjectionMatrix();
+  }, [camera, frame]);
 
   useFrame(() => {
     const elapsed = (performance.now() - t0.current) / 1000;
-    // Slow gentle orbit — full revolution every ~60s, with subtle altitude breathing
+    // Slow gentle orbit — only animates while playing
     const angle = (playing ? elapsed * 0.06 : 0) + Math.PI / 6;
-    const radiusM = 3500 + Math.sin(elapsed * 0.2) * 600; // 2.9–4.1 km out from center
-    const altitudeM = 1600 + Math.sin(elapsed * 0.15) * 250; // 1.35–1.85 km up
+    const radiusM = 3500 + Math.sin(elapsed * 0.2) * 600;
+    const altitudeM = 1600 + Math.sin(elapsed * 0.15) * 250;
 
     const radial = new THREE.Vector3()
       .copy(frame.eastVec).multiplyScalar(Math.cos(angle))
-      .addScaledVector(new THREE.Vector3().crossVectors(frame.upVec, frame.eastVec).normalize(), Math.sin(angle));
+      .addScaledVector(
+        new THREE.Vector3().crossVectors(frame.upVec, frame.eastVec).normalize(),
+        Math.sin(angle)
+      );
 
     const camPos = new THREE.Vector3()
       .copy(frame.center)
