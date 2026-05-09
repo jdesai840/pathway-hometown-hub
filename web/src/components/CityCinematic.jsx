@@ -47,7 +47,6 @@ export default function CityCinematic() {
       style={{ background: "radial-gradient(ellipse at center, #0a0e16 0%, #04060a 100%)" }}
     >
       <Canvas
-        frameloop={cinematic ? "always" : "demand"}
         gl={{ logarithmicDepthBuffer: true, antialias: true }}
         camera={{ fov: 50, near: 1, far: 5e7 }}
         style={{ width: "100%", height: "100%" }}
