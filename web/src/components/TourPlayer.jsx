@@ -61,12 +61,17 @@ export default function TourPlayer() {
   }, [tour]);
 
   // ── Pan 2D map when stop changes ───────────────────────────────────────────
+  // We use setCenter (synchronous jump) + setZoom rather than panTo (animated)
+  // because animated pan + setZoom firing back-to-back at low zooms causes the
+  // camera to interpolate to a weird midpoint (was reliably landing in
+  // McLean, TX from the default US-zoom-4 view).
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
     if (!stop) return;
     setTourCinematic(false);
-    map.panTo({ lat: stop.lat, lng: stop.lng });
+    const target = { lat: stop.lat, lng: stop.lng };
+    map.setCenter(target);
     map.setZoom(Math.max(11, stop.zoom || 11));
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
@@ -124,15 +129,17 @@ export default function TourPlayer() {
     }
   }
 
-  if (!tour) return null;
-
-  const stop = tour.stops[tourIndex];
-  const isLast = tourIndex >= tour.stops.length - 1;
+  // The audio element is ALWAYS mounted while TourPlayer itself is mounted.
+  // (We used to early-return null when !tour, which meant audioRef was null
+  // on first mount and the timeupdate listener never attached.) The conditional
+  // gating below hides the visible UI when there's no tour.
+  const stop = tour?.stops?.[tourIndex];
+  const isLast = tour ? tourIndex >= tour.stops.length - 1 : false;
 
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnded} />
-
+      {tour && (<>
       <LiveCaption
         audioRef={audioRef}
         narration={stop?.narration}
@@ -232,6 +239,7 @@ export default function TourPlayer() {
           <p className="text-center text-[10px] text-amber-300 mt-1.5">{synthErr}</p>
         )}
       </div>
+      </>)}
     </>
   );
 }
