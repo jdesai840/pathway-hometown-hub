@@ -5,8 +5,11 @@ import { postTts } from "../lib/api.js";
 import LiveCaption from "./LiveCaption.jsx";
 import LandmarkPopouts from "./LandmarkPopouts.jsx";
 
-const CINEMATIC_TRIGGER_FRACTION = 0.18;
-const CINEMATIC_MIN_DELAY_MS = 1800;
+// Cinematic kicks in when audio crosses this fraction of its total duration.
+// 0.20 = end of first sentence (roughly).
+const CINEMATIC_FRACTION = 0.20;
+// And never sooner than this even on very short clips.
+const CINEMATIC_MIN_SECONDS = 1.8;
 
 export default function TourPlayer() {
   const map = useMap();
@@ -22,9 +25,9 @@ export default function TourPlayer() {
   const audioRef = useRef(null);
   const [audioCache, setAudioCache] = useState({});
   const [synthErr, setSynthErr] = useState(null);
-  const cinematicTimerRef = useRef(null);
   const loadedKeyRef = useRef(null);
 
+  // ── Pre-fetch all narration audio when tour starts ─────────────────────────
   useEffect(() => {
     if (!tour) return;
     let cancelled = false;
@@ -57,24 +60,17 @@ export default function TourPlayer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
+  // ── Pan 2D map when stop changes ───────────────────────────────────────────
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
     if (!stop) return;
     setTourCinematic(false);
     map.panTo({ lat: stop.lat, lng: stop.lng });
-    // 2D city zoom: deeper than Gemini's suggested zoom — we want street-level
-    // texture for the first sentence so the user can SEE the city before the
-    // photorealistic cinematic kicks in. Clamp to 11 minimum.
     map.setZoom(Math.max(11, stop.zoom || 11));
-    return () => {
-      if (cinematicTimerRef.current) {
-        clearTimeout(cinematicTimerRef.current);
-        cinematicTimerRef.current = null;
-      }
-    };
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
+  // ── Load + play audio when stop changes (guarded against audioCache churn) ─
   useEffect(() => {
     if (!tour || tourState !== "playing") return;
     const url = audioCache[tourIndex];
@@ -87,23 +83,32 @@ export default function TourPlayer() {
     audio.currentTime = 0;
     audio.src = url;
     audio.play().catch(() => {});
+  }, [tour, tourState, tourIndex, audioCache]);
 
-    function scheduleCinematic() {
-      if (cinematicTimerRef.current) clearTimeout(cinematicTimerRef.current);
+  // ── DERIVE cinematic flag from audio time on every timeupdate ──────────────
+  // No setTimeout: previous architecture had effect-cleanup races that were
+  // canceling the cinematic timer before it fired. This is bulletproof:
+  // every audio frame we check whether we should be in cinematic mode.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    function onTime() {
       const dur = audio.duration;
-      let triggerMs;
-      if (Number.isFinite(dur) && dur > 0) {
-        triggerMs = Math.max(CINEMATIC_MIN_DELAY_MS, dur * 1000 * CINEMATIC_TRIGGER_FRACTION);
-      } else {
-        triggerMs = 3500;
-      }
-      cinematicTimerRef.current = setTimeout(() => {
-        setTourCinematic(true);
-      }, triggerMs);
+      if (!Number.isFinite(dur) || dur <= 0) return;
+      const t = audio.currentTime;
+      const wantCinematic =
+        t >= CINEMATIC_MIN_SECONDS && t / dur >= CINEMATIC_FRACTION;
+      // Only flip if state actually differs — avoids re-render storms
+      const current = useApp.getState().tourCinematic;
+      if (wantCinematic !== current) setTourCinematic(wantCinematic);
     }
-    if (Number.isFinite(audio.duration) && audio.duration > 0) scheduleCinematic();
-    else audio.addEventListener("loadedmetadata", scheduleCinematic, { once: true });
-  }, [tour, tourState, tourIndex, audioCache, setTourCinematic]);
+    audio.addEventListener("timeupdate", onTime);
+    audio.addEventListener("durationchange", onTime);
+    return () => {
+      audio.removeEventListener("timeupdate", onTime);
+      audio.removeEventListener("durationchange", onTime);
+    };
+  }, [setTourCinematic]);
 
   useEffect(() => {
     if (!tour) loadedKeyRef.current = null;
@@ -128,7 +133,6 @@ export default function TourPlayer() {
     <>
       <audio ref={audioRef} onEnded={onAudioEnded} />
 
-      {/* Caption + landmark popouts ONLY during cinematic */}
       <LiveCaption
         audioRef={audioRef}
         narration={stop?.narration}
@@ -139,12 +143,8 @@ export default function TourPlayer() {
         visible={Boolean(stop) && cinematic}
       />
 
-      {/* Compact control bar — slim and out-of-the-way. NO narration text in
-          either phase, so the only place the user sees the script is the
-          futuristic LiveCaption during cinematic. During 2D the bar shows
-          where we are; the map is the focus. */}
       <div
-        className={`fixed left-1/2 -translate-x-1/2 z-50 transition-all duration-500 ${
+        className={`fixed left-1/2 -translate-x-1/2 z-[55] transition-all duration-500 ${
           cinematic ? "bottom-6" : "bottom-4"
         }`}
       >
@@ -193,7 +193,6 @@ export default function TourPlayer() {
             →
           </button>
 
-          {/* Center label: stop number + city */}
           <div className="flex-1 px-2 min-w-0 text-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-semibold">
               Stop <span className="num">{tourIndex + 1}</span> / {tour.stops.length}
@@ -204,7 +203,6 @@ export default function TourPlayer() {
             </p>
           </div>
 
-          {/* Progress dots */}
           <div className="flex items-center gap-1.5">
             {tour.stops.map((_, i) => (
               <button

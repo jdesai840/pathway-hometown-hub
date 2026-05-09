@@ -226,19 +226,37 @@ export async function tour(req, res) {
     }
     const parsed = JSON.parse(text.slice(jsonStart, jsonEnd + 1));
 
-    // DEFENSIVE: Gemini occasionally invents or rounds lat/lng even when told
-    // to copy them. Override every stop's lat/lng from canonical city data
-    // using a (state, city) match. The viewpoint stays as-is (Gemini's
-    // intentional pick for the cinematic).
+    // DEFENSIVE: Gemini sometimes invents lat/lng or returns city names that
+    // don't exact-match our candidates. Three-stage fallback:
+    //   1) exact (state, normalized-city) match → use canonical lat/lng
+    //   2) Gemini's viewpoint lat/lng if present (it's the city the cinematic
+    //      will fly over, so the 2D map should match)
+    //   3) leave Gemini's stop.lat/lng as-is
+    const norm = (s) =>
+      (s || "")
+        .toString()
+        .toLowerCase()
+        .replace(/[.,'"]/g, "")
+        .replace(/\s+/g, " ")
+        .trim();
     const candidateMap = new Map(
-      candidates.map((c) => [`${c.state}|${c.city.toLowerCase()}`, c])
+      candidates.map((c) => [`${c.state}|${norm(c.city)}`, c])
     );
     if (Array.isArray(parsed?.stops)) {
       parsed.stops = parsed.stops.map((s) => {
-        const key = `${(s.state || "").toUpperCase()}|${(s.city || "").toLowerCase()}`;
+        const key = `${(s.state || "").toUpperCase()}|${norm(s.city)}`;
         const canon = candidateMap.get(key);
         if (canon) {
           return { ...s, lat: canon.lat, lng: canon.lng };
+        }
+        // Fallback to viewpoint coords so the 2D map at least pans to where
+        // the cinematic will fly.
+        if (
+          s.viewpoint &&
+          typeof s.viewpoint.lat === "number" &&
+          typeof s.viewpoint.lng === "number"
+        ) {
+          return { ...s, lat: s.viewpoint.lat, lng: s.viewpoint.lng };
         }
         return s;
       });
