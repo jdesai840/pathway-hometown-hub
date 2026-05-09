@@ -4,7 +4,7 @@ import { TilesRenderer, TilesPlugin } from "3d-tiles-renderer/r3f";
 import { GoogleCloudAuthPlugin } from "3d-tiles-renderer/plugins";
 import * as THREE from "three";
 import { useApp } from "../store.js";
-import { latLngToECEF, localNorth, localEast } from "../lib/ecef.js";
+import { latLngToECEF, localUp, localEast } from "../lib/ecef.js";
 
 const TILESET_URL = "https://tile.googleapis.com/v1/3dtiles/root.json";
 
@@ -97,18 +97,22 @@ function Scene({ apiKey, lat, lng, playing, onTilesReady }) {
 function CinematicCamera({ lat, lng, playing }) {
   const { camera } = useThree();
   const t0 = useRef(performance.now());
+
+  // Local east-north-up frame at the city.
+  // - up = surface NORMAL (radial outward) — used for altitude offsets and
+  //   for camera.up so the sky stays at the top of the view.
+  // - east + north form the tangent plane (where the orbit sweeps).
   const frame = useMemo(() => {
     const center = latLngToECEF(lat, lng, 0);
-    const upVec = localNorth(lat, lng);
+    const upVec = localUp(lat, lng); // <-- the actual surface normal
     const eastVec = localEast(lat, lng);
-    return { center, upVec, eastVec };
+    const northVec = new THREE.Vector3().crossVectors(upVec, eastVec).normalize();
+    return { center, upVec, eastVec, northVec };
   }, [lat, lng]);
 
   useLayoutEffect(() => {
     t0.current = performance.now();
-    // Set camera to a sensible starting position immediately so the tile
-    // renderer's frustum has somewhere to focus — that triggers initial tile
-    // loading without waiting for the first useFrame.
+    // Initial camera position: 3.5km east of the city center, 1.6km altitude.
     const startPos = new THREE.Vector3()
       .copy(frame.center)
       .addScaledVector(frame.eastVec, 3500)
@@ -126,17 +130,15 @@ function CinematicCamera({ lat, lng, playing }) {
     const radiusM = 3500 + Math.sin(elapsed * 0.2) * 600;
     const altitudeM = 1600 + Math.sin(elapsed * 0.15) * 250;
 
-    const radial = new THREE.Vector3()
+    // Tangent direction sweeping around the city in the east-north plane.
+    const tangent = new THREE.Vector3()
       .copy(frame.eastVec).multiplyScalar(Math.cos(angle))
-      .addScaledVector(
-        new THREE.Vector3().crossVectors(frame.upVec, frame.eastVec).normalize(),
-        Math.sin(angle)
-      );
+      .addScaledVector(frame.northVec, Math.sin(angle));
 
     const camPos = new THREE.Vector3()
       .copy(frame.center)
-      .addScaledVector(radial, radiusM)
-      .addScaledVector(frame.upVec, altitudeM);
+      .addScaledVector(tangent, radiusM)   // horizontal offset (along surface)
+      .addScaledVector(frame.upVec, altitudeM); // altitude (radially outward)
 
     camera.position.copy(camPos);
     camera.up.copy(frame.upVec);

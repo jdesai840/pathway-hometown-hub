@@ -18,6 +18,7 @@ export function latLngToECEF(latDeg, lngDeg, altMeters = 0) {
   );
 }
 
+// Tangent vector pointing NORTH along the surface (perpendicular to localUp).
 export function localNorth(latDeg, lngDeg) {
   const lat = THREE.MathUtils.degToRad(latDeg);
   const lng = THREE.MathUtils.degToRad(lngDeg);
@@ -28,7 +29,21 @@ export function localNorth(latDeg, lngDeg) {
   );
 }
 
+// Tangent vector pointing EAST along the surface.
 export function localEast(latDeg, lngDeg) {
   const lng = THREE.MathUtils.degToRad(lngDeg);
   return new THREE.Vector3(-Math.sin(lng), Math.cos(lng), 0);
+}
+
+// Surface NORMAL — the actual "up" direction from the ground at (lat, lng).
+// Points radially outward from Earth's center. Use this for altitude offsets
+// and for camera.up so the sky stays at the top of the view.
+export function localUp(latDeg, lngDeg) {
+  const lat = THREE.MathUtils.degToRad(latDeg);
+  const lng = THREE.MathUtils.degToRad(lngDeg);
+  return new THREE.Vector3(
+    Math.cos(lat) * Math.cos(lng),
+    Math.cos(lat) * Math.sin(lng),
+    Math.sin(lat)
+  );
 }
