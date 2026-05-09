@@ -145,7 +145,17 @@ export default function TourController() {
     if (tourIndex < tour.stops.length - 1) {
       setTourIndex(tourIndex + 1);
     } else {
+      // Last stop: mark done, then auto-exit after a short grace delay so the
+      // final caption fades gracefully and the photorealistic view lingers
+      // for a beat instead of snapping away.
       setTourState("done");
+      setTimeout(() => {
+        const s = useApp.getState();
+        // Bail if the user already closed or jumped during the delay.
+        if (s.tour && s.tourIndex === s.tour.stops.length - 1) {
+          s.endTour();
+        }
+      }, 1500);
     }
   }
 
