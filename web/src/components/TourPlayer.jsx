@@ -19,6 +19,8 @@ export default function TourPlayer() {
   const tour = useApp((s) => s.tour);
   const tourIndex = useApp((s) => s.tourIndex);
   const tourState = useApp((s) => s.tourState);
+  // Subscribe so captions/popouts re-render at the cinematic transition
+  const cinematic = useApp((s) => s.tourCinematic);
   const setTourIndex = useApp((s) => s.setTourIndex);
   const setTourState = useApp((s) => s.setTourState);
   const setTourCinematic = useApp((s) => s.setTourCinematic);
@@ -144,12 +146,17 @@ export default function TourPlayer() {
   return (
     <>
       <audio ref={audioRef} onEnded={onAudioEnded} />
+      {/* Captions + landmark popouts only render during the photorealistic
+          cinematic phase — they shouldn't clutter the 2D map intro of a stop */}
       <LiveCaption
         audioRef={audioRef}
         narration={stop?.narration}
-        visible={Boolean(stop) && tourState !== "idle"}
+        visible={Boolean(stop) && cinematic}
       />
-      <LandmarkPopouts landmarks={stop?.landmarks} visible={Boolean(stop)} />
+      <LandmarkPopouts
+        landmarks={stop?.landmarks}
+        visible={Boolean(stop) && cinematic}
+      />
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-50 w-[min(620px,94vw)] glass-strong rounded-2xl p-4 shadow-2xl animate-slide-up">
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="min-w-0">
