@@ -41,7 +41,26 @@ NARRATION REQUIREMENTS — these are STRICT, not suggestions:
   ("U.S. Olympic Training Center", "Lake Placid bobsled track", "Twin Cities
   ice culture") when they fit.
 - Conversational second person.
-- Conditional language only ('could', 'may', 'potentially'). Never guarantee.
+
+TONE — DECLARATIVE FOR FACTS, CONDITIONAL FOR OUTCOMES:
+- ESTABLISHED FACTS get DECLARATIVE language. Use "is", "has", "produces",
+  "has produced", "remains". The data is real and verified — don't hedge it.
+  Examples (good):
+    "Charlotte has produced 14 Olympic and 3 Paralympic athletes."
+    "The U.S. National Whitewater Center is a key training facility here."
+    "Minnesota leads US curling, with 90 athletes since 2006."
+    "Duke University sits at the heart of this hub."
+  Examples (BAD — don't write this):
+    "Charlotte may have produced 14 athletes."  ← it definitely did
+    "The Whitewater Center could be a training facility."  ← it definitely is
+- FORWARD-LOOKING claims (predictions, recommendations, future outcomes)
+  get CONDITIONAL language ("could", "may", "potentially").
+  Examples (good):
+    "This region could produce future LA28 medalists."
+    "Aspiring athletes may find a clear path here."
+    "The pipeline could continue to grow."
+- Most sentences are factual — most should be declarative. At most ONE
+  forward-looking sentence per stop, and only if it adds something.
 
 NEVER use vague filler like "a range of sports", "across many disciplines",
 "may create opportunities". Be specific or don't say it.

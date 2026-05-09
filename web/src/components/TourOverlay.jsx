@@ -84,7 +84,6 @@ export default function TourOverlay() {
           <div className="flex-1 px-2 min-w-0 text-center">
             <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-semibold">
               Stop <span className="num">{tourIndex + 1}</span> / {tour.stops.length}
-              {tour.title && <span className="text-slate-500"> · {tour.title}</span>}
             </p>
             <p className="font-display font-bold text-slate-50 text-sm leading-tight tracking-tight truncate">
               {stop ? `${stop.city}, ${stop.state}` : ""}
