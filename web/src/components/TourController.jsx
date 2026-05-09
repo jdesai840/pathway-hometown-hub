@@ -72,10 +72,8 @@ export default function TourController() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
-  // ── Pan 2D map when stop changes — jump to city, then slow zoom IN ────────
-  // Snap to the city at city-scale zoom, wait for the map's `idle` event
-  // (initial pan + tile load complete), then slowly zoom *deeper* into it
-  // with throttled setZoom so the raster basemap doesn't flash white tiles.
+  // ── Snap 2D map to the stop's city. No zoom animation — atomic update,
+  //    no race window with any other map mover.
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
@@ -101,47 +99,13 @@ export default function TourController() {
       return;
     }
 
-    const target = { lat, lng };
-    const jumpZoom = Math.max(11, stop.zoom || 11);
-    const finalZoom = jumpZoom + 1.5;
-    const durationMs = 5000;
-    const ZOOM_EPSILON = 0.05;
-
-    // Snap to the city.
-    map.setCenter(target);
-    map.setZoom(jumpZoom);
-
-    // Then wait for the map to fully settle (pan complete + tiles arrived)
-    // before starting the slow zoom-in. This is the "wait for them to spawn"
-    // gate — uses the real Google Maps lifecycle signal instead of a fixed
-    // setTimeout so we never start zooming before the camera is in position.
-    let cancelled = false;
-    let lastApplied = jumpZoom;
-    const idleListener = window.google?.maps?.event?.addListenerOnce(
-      map,
-      "idle",
-      () => {
-        if (cancelled) return;
-        const t0 = performance.now();
-        function tick() {
-          if (cancelled) return;
-          const t = Math.min(1, (performance.now() - t0) / durationMs);
-          const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-          const z = jumpZoom + (finalZoom - jumpZoom) * eased;
-          if (Math.abs(z - lastApplied) >= ZOOM_EPSILON || t === 1) {
-            map.setZoom(z);
-            lastApplied = z;
-          }
-          if (t < 1) requestAnimationFrame(tick);
-        }
-        requestAnimationFrame(tick);
-      }
-    );
-
-    return () => {
-      cancelled = true;
-      if (idleListener) window.google.maps.event.removeListener(idleListener);
-    };
+    const zoom = Math.max(11, stop.zoom || 11);
+    if (typeof map.moveCamera === "function") {
+      map.moveCamera({ center: { lat, lng }, zoom });
+    } else {
+      map.setCenter({ lat, lng });
+      map.setZoom(zoom);
+    }
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
   // ── Load + play audio when stop changes ────────────────────────────────────

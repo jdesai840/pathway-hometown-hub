@@ -288,10 +288,42 @@ export async function tour(req, res) {
           if (!ok) console.warn("dropping tour stop with no coords", s);
           return ok;
         });
+
+      // Sanity-clamp: if a stop's state matches a candidate state and the
+      // coords are wildly off the candidate's location (>5° lat or lng — a
+      // state diameter or so), the coords are almost certainly a Gemini
+      // hallucination. Override with the candidate's canonical coords. This
+      // is the second leg of the McLean fix — even when coords are present
+      // and numerically valid, they have to be geographically plausible.
+      const candidatesByState = new Map();
+      for (const c of candidates) {
+        if (!candidatesByState.has(c.state)) candidatesByState.set(c.state, c);
+      }
+      parsed.stops = parsed.stops.map((s) => {
+        const stateAnchor = candidatesByState.get((s.state || "").toUpperCase());
+        if (!stateAnchor) return s;
+        const dLat = Math.abs(s.lat - stateAnchor.lat);
+        const dLng = Math.abs(s.lng - stateAnchor.lng);
+        if (dLat > 5 || dLng > 5) {
+          console.warn(
+            `tour stop ${s.city}, ${s.state} coords (${s.lat},${s.lng}) ` +
+            `implausible vs ${stateAnchor.state} anchor (${stateAnchor.lat},${stateAnchor.lng}); ` +
+            `clamping to anchor.`
+          );
+          return { ...s, lat: stateAnchor.lat, lng: stateAnchor.lng };
+        }
+        return s;
+      });
     }
     if (!Array.isArray(parsed?.stops) || parsed.stops.length === 0) {
       return res.status(500).json({ error: "no usable stops in tour" });
     }
+    console.log(
+      "tour returning stops:",
+      parsed.stops
+        .map((s) => `${s.city}, ${s.state} @ (${s.lat},${s.lng})`)
+        .join(" | ")
+    );
     res.json(parsed);
   } catch (err) {
     console.error("tour failed", err);

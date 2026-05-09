@@ -19,6 +19,8 @@ export default function CityMarkers() {
   const climateOverlay = useApp((s) => s.climateOverlay);
   const selectedCityKey = useApp((s) => s.selectedCityKey);
   const setSelectedCityKey = useApp((s) => s.setSelectedCityKey);
+  const tour = useApp((s) => s.tour);
+  const tourActive = Boolean(tour);
 
   const filteredCityKeys = useMemo(() => {
     if (!cityHubsDoc) return null;
@@ -113,8 +115,9 @@ export default function CityMarkers() {
             zIndex: 1000 + count,
             title: `${totalAth} athletes here — click to zoom in`,
           });
-          // Click cluster: zoom in
+          // Click cluster: zoom in. Inert during a tour — the tour owns the camera.
           cluster.addListener("click", () => {
+            if (useApp.getState().tour) return;
             const z = map.getZoom() ?? 4;
             map.setZoom(Math.min(z + 2, 14));
             map.panTo(position);
@@ -133,14 +136,17 @@ export default function CityMarkers() {
     };
   }, [map, markerLib, visibleCities, max, climateOverlay, selectedCityKey, setSelectedCityKey]);
 
-  // Pan + zoom to selected city
+  // Pan + zoom to selected city. Disabled while a tour is active — the tour
+  // owns the camera and we don't want a stale selectedCityKey panning the
+  // map out from under it.
   useEffect(() => {
     if (!map || !cityHubsDoc || !selectedCityKey) return;
+    if (tourActive) return;
     const c = cityHubsDoc.cities.find((x) => `${x.state}|${x.cityKey}` === selectedCityKey);
     if (!c) return;
     map.panTo({ lat: c.lat, lng: c.lng });
     if ((map.getZoom() ?? 0) < 8) map.setZoom(8);
-  }, [map, cityHubsDoc, selectedCityKey]);
+  }, [map, cityHubsDoc, selectedCityKey, tourActive]);
 
   return null;
 }
