@@ -169,7 +169,10 @@ export async function tour(req, res) {
       generationConfig: {
         temperature: 0.6,
         responseMimeType: "application/json",
-        maxOutputTokens: 4096,
+        // 4-6 stops × ~90-word narration + title/summary + sport tags can
+        // easily exceed 4k tokens. 16k gives plenty of headroom; truncation
+        // produces invalid JSON and a 500.
+        maxOutputTokens: 16384,
       },
     });
 
