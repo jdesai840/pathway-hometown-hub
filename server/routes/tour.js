@@ -262,23 +262,35 @@ export async function tour(req, res) {
       candidates.map((c) => [`${c.state}|${norm(c.city)}`, c])
     );
     if (Array.isArray(parsed?.stops)) {
-      parsed.stops = parsed.stops.map((s) => {
-        const key = `${(s.state || "").toUpperCase()}|${norm(s.city)}`;
-        const canon = candidateMap.get(key);
-        if (canon) {
-          return { ...s, lat: canon.lat, lng: canon.lng };
-        }
-        // Fallback to viewpoint coords so the 2D map at least pans to where
-        // the cinematic will fly.
-        if (
-          s.viewpoint &&
-          typeof s.viewpoint.lat === "number" &&
-          typeof s.viewpoint.lng === "number"
-        ) {
-          return { ...s, lat: s.viewpoint.lat, lng: s.viewpoint.lng };
-        }
-        return s;
-      });
+      parsed.stops = parsed.stops
+        .map((s) => {
+          const key = `${(s.state || "").toUpperCase()}|${norm(s.city)}`;
+          const canon = candidateMap.get(key);
+          if (canon) {
+            return { ...s, lat: canon.lat, lng: canon.lng };
+          }
+          // Fallback to viewpoint coords so the 2D map at least pans to where
+          // the cinematic will fly.
+          if (
+            s.viewpoint &&
+            typeof s.viewpoint.lat === "number" &&
+            typeof s.viewpoint.lng === "number"
+          ) {
+            return { ...s, lat: s.viewpoint.lat, lng: s.viewpoint.lng };
+          }
+          return s;
+        })
+        // Final guard: any stop without valid lat/lng is unusable. Better to
+        // drop it than let the client pass garbage to map.setCenter and ghost
+        // a previous viewport (the "McLean" bug).
+        .filter((s) => {
+          const ok = typeof s.lat === "number" && typeof s.lng === "number";
+          if (!ok) console.warn("dropping tour stop with no coords", s);
+          return ok;
+        });
+    }
+    if (!Array.isArray(parsed?.stops) || parsed.stops.length === 0) {
+      return res.status(500).json({ error: "no usable stops in tour" });
     }
     res.json(parsed);
   } catch (err) {

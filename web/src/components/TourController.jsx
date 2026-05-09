@@ -73,53 +73,74 @@ export default function TourController() {
   }, [tour]);
 
   // ── Pan 2D map when stop changes — jump to city, then slow zoom IN ────────
-  // Snap to the city at city-scale zoom (matches the prior UX), let satellite
-  // tiles arrive for ~350ms, then slowly zoom *deeper* into it. Throttle the
-  // per-frame setZoom calls so the raster basemap doesn't flash white tiles
-  // from tile-fetch thrash.
+  // Snap to the city at city-scale zoom, wait for the map's `idle` event
+  // (initial pan + tile load complete), then slowly zoom *deeper* into it
+  // with throttled setZoom so the raster basemap doesn't flash white tiles.
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
     if (!stop) return;
     setTourCinematic(false);
-    const target =
-      stop.viewpoint && typeof stop.viewpoint.lat === "number"
-        ? { lat: stop.viewpoint.lat, lng: stop.viewpoint.lng }
-        : { lat: stop.lat, lng: stop.lng };
 
+    // Server-side override puts the canonical city center on stop.lat/lng;
+    // that's the authoritative coord. Viewpoint is only fallback.
+    const lat =
+      typeof stop.lat === "number"
+        ? stop.lat
+        : typeof stop.viewpoint?.lat === "number"
+        ? stop.viewpoint.lat
+        : null;
+    const lng =
+      typeof stop.lng === "number"
+        ? stop.lng
+        : typeof stop.viewpoint?.lng === "number"
+        ? stop.viewpoint.lng
+        : null;
+    if (lat == null || lng == null) {
+      console.warn("Tour stop missing valid coordinates — not moving map.", stop);
+      return;
+    }
+
+    const target = { lat, lng };
     const jumpZoom = Math.max(11, stop.zoom || 11);
     const finalZoom = jumpZoom + 1.5;
     const durationMs = 5000;
-    const settleMs = 350;
     const ZOOM_EPSILON = 0.05;
 
-    // (1) Snap jump
+    // Snap to the city.
     map.setCenter(target);
     map.setZoom(jumpZoom);
 
-    // (2)+(3)+(4) Settle, then slow zoom IN with throttled setZoom
+    // Then wait for the map to fully settle (pan complete + tiles arrived)
+    // before starting the slow zoom-in. This is the "wait for them to spawn"
+    // gate — uses the real Google Maps lifecycle signal instead of a fixed
+    // setTimeout so we never start zooming before the camera is in position.
     let cancelled = false;
     let lastApplied = jumpZoom;
-    const settleTimer = setTimeout(() => {
-      if (cancelled) return;
-      const t0 = performance.now();
-      function tick() {
+    const idleListener = window.google?.maps?.event?.addListenerOnce(
+      map,
+      "idle",
+      () => {
         if (cancelled) return;
-        const t = Math.min(1, (performance.now() - t0) / durationMs);
-        const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
-        const z = jumpZoom + (finalZoom - jumpZoom) * eased;
-        if (Math.abs(z - lastApplied) >= ZOOM_EPSILON || t === 1) {
-          map.setZoom(z);
-          lastApplied = z;
+        const t0 = performance.now();
+        function tick() {
+          if (cancelled) return;
+          const t = Math.min(1, (performance.now() - t0) / durationMs);
+          const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+          const z = jumpZoom + (finalZoom - jumpZoom) * eased;
+          if (Math.abs(z - lastApplied) >= ZOOM_EPSILON || t === 1) {
+            map.setZoom(z);
+            lastApplied = z;
+          }
+          if (t < 1) requestAnimationFrame(tick);
         }
-        if (t < 1) requestAnimationFrame(tick);
+        requestAnimationFrame(tick);
       }
-      requestAnimationFrame(tick);
-    }, settleMs);
+    );
 
     return () => {
       cancelled = true;
-      clearTimeout(settleTimer);
+      if (idleListener) window.google.maps.event.removeListener(idleListener);
     };
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
