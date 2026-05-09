@@ -35,6 +35,15 @@ export default function TourController() {
   // ── Pre-fetch all narration audio when tour starts ─────────────────────────
   useEffect(() => {
     if (!tour) return;
+    // CRITICAL: hard-silence the audio element BEFORE clearing the cache so the
+    // pause/play bridge effect can't ask the browser to resume the previous
+    // tour's last URL while the new audio is still being fetched.
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+    }
     let cancelled = false;
     setAudioCache({});
     loadedKeyRef.current = null;
@@ -63,10 +72,10 @@ export default function TourController() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
-  // ── Pan 2D map when stop changes ───────────────────────────────────────────
-  // Use viewpoint coords (Gemini's intended cinematic target) when available.
-  // Atomic setOptions avoids the setCenter+setZoom interpolation bug that was
-  // landing the camera in random Texas/Oklahoma cities at low zoom.
+  // ── Pan 2D map when stop changes — with slow zoom-in animation ────────────
+  // Snap-zoom feels jarring; instead start at a wider zoom and ease into the
+  // target over ~5 seconds so the user gets a "camera approach" feeling on
+  // the 2D map before the photorealistic cinematic takes over.
   useEffect(() => {
     if (!tour || !map || tourState !== "playing") return;
     const stop = tour.stops[tourIndex];
@@ -76,13 +85,27 @@ export default function TourController() {
       stop.viewpoint && typeof stop.viewpoint.lat === "number"
         ? { lat: stop.viewpoint.lat, lng: stop.viewpoint.lng }
         : { lat: stop.lat, lng: stop.lng };
-    const zoom = Math.max(11, stop.zoom || 11);
-    if (typeof map.moveCamera === "function") {
-      map.moveCamera({ center: target, zoom });
-    } else {
-      map.setCenter(target);
-      map.setZoom(zoom);
+    const finalZoom = Math.max(11, stop.zoom || 11);
+    const startZoom = Math.max(9, finalZoom - 2);
+    const durationMs = 5000;
+
+    map.setCenter(target);
+    map.setZoom(startZoom);
+
+    let cancelled = false;
+    const t0 = performance.now();
+    function tick() {
+      if (cancelled) return;
+      const t = Math.min(1, (performance.now() - t0) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      map.setZoom(startZoom + (finalZoom - startZoom) * eased);
+      if (t < 1) requestAnimationFrame(tick);
     }
+    requestAnimationFrame(tick);
+
+    return () => {
+      cancelled = true;
+    };
   }, [tour, map, tourIndex, tourState, setTourCinematic]);
 
   // ── Load + play audio when stop changes ────────────────────────────────────
