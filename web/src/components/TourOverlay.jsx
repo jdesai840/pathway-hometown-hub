@@ -26,7 +26,10 @@ export default function TourOverlay() {
 
   return (
     <>
-      <LiveCaption narration={stop?.narration} visible={Boolean(stop) && cinematic} />
+      {/* Caption shows during BOTH the 2D map phase and the 3D cinematic —
+          subtitles for the entire narration. Landmark popouts stay cinematic-
+          only so they don't clutter the 2D map view. */}
+      <LiveCaption narration={stop?.narration} visible={Boolean(stop)} />
       <LandmarkPopouts landmarks={stop?.landmarks} visible={Boolean(stop) && cinematic} />
 
       <div
