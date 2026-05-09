@@ -39,7 +39,7 @@ export default function App() {
             aria-hidden="true"
           />
           <p className="font-display font-bold tracking-tight text-slate-50">
-            Hometown Hubs · Team USA
+            Pathway · Team USA
           </p>
         </div>
         <p className="hidden md:block text-[11px] uppercase tracking-widest text-slate-400 font-semibold">
