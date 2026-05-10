@@ -27,13 +27,18 @@ export default function CityCinematic() {
   const mounted = Boolean(tour && stop && mapsApiKey);
 
   // Resolve target lat/lng — prefer Gemini's chosen viewpoint over the city's
-  // generic Census centroid.
+  // generic Census centroid. Elevation comes from the server's batched
+  // Google Elevation lookup (falls back to 0 if unavailable).
   const target = stop
     ? {
         lat:
           typeof stop.viewpoint?.lat === "number" ? stop.viewpoint.lat : stop.lat,
         lng:
           typeof stop.viewpoint?.lng === "number" ? stop.viewpoint.lng : stop.lng,
+        elevation:
+          typeof stop.viewpoint?.elevation === "number"
+            ? stop.viewpoint.elevation
+            : 0,
         name: stop.viewpoint?.name || `${stop.city}, ${stop.state}`,
       }
     : null;
@@ -59,6 +64,7 @@ export default function CityCinematic() {
           apiKey={mapsApiKey}
           lat={target.lat}
           lng={target.lng}
+          elevation={target.elevation}
           playing={tourState === "playing" && cinematic}
           landmarks={stop?.landmarks}
         />
@@ -89,14 +95,19 @@ export default function CityCinematic() {
   );
 }
 
-function Scene({ apiKey, lat, lng, playing, landmarks }) {
+function Scene({ apiKey, lat, lng, elevation, playing, landmarks }) {
   return (
     <TilesRenderer url={TILESET_URL}>
       <TilesPlugin
         plugin={GoogleCloudAuthPlugin}
         args={{ apiToken: apiKey, autoRefreshToken: true }}
       />
-      <CinematicCamera lat={lat} lng={lng} playing={playing} />
+      <CinematicCamera
+        lat={lat}
+        lng={lng}
+        elevation={elevation}
+        playing={playing}
+      />
       <LandmarkMarkers landmarks={landmarks} />
     </TilesRenderer>
   );
@@ -104,17 +115,23 @@ function Scene({ apiKey, lat, lng, playing, landmarks }) {
 
 // Closer, more cinematic orbit. Camera is ~700-1100m altitude / 1500-2400m
 // radius — close enough to read individual buildings and street layout.
-function CinematicCamera({ lat, lng, playing }) {
+// `elevation` is the GROUND ELEVATION (meters above WGS84) at this lat/lng,
+// supplied by the server's Elevation API lookup. Without it, frame.center
+// sits at sea level and high-elevation cities (Denver, El Paso, Park City,
+// etc.) end up with the camera underneath the actual terrain — photoreal
+// tiles fail. With elevation, the 370-630m orbit is above-ground at every
+// city regardless of how high the surrounding terrain is.
+function CinematicCamera({ lat, lng, elevation = 0, playing }) {
   const { camera } = useThree();
   const t0 = useRef(performance.now());
 
   const frame = useMemo(() => {
-    const center = latLngToECEF(lat, lng, 0);
+    const center = latLngToECEF(lat, lng, elevation);
     const upVec = localUp(lat, lng);
     const eastVec = localEast(lat, lng);
     const northVec = new THREE.Vector3().crossVectors(upVec, eastVec).normalize();
     return { center, upVec, eastVec, northVec };
-  }, [lat, lng]);
+  }, [lat, lng, elevation]);
 
   useLayoutEffect(() => {
     t0.current = performance.now();

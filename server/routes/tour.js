@@ -681,6 +681,71 @@ export async function tour(req, res) {
     if (!Array.isArray(parsed?.stops) || parsed.stops.length === 0) {
       return res.status(500).json({ error: "no usable stops in tour" });
     }
+
+    // ── Attach ground elevation to each stop's viewpoint ─────────────────
+    // The cinematic camera positions itself relative to frame.center, which
+    // we currently build from latLngToECEF(lat, lng, 0) — i.e., the WGS84
+    // ellipsoid (~sea level). For high-elevation cities (El Paso 1140m,
+    // Denver 1610m, Park City 2100m) the camera ends up underneath the
+    // terrain and the photoreal tiles fail. Batch-fetch Google Elevation
+    // for all stops in one call (~100ms + ~$0.005/tour) and let the client
+    // anchor the camera at ground level. Graceful fallback to no elevation
+    // on API failure — server reverts to today's behavior, no regression.
+    const MAPS_KEY = process.env.MAPS_API_KEY;
+    if (MAPS_KEY) {
+      try {
+        const locs = parsed.stops
+          .map((s) => {
+            const v = s.viewpoint;
+            const lat =
+              v && typeof v.lat === "number" ? v.lat : s.lat;
+            const lng =
+              v && typeof v.lng === "number" ? v.lng : s.lng;
+            return `${lat},${lng}`;
+          })
+          .join("|");
+        const url =
+          `https://maps.googleapis.com/maps/api/elevation/json` +
+          `?locations=${encodeURIComponent(locs)}` +
+          `&key=${MAPS_KEY}`;
+        const r = await fetch(url);
+        const data = await r.json();
+        if (
+          data.status === "OK" &&
+          Array.isArray(data.results) &&
+          data.results.length === parsed.stops.length
+        ) {
+          parsed.stops.forEach((s, i) => {
+            const elev = data.results[i]?.elevation;
+            if (typeof elev === "number") {
+              if (!s.viewpoint) {
+                s.viewpoint = { lat: s.lat, lng: s.lng };
+              }
+              s.viewpoint.elevation = elev;
+            }
+          });
+          console.log(
+            "attached elevations:",
+            parsed.stops
+              .map((s) =>
+                typeof s.viewpoint?.elevation === "number"
+                  ? Math.round(s.viewpoint.elevation) + "m"
+                  : "?"
+              )
+              .join(", ")
+          );
+        } else {
+          console.warn(
+            "elevation API non-OK or count mismatch (non-fatal):",
+            data.status,
+            data.error_message || ""
+          );
+        }
+      } catch (err) {
+        console.warn("elevation lookup failed (non-fatal):", err.message);
+      }
+    }
+
     console.log(
       "tour returning stops:",
       parsed.stops
