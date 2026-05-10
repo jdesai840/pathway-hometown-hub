@@ -284,8 +284,14 @@ async function selectInterestsCandidates(interests, cityHubsDoc) {
     },
     generationConfig: {
       responseMimeType: "application/json",
-      maxOutputTokens: 4096,
-      temperature: 0.4,
+      // Pro's "thinking" tokens count against this budget; 4k was too tight
+      // and caused JSON truncation on hard queries (NC-paralympics returned
+      // mid-string truncation). 16k matches the Flash tour generator.
+      maxOutputTokens: 16384,
+      temperature: 0.3,
+      // Disable Pro's internal reasoning — we want all tokens on the JSON.
+      // The catalog already gives Pro enough to work with.
+      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
@@ -359,6 +365,26 @@ export async function tour(req, res) {
   } catch (err) {
     console.error("loadCityHubs failed", err);
     return res.status(500).json({ error: "data unavailable" });
+  }
+
+  // Per-state bounding boxes computed from the actual city dataset. Used by
+  // the post-Gemini sanity clamp to decide whether a stop's lat/lng is
+  // plausibly inside its declared state. The previous "first-candidate +/-5°"
+  // approach broke for wide states (SD, MT, TX, CA, NY etc.) — Rapid City
+  // SD trips a 5°-of-Sioux-Falls test even though it's legit in-state.
+  const stateBboxes = new Map();
+  for (const c of cityHubsDoc.cities) {
+    const cur = stateBboxes.get(c.state) || {
+      minLat: c.lat,
+      maxLat: c.lat,
+      minLng: c.lng,
+      maxLng: c.lng,
+    };
+    cur.minLat = Math.min(cur.minLat, c.lat);
+    cur.maxLat = Math.max(cur.maxLat, c.lat);
+    cur.minLng = Math.min(cur.minLng, c.lng);
+    cur.maxLng = Math.max(cur.maxLng, c.lng);
+    stateBboxes.set(c.state, cur);
   }
 
   // Auto-promote interests like "Raleigh, NC" or "Raleigh" into a `near`
@@ -582,48 +608,58 @@ export async function tour(req, res) {
         }
       }
 
-      // Sanity-clamp: if a stop's state matches a candidate state and the
-      // coords are wildly off the candidate's location (>5° lat or lng — a
-      // state diameter or so), the coords are almost certainly a Gemini
-      // hallucination. Override with the candidate's canonical coords. This
-      // is the second leg of the McLean fix — even when coords are present
-      // and numerically valid, they have to be geographically plausible.
+      // Sanity-clamp: a stop's coords must fall inside its declared state's
+      // actual bounding box (computed from real city data). The prior
+      // "5° from first candidate" heuristic was wrong for wide states —
+      // Rapid City SD is 6.5° west of Sioux Falls (the top SD candidate)
+      // but legitimately in-state, so the clamp wrongly snapped it to
+      // Sioux Falls and the cinematic flew to the wrong place.
       const candidatesByState = new Map();
       for (const c of candidates) {
         if (!candidatesByState.has(c.state)) candidatesByState.set(c.state, c);
       }
+      const BBOX_PAD = 0.5; // half-degree padding for coastline / cell-edges
       parsed.stops = parsed.stops.map((s) => {
-        const stateAnchor = candidatesByState.get((s.state || "").toUpperCase());
+        const stateCode = (s.state || "").toUpperCase();
+        const bbox = stateBboxes.get(stateCode);
         let next = s;
-        if (stateAnchor) {
-          const dLat = Math.abs(s.lat - stateAnchor.lat);
-          const dLng = Math.abs(s.lng - stateAnchor.lng);
-          if (dLat > 5 || dLng > 5) {
+        if (bbox) {
+          const outOfBox =
+            s.lat < bbox.minLat - BBOX_PAD ||
+            s.lat > bbox.maxLat + BBOX_PAD ||
+            s.lng < bbox.minLng - BBOX_PAD ||
+            s.lng > bbox.maxLng + BBOX_PAD;
+          if (outOfBox) {
+            const stateAnchor =
+              candidatesByState.get(stateCode) ||
+              // Fall back to the bbox centroid if no in-state candidate.
+              {
+                lat: (bbox.minLat + bbox.maxLat) / 2,
+                lng: (bbox.minLng + bbox.maxLng) / 2,
+              };
             console.warn(
               `tour stop ${s.city}, ${s.state} coords (${s.lat},${s.lng}) ` +
-              `implausible vs ${stateAnchor.state} anchor (${stateAnchor.lat},${stateAnchor.lng}); ` +
-              `clamping to anchor.`
+              `outside ${stateCode} bbox; clamping to (${stateAnchor.lat},${stateAnchor.lng}).`
             );
             next = { ...next, lat: stateAnchor.lat, lng: stateAnchor.lng };
           }
         }
         // Viewpoint sanity: must be close to the (now-clamped) stop coords.
-        // The cinematic camera flies to viewpoint, so a wonky viewpoint is
-        // what shows the user "wrong tiles". 5° lat/lng ~= state diameter.
-        // If invalid, fall the viewpoint back to stop.lat/lng — CityCinematic
-        // already prefers stop.lat/lng when viewpoint is missing.
+        // Use real miles (50mi cap) instead of degrees so wide-state stops
+        // aren't unfairly clamped. The cinematic camera flies to viewpoint;
+        // a wonky viewpoint shows the user "wrong tiles."
         const vp = next.viewpoint;
         if (
           vp &&
           typeof vp.lat === "number" &&
           typeof vp.lng === "number"
         ) {
-          const dvLat = Math.abs(vp.lat - next.lat);
-          const dvLng = Math.abs(vp.lng - next.lng);
-          if (dvLat > 5 || dvLng > 5) {
+          const milesFromStop = haversineMi(vp.lat, vp.lng, next.lat, next.lng);
+          if (milesFromStop > 50) {
             console.warn(
               `tour stop ${next.city}, ${next.state} viewpoint (${vp.lat},${vp.lng}) ` +
-              `implausible vs stop (${next.lat},${next.lng}); falling viewpoint back to stop.`
+              `is ${milesFromStop.toFixed(1)}mi from stop coords; ` +
+              `falling viewpoint back to stop.`
             );
             next = {
               ...next,
