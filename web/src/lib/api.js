@@ -44,8 +44,8 @@ export function postNarrate({ state, sport }) {
   return postJSON("/api/narrate", { state, sport });
 }
 
-export function postTour({ state, sport, theme, interests }) {
-  return postJSON("/api/tour", { state, sport, theme, interests });
+export function postTour({ state, sport, theme, interests, near }) {
+  return postJSON("/api/tour", { state, sport, theme, interests, near });
 }
 
 export function postTts({ text, voice, speakingRate }) {
