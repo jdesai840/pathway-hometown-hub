@@ -687,63 +687,55 @@ export async function tour(req, res) {
     // we currently build from latLngToECEF(lat, lng, 0) — i.e., the WGS84
     // ellipsoid (~sea level). For high-elevation cities (El Paso 1140m,
     // Denver 1610m, Park City 2100m) the camera ends up underneath the
-    // terrain and the photoreal tiles fail. Batch-fetch Google Elevation
-    // for all stops in one call (~100ms + ~$0.005/tour) and let the client
-    // anchor the camera at ground level. Graceful fallback to no elevation
-    // on API failure — server reverts to today's behavior, no regression.
-    const MAPS_KEY = process.env.MAPS_API_KEY;
-    if (MAPS_KEY) {
-      try {
-        const locs = parsed.stops
-          .map((s) => {
-            const v = s.viewpoint;
-            const lat =
-              v && typeof v.lat === "number" ? v.lat : s.lat;
-            const lng =
-              v && typeof v.lng === "number" ? v.lng : s.lng;
-            return `${lat},${lng}`;
-          })
-          .join("|");
-        const url =
-          `https://maps.googleapis.com/maps/api/elevation/json` +
-          `?locations=${encodeURIComponent(locs)}` +
-          `&key=${MAPS_KEY}`;
-        const r = await fetch(url);
-        const data = await r.json();
-        if (
-          data.status === "OK" &&
-          Array.isArray(data.results) &&
-          data.results.length === parsed.stops.length
-        ) {
-          parsed.stops.forEach((s, i) => {
-            const elev = data.results[i]?.elevation;
-            if (typeof elev === "number") {
-              if (!s.viewpoint) {
-                s.viewpoint = { lat: s.lat, lng: s.lng };
-              }
-              s.viewpoint.elevation = elev;
+    // terrain and the photoreal tiles fail. Use Open-Meteo's free elevation
+    // API (no key, no auth, server-friendly — Google's Maps Elevation key
+    // is HTTP-referrer restricted so it can't be called server-side).
+    // Graceful fallback on API failure — server reverts to today's
+    // behavior, no regression.
+    try {
+      const lats = parsed.stops
+        .map((s) => {
+          const v = s.viewpoint;
+          return v && typeof v.lat === "number" ? v.lat : s.lat;
+        })
+        .join(",");
+      const lngs = parsed.stops
+        .map((s) => {
+          const v = s.viewpoint;
+          return v && typeof v.lng === "number" ? v.lng : s.lng;
+        })
+        .join(",");
+      const url = `https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lngs}`;
+      const r = await fetch(url);
+      const data = await r.json();
+      if (Array.isArray(data.elevation) && data.elevation.length === parsed.stops.length) {
+        parsed.stops.forEach((s, i) => {
+          const elev = data.elevation[i];
+          if (typeof elev === "number") {
+            if (!s.viewpoint) {
+              s.viewpoint = { lat: s.lat, lng: s.lng };
             }
-          });
-          console.log(
-            "attached elevations:",
-            parsed.stops
-              .map((s) =>
-                typeof s.viewpoint?.elevation === "number"
-                  ? Math.round(s.viewpoint.elevation) + "m"
-                  : "?"
-              )
-              .join(", ")
-          );
-        } else {
-          console.warn(
-            "elevation API non-OK or count mismatch (non-fatal):",
-            data.status,
-            data.error_message || ""
-          );
-        }
-      } catch (err) {
-        console.warn("elevation lookup failed (non-fatal):", err.message);
+            s.viewpoint.elevation = elev;
+          }
+        });
+        console.log(
+          "attached elevations:",
+          parsed.stops
+            .map((s) =>
+              typeof s.viewpoint?.elevation === "number"
+                ? Math.round(s.viewpoint.elevation) + "m"
+                : "?"
+            )
+            .join(", ")
+        );
+      } else {
+        console.warn(
+          "elevation API count mismatch (non-fatal):",
+          JSON.stringify(data).slice(0, 200)
+        );
       }
+    } catch (err) {
+      console.warn("elevation lookup failed (non-fatal):", err.message);
     }
 
     console.log(
