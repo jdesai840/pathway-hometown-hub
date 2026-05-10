@@ -286,12 +286,12 @@ async function selectInterestsCandidates(interests, cityHubsDoc) {
       responseMimeType: "application/json",
       // Pro's "thinking" tokens count against this budget; 4k was too tight
       // and caused JSON truncation on hard queries (NC-paralympics returned
-      // mid-string truncation). 16k matches the Flash tour generator.
+      // mid-string truncation). 16k matches the Flash tour generator and
+      // leaves plenty of room for thinking + the ~3KB JSON output.
+      // Note: thinkingBudget: 0 returns 400 from Vertex on 2.5 Pro, so we
+      // just budget around it instead of trying to disable it.
       maxOutputTokens: 16384,
       temperature: 0.3,
-      // Disable Pro's internal reasoning — we want all tokens on the JSON.
-      // The catalog already gives Pro enough to work with.
-      thinkingConfig: { thinkingBudget: 0 },
     },
   });
 
