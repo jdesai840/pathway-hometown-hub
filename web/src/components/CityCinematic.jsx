@@ -211,7 +211,7 @@ function LandmarkMarkers({ landmarks }) {
                 animationDelay: `${i * 180}ms`,
                 animationFillMode: "both",
                 transform: "translate(-50%, -100%)",
-                width: 200,
+                width: 220,
               }}
             >
               {/* Pin — anchored at the GPS point (bottom-center of container) */}
@@ -236,7 +236,7 @@ function LandmarkMarkers({ landmarks }) {
               {/* Label card with speech-bubble tail pointing down to the pin */}
               <div
                 style={{
-                  marginBottom: 16,
+                  marginBottom: 14,
                   display: "flex",
                   alignItems: "center",
                   gap: 9,
@@ -316,9 +316,12 @@ function LandmarkMarkers({ landmarks }) {
                     fontWeight: 700,
                     lineHeight: 1.2,
                     letterSpacing: "-0.01em",
+                    // Allow up to two lines — no nowrap/ellipsis truncation.
+                    display: "-webkit-box",
+                    WebkitBoxOrient: "vertical",
+                    WebkitLineClamp: 2,
                     overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
+                    wordBreak: "break-word",
                   }}
                 >
                   {lm.name}
