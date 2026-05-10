@@ -6,6 +6,12 @@ const LOCATION = process.env.GCP_LOCATION || "us-central1";
 // Use Flash for tour generation — much faster than Pro and the task is well-
 // structured (just compose narration over data we hand it).
 const TOUR_MODEL = process.env.GEMINI_TOUR_MODEL || "gemini-2.5-flash";
+// Use Pro for the FREE-FORM "interests" candidate selector — that step needs
+// strong semantic reasoning over the full 368-city catalog (e.g. "small towns
+// that have contributed to basketball talent" → real small towns, not LA).
+// Flash isn't smart enough for this; it falls back to popularity heuristics.
+const INTERESTS_SELECTOR_MODEL =
+  process.env.GEMINI_INTERESTS_SELECTOR_MODEL || "gemini-2.5-pro";
 
 const SYSTEM_PROMPT = `
 You are an AI tour guide for Team USA fans. Given a CANDIDATE list of US
@@ -221,6 +227,129 @@ function buildCandidates(cityHubsDoc, { state, sport, near }) {
   });
 }
 
+// Two-stage agentic flow for free-form `interests` queries: Gemini 2.5 Pro
+// picks 8-12 cities from the full catalog that semantically match the user's
+// intent. The picks are then fed into the regular Flash tour generator as
+// candidates. This is what turns "small towns that contributed to basketball
+// talent" into Gig Harbor, Lawrenceville, Noblesville etc. — instead of the
+// default top-10 hubs LA / Houston / Miami / Chicago.
+const INTERESTS_SELECTOR_SYSTEM = `You are a city-selection agent for a Team USA athlete-tour generator.
+
+The user gives a free-form interests query. Pick 8-12 US cities from the catalog whose profile most strongly matches the SEMANTIC INTENT of the query — not just keyword overlap.
+
+Match all of these axes when they appear in the query:
+- Geographic intent (region, climate, urban vs. rural, "small towns", coastal, mountain, etc.)
+- Sport-specific intent (cities where the named sport actually has a pipeline)
+- Narrative angle (small towns punching above their weight, college towns, training centers, hidden hubs, etc.)
+
+You have full knowledge of US geography and population. Use it. If the user says "small towns", pick ACTUAL small towns (low population, not big metros). If the user says "college towns", pick towns whose identity is a university. If the user says a region or climate, respect it.
+
+The catalog contains every US city that has produced 3+ Olympic/Paralympic athletes.
+Format per line: city,state,athleteCount,sport1(count);sport2(count);sport3(count)
+
+Output STRICT JSON only:
+{ "candidates": [{"city":"City","state":"ST","reason":"<short sentence>"}] }
+
+Rules:
+- 8-12 entries. Diverse — don't repeat the same state unless the interest demands it.
+- Each city+state MUST be a real entry in the catalog. Use the EXACT city name and 2-letter state code from the catalog line.
+- "reason" is a short sentence explaining why this city fits.`;
+
+async function selectInterestsCandidates(interests, cityHubsDoc) {
+  // Build a compact CSV-ish catalog of cities with athleteCount >= 3.
+  // ~368 cities × ~55 chars/line ≈ 20KB total — small input cost on Pro.
+  const catalog = [];
+  for (const c of cityHubsDoc.cities) {
+    if (c.athleteCount < 3) continue;
+    const hubs = cityHubsDoc.hubs
+      .filter((h) => h.state === c.state && h.cityKey === c.cityKey)
+      .sort((a, b) => b.athleteCount - a.athleteCount);
+    const top3 = hubs
+      .slice(0, 3)
+      .map((h) => `${h.sport}(${h.athleteCount})`)
+      .join(";");
+    catalog.push(`${c.city},${c.state},${c.athleteCount},${top3}`);
+  }
+
+  const userPrompt =
+    `USER INTEREST: "${interests}"\n\nCATALOG (${catalog.length} cities):\n` +
+    catalog.join("\n");
+
+  const vertex = new VertexAI({ project: PROJECT, location: LOCATION });
+  const model = vertex.getGenerativeModel({
+    model: INTERESTS_SELECTOR_MODEL,
+    systemInstruction: {
+      role: "system",
+      parts: [{ text: INTERESTS_SELECTOR_SYSTEM }],
+    },
+    generationConfig: {
+      responseMimeType: "application/json",
+      maxOutputTokens: 4096,
+      temperature: 0.4,
+    },
+  });
+
+  const t0 = Date.now();
+  const result = await model.generateContent(userPrompt);
+  const elapsed = Date.now() - t0;
+  const text = result.response?.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("interests selector: empty response");
+  const parsed = JSON.parse(text);
+  if (!Array.isArray(parsed.candidates) || parsed.candidates.length < 4) {
+    throw new Error(
+      `interests selector: too few candidates (${parsed.candidates?.length ?? 0})`
+    );
+  }
+
+  // Validate each pick against the real city dataset; drop any that don't
+  // match exactly. Then attach the full sport breakdown (same shape as
+  // buildCandidates returns).
+  const norm = (s) => (s || "").toString().toLowerCase().trim();
+  const cityMap = new Map(
+    cityHubsDoc.cities.map((c) => [`${c.state}|${norm(c.city)}`, c])
+  );
+  const picked = [];
+  for (const p of parsed.candidates) {
+    const key = `${(p.state || "").toUpperCase()}|${norm(p.city)}`;
+    const canon = cityMap.get(key);
+    if (canon) picked.push(canon);
+  }
+  if (picked.length < 4) {
+    throw new Error(
+      `interests selector: only ${picked.length} valid catalog matches`
+    );
+  }
+  console.log(
+    `interests selector (${elapsed}ms) picked: ${picked
+      .map((c) => `${c.city},${c.state}`)
+      .join(" | ")}`
+  );
+
+  // Attach full sport breakdowns per city (same shape buildCandidates emits).
+  return picked.map((c) => {
+    const breakdown = cityHubsDoc.hubs
+      .filter((h) => h.state === c.state && h.cityKey === c.cityKey)
+      .sort((a, b) => b.athleteCount - a.athleteCount)
+      .map((h) => ({
+        sport: h.sport,
+        category: h.category,
+        athleteCount: h.athleteCount,
+        earliestYear: h.earliestYear,
+        latestYear: h.latestYear,
+      }));
+    return {
+      city: c.city,
+      state: c.state,
+      lat: c.lat,
+      lng: c.lng,
+      totalAthletes: c.athleteCount,
+      olympic: c.olympicAthletes,
+      paralympic: c.paralympicAthletes,
+      sports: breakdown,
+    };
+  });
+}
+
 export async function tour(req, res) {
   const { state, sport, theme, interests, near } = req.body || {};
 
@@ -277,11 +406,32 @@ export async function tour(req, res) {
     }
   }
 
-  const candidates = buildCandidates(cityHubsDoc, {
-    state,
-    sport,
-    near: effectiveNear,
-  });
+  // For pure free-form interests queries (no state/sport/near + no
+  // single-city auto-detected anchor), use Gemini 2.5 Pro to pick the
+  // candidates that match the SEMANTIC intent. Otherwise the default
+  // buildCandidates branch would just return the global top-10 hubs and
+  // the user would get LA / Houston / Miami / Chicago for any query.
+  let candidates = null;
+  const isPureInterests =
+    interests && !state && !sport && !effectiveNear;
+  if (isPureInterests && PROJECT) {
+    try {
+      candidates = await selectInterestsCandidates(interests, cityHubsDoc);
+    } catch (err) {
+      console.warn(
+        "interests selector failed, falling back to top-10:",
+        err.message
+      );
+      candidates = null;
+    }
+  }
+  if (!candidates) {
+    candidates = buildCandidates(cityHubsDoc, {
+      state,
+      sport,
+      near: effectiveNear,
+    });
+  }
   if (candidates.length === 0) {
     return res.status(400).json({ error: "no matching cities" });
   }
@@ -334,7 +484,11 @@ export async function tour(req, res) {
         : null,
       sport ? `- Sport of focus: ${sport}` : null,
       theme ? `- Theme: ${theme}` : null,
-      interests ? `- User interests: ${interests}` : null,
+      isPureInterests
+        ? `- The user's free-form interest: "${interests}". The candidate list below was curated specifically to match this intent (an upstream agent picked these cities from the full 1801-city US catalog because they fit the user's angle). Build a tour of 4-6 stops from these candidates that LEANS INTO the angle the user described — small towns, specific sports, regional pipelines, etc. Don't water it down to "Team USA's top hubs"; speak to the user's actual interest in the title, summary, and stop narrations.`
+        : interests
+        ? `- User interests: ${interests}`
+        : null,
       "",
       "CLIMATE CONTEXT (use when relevant):",
       NOAA_CLIMATE,
