@@ -347,106 +347,75 @@ export default function TourLauncher() {
 }
 
 // In-popout loading view — shown while Gemini generates a tour. Strictly
-// scoped to the popout's z-30 footprint: no fixed-position elements, no
-// backdrop-filter on the viewport, no global @keyframes injection. Uses
-// only Tailwind built-ins (animate-spin, animate-fade-in) so the
-// photorealistic 3D Tiles cinematic stacking context is never disturbed.
+// scoped to the popout's z-30 footprint with NO transform animations
+// anywhere (no animate-spin, no rotating SVGs) so the photorealistic 3D
+// Tiles cinematic stacking context / WebGL render cycle is never disturbed.
+// State cadence uses setInterval (~5fps for progress, every 4.5s for facts)
+// instead of an RAF loop, dramatically reducing React re-render pressure.
+const TEAM_USA_FACTS = [
+  "Team USA has won more Olympic gold medals than any other nation.",
+  "Park City, Utah has produced over 200 Winter Olympians and Paralympians.",
+  "Wheelchair basketball was invented at U.S. veterans' hospitals in 1944.",
+  "Colorado Springs is home to the U.S. Olympic & Paralympic Training Center.",
+  "Curling joined the Olympic program in 1998 — the U.S. struck gold in 2018.",
+  "Snowboarding made its Olympic debut at Nagano 1998.",
+  "Track & field is the most-medaled sport in U.S. Olympic history.",
+  "The Paralympic Games trace back to a 1948 wheelchair archery contest in Stoke Mandeville, England.",
+];
+
 function PopoutLoading() {
-  const PHASES = [
-    "Finding the country's hometowns…",
-    "Picking each stop's signature view…",
-    "Writing the narration…",
-    "Casting the voice…",
-    "Cueing the camera…",
-  ];
-  const [phase, setPhase] = useState(0);
+  // Random starting index so each tour shows a different first fact.
+  const [factIdx, setFactIdx] = useState(() =>
+    Math.floor(Math.random() * TEAM_USA_FACTS.length)
+  );
   const [progress, setProgress] = useState(0);
 
+  // Progress bar — asymptotic ease-out toward 0.95, polled at ~5fps. Plenty
+  // smooth thanks to the CSS transition-all duration-200, and far gentler
+  // on React than a 60Hz RAF loop.
   useEffect(() => {
     const t0 = performance.now();
-    let raf = 0;
-    function tick() {
+    const id = setInterval(() => {
       const elapsed = (performance.now() - t0) / 1000;
-      // Asymptotic ease-out to 0.95 — never claim "done" until we are.
       setProgress(Math.min(0.95, 1 - Math.exp(-elapsed / 6)));
-      setPhase(Math.min(PHASES.length - 1, Math.floor(elapsed / 3)));
-      raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    }, 200);
+    return () => clearInterval(id);
+  }, []);
+
+  // Rotate facts every 4.5s so each one stays on screen long enough to read.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setFactIdx((i) => (i + 1) % TEAM_USA_FACTS.length);
+    }, 4500);
+    return () => clearInterval(id);
   }, []);
 
   return (
     <div className="text-center py-4">
-      {/* Dual-ring compass — Tailwind animate-spin with inline duration overrides. */}
-      <div className="relative inline-block w-[88px] h-[88px]" aria-hidden="true">
-        <svg
-          viewBox="0 0 100 100"
-          className="absolute inset-0 animate-spin"
-          style={{ animationDuration: "5s" }}
-        >
-          <circle
-            cx="50"
-            cy="50"
-            r="42"
-            fill="none"
-            stroke="rgba(59,130,246,0.85)"
-            strokeWidth="3"
-            strokeDasharray="50 200"
-            strokeLinecap="round"
-          />
-        </svg>
-        <svg
-          viewBox="0 0 100 100"
-          className="absolute inset-0 animate-spin"
-          style={{ animationDuration: "3.5s", animationDirection: "reverse" }}
-        >
-          <circle
-            cx="50"
-            cy="50"
-            r="28"
-            fill="none"
-            stroke="rgba(245,158,11,0.85)"
-            strokeWidth="3"
-            strokeDasharray="34 150"
-            strokeLinecap="round"
-          />
-        </svg>
-        <span
-          className="absolute"
-          style={{
-            left: "50%",
-            top: "50%",
-            width: 12,
-            height: 12,
-            marginLeft: -6,
-            marginTop: -6,
-            borderRadius: "50%",
-            background: "linear-gradient(135deg, #93c5fd, #fcd34d)",
-            boxShadow: "0 0 18px rgba(147,197,253,0.7)",
-          }}
-        />
-      </div>
+      <p className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-semibold">
+        Generating with Gemini
+      </p>
 
-      {/* Cycling phase message — keyed remount + Tailwind animate-fade-in */}
-      <div className="mt-6 h-6 relative">
+      {/* Min-height reserved so the popout doesn't jump as fact length varies.
+          Keyed remount + opacity-only animate-fade-in for the rotation. */}
+      <div className="mt-5 min-h-[3.5rem] flex items-center justify-center">
         <p
-          key={phase}
-          className="absolute inset-x-0 text-[14px] text-slate-100 font-medium animate-fade-in"
+          key={factIdx}
+          className="text-[14px] md:text-[15px] text-slate-100 leading-relaxed max-w-[460px] animate-fade-in"
         >
-          {PHASES[phase]}
+          {TEAM_USA_FACTS[factIdx]}
         </p>
       </div>
 
-      {/* Asymptotic progress bar */}
       <div className="mt-5 h-1 rounded-full bg-white/10 overflow-hidden">
         <div
-          className="h-full rounded-full transition-all duration-200 ease-out"
+          className="h-full rounded-full"
           style={{
             width: `${Math.round(progress * 100)}%`,
             background:
               "linear-gradient(90deg, rgba(59,130,246,0.9), rgba(245,158,11,0.9))",
             boxShadow: "0 0 12px rgba(147,197,253,0.45)",
+            transition: "width 220ms ease-out",
           }}
         />
       </div>
