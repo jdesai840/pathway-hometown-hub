@@ -39,10 +39,31 @@ function filterStates(query) {
   return results.slice(0, 7);
 }
 
+function filterCities(query, cityHubsDoc) {
+  const q = query.trim().toLowerCase();
+  if (!q || !cityHubsDoc?.cities) return [];
+  const results = [];
+  for (const c of cityHubsDoc.cities) {
+    const name = c.city.toLowerCase();
+    if (name.startsWith(q)) {
+      results.push({ ...c, score: 0 });
+    } else if (name.includes(q)) {
+      results.push({ ...c, score: 1 });
+    }
+  }
+  // Prefix matches first, then by athlete count desc so the marquee city
+  // (e.g. Springfield, IL) outranks tiny namesakes.
+  results.sort(
+    (a, b) => a.score - b.score || (b.athleteCount || 0) - (a.athleteCount || 0)
+  );
+  return results.slice(0, 7);
+}
+
 // Bottom-center "Start Tour" CTA + premium popout.
 export default function TourLauncher() {
   const setTour = useApp((s) => s.setTour);
   const tour = useApp((s) => s.tour);
+  const cityHubsDoc = useApp((s) => s.cityHubsDoc);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -53,16 +74,27 @@ export default function TourLauncher() {
   const [stateActiveIdx, setStateActiveIdx] = useState(0);
   const stateMatches = useMemo(() => filterStates(stateQuery), [stateQuery]);
 
+  // City tab
+  const [cityQuery, setCityQuery] = useState("");
+  const [cityActiveIdx, setCityActiveIdx] = useState(0);
+  const cityMatches = useMemo(
+    () => filterCities(cityQuery, cityHubsDoc),
+    [cityQuery, cityHubsDoc]
+  );
+
   // Sport tab
   const [sportChoice, setSportChoice] = useState("");
 
   // Interests tab
   const [interests, setInterests] = useState("");
 
-  // Reset autocomplete index whenever the matches change
+  // Reset autocomplete indices whenever queries change
   useEffect(() => {
     setStateActiveIdx(0);
   }, [stateQuery]);
+  useEffect(() => {
+    setCityActiveIdx(0);
+  }, [cityQuery]);
 
   if (tour) return null;
 
@@ -95,6 +127,31 @@ export default function TourLauncher() {
       if (pick) go({ state: pick.code });
     } else if (e.key === "Escape") {
       setStateQuery("");
+    }
+  }
+
+  function onCityKeyDown(e) {
+    if (!cityMatches.length) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setCityActiveIdx((i) => Math.min(cityMatches.length - 1, i + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setCityActiveIdx((i) => Math.max(0, i - 1));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const pick = cityMatches[cityActiveIdx];
+      if (pick) {
+        go({
+          near: {
+            lat: pick.lat,
+            lng: pick.lng,
+            label: `${pick.city}, ${pick.state}`,
+          },
+        });
+      }
+    } else if (e.key === "Escape") {
+      setCityQuery("");
     }
   }
 
@@ -198,6 +255,7 @@ export default function TourLauncher() {
         {/* Tab bar */}
         <div className="mt-5 inline-flex w-full rounded-full bg-slate-950/60 p-1 text-[12px] border border-white/5">
           <Tab active={tab === "state"} onClick={() => setTab("state")}>State</Tab>
+          <Tab active={tab === "city"} onClick={() => setTab("city")}>City</Tab>
           <Tab active={tab === "sport"} onClick={() => setTab("sport")}>Sport</Tab>
           <Tab active={tab === "custom"} onClick={() => setTab("custom")}>Interests</Tab>
         </div>
@@ -275,6 +333,80 @@ export default function TourLauncher() {
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {tab === "city" && (
+            <div className="space-y-4">
+              <p className="text-[12px] text-slate-400">
+                Tour the metro area around a city. We'll surface the local
+                Olympians and Paralympians plus where they train.
+              </p>
+              <div className="relative">
+                <input
+                  value={cityQuery}
+                  onChange={(e) => setCityQuery(e.target.value)}
+                  onKeyDown={onCityKeyDown}
+                  placeholder="Search a city or area — e.g. Pasadena, Boulder, Long Beach…"
+                  className="w-full bg-slate-950/70 border border-white/10 rounded-xl px-4 py-3 text-[14px] text-slate-50 focus:outline-none focus:ring-2 focus:ring-white/40 placeholder:text-slate-500"
+                  aria-autocomplete="list"
+                  aria-controls="tl-city-list"
+                />
+                {cityMatches.length > 0 && (
+                  <ul
+                    id="tl-city-list"
+                    role="listbox"
+                    className="absolute left-0 right-0 top-full mt-2 rounded-xl overflow-hidden z-10"
+                    style={{
+                      background: "rgba(8, 12, 22, 0.92)",
+                      backdropFilter: "blur(20px) saturate(160%)",
+                      WebkitBackdropFilter: "blur(20px) saturate(160%)",
+                      border: "1px solid rgba(255,255,255,0.10)",
+                      boxShadow: "0 16px 48px rgba(0,0,0,0.55)",
+                    }}
+                  >
+                    {cityMatches.map((c, i) => (
+                      <li
+                        key={`${c.state}|${c.cityKey}`}
+                        role="option"
+                        aria-selected={i === cityActiveIdx}
+                      >
+                        <button
+                          onMouseEnter={() => setCityActiveIdx(i)}
+                          onClick={() =>
+                            go({
+                              near: {
+                                lat: c.lat,
+                                lng: c.lng,
+                                label: `${c.city}, ${c.state}`,
+                              },
+                            })
+                          }
+                          disabled={busy}
+                          className={`w-full text-left px-4 py-2.5 flex items-center justify-between transition ${
+                            i === cityActiveIdx
+                              ? "bg-white/10 text-white"
+                              : "text-slate-100 hover:bg-white/5"
+                          } disabled:opacity-50`}
+                        >
+                          <span className="text-[14px]">
+                            {c.city},{" "}
+                            <span className="text-slate-400">{c.state}</span>
+                          </span>
+                          <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 font-semibold">
+                            {c.athleteCount} athletes
+                          </span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+              {!cityHubsDoc && (
+                <p className="text-[11px] text-slate-500 italic">
+                  Loading city data…
+                </p>
+              )}
             </div>
           )}
 

@@ -123,12 +123,42 @@ NOAA US Climate Regions (states → region):
 - West: CA,NV — Mediterranean coastal + arid interior; year-round training.
 `.trim();
 
+// Great-circle distance in miles between two lat/lng points.
+function haversineMi(lat1, lng1, lat2, lng2) {
+  const R = 3958.8; // Earth radius, miles
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 // Pick top candidate cities for the input + attach each one's full sport
 // breakdown so Gemini has everything it needs in a single call.
-function buildCandidates(cityHubsDoc, { state, sport }) {
+function buildCandidates(cityHubsDoc, { state, sport, near }) {
   const cities = cityHubsDoc.cities;
   let pool;
-  if (state) {
+  if (
+    near &&
+    typeof near.lat === "number" &&
+    typeof near.lng === "number"
+  ) {
+    // City tour — gather metro-area cities within a generous radius.
+    // Default 60mi covers most US metros; expand to 100mi if sparse so
+    // rural-area users still get a usable 4-6 stop tour.
+    const within = (radius) =>
+      cities
+        .map((c) => ({
+          ...c,
+          _miles: haversineMi(near.lat, near.lng, c.lat, c.lng),
+        }))
+        .filter((c) => c._miles <= radius);
+    let scoped = within(60);
+    if (scoped.length < 4) scoped = within(100);
+    pool = scoped.sort((a, b) => b.athleteCount - a.athleteCount);
+  } else if (state) {
     pool = cities
       .filter((c) => c.state === state.toUpperCase())
       .sort((a, b) => b.athleteCount - a.athleteCount);
@@ -175,7 +205,7 @@ function buildCandidates(cityHubsDoc, { state, sport }) {
 }
 
 export async function tour(req, res) {
-  const { state, sport, theme, interests } = req.body || {};
+  const { state, sport, theme, interests, near } = req.body || {};
 
   let cityHubsDoc;
   try {
@@ -185,7 +215,7 @@ export async function tour(req, res) {
     return res.status(500).json({ error: "data unavailable" });
   }
 
-  const candidates = buildCandidates(cityHubsDoc, { state, sport });
+  const candidates = buildCandidates(cityHubsDoc, { state, sport, near });
   if (candidates.length === 0) {
     return res.status(400).json({ error: "no matching cities" });
   }
@@ -233,6 +263,9 @@ export async function tour(req, res) {
     const userPrompt = [
       "Build me a Team USA tour with these inputs:",
       state ? `- State of focus: ${state}` : null,
+      near?.label
+        ? `- Tour the metro area around: ${near.label} (the candidate cities below are within ~60 miles of this anchor)`
+        : null,
       sport ? `- Sport of focus: ${sport}` : null,
       theme ? `- Theme: ${theme}` : null,
       interests ? `- User interests: ${interests}` : null,
