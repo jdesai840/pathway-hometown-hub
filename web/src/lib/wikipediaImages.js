@@ -1,5 +1,8 @@
-// Free Wikipedia REST API for landmark thumbnails. CORS-enabled, no auth.
-// Returns the article's lead image URL or null if missing.
+// Free Wikipedia REST API for landmark thumbnails + (when available) lat/lng.
+// CORS-enabled, no auth. Returns { url, description, title, coordinates }
+// where any field may be null. Returns null only on fetch failure or missing
+// article. Callers gate on the specific field they need (img.url for side
+// cards, img.coordinates for on-map markers).
 
 const cache = new Map();
 
@@ -21,7 +24,16 @@ export async function fetchWikipediaImage(title) {
       data.thumbnail?.source ||
       null;
     const description = data.extract || null;
-    const result = url ? { url, description, title: data.title || title } : null;
+    const coordinates =
+      data.coordinates &&
+      typeof data.coordinates.lat === "number" &&
+      typeof data.coordinates.lon === "number"
+        ? { lat: data.coordinates.lat, lng: data.coordinates.lon }
+        : null;
+    const result =
+      url || coordinates
+        ? { url, description, title: data.title || title, coordinates }
+        : null;
     cache.set(title, result);
     return result;
   } catch (err) {

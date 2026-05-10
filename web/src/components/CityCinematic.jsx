@@ -1,10 +1,12 @@
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Html } from "@react-three/drei";
 import { TilesRenderer, TilesPlugin } from "3d-tiles-renderer/r3f";
 import { GoogleCloudAuthPlugin } from "3d-tiles-renderer/plugins";
 import * as THREE from "three";
 import { useApp } from "../store.js";
 import { latLngToECEF, localUp, localEast } from "../lib/ecef.js";
+import { fetchWikipediaImage } from "../lib/wikipediaImages.js";
 
 const TILESET_URL = "https://tile.googleapis.com/v1/3dtiles/root.json";
 
@@ -58,6 +60,7 @@ export default function CityCinematic() {
           lat={target.lat}
           lng={target.lng}
           playing={tourState === "playing" && cinematic}
+          landmarks={stop?.landmarks}
         />
       </Canvas>
       {/* Vignette */}
@@ -86,7 +89,7 @@ export default function CityCinematic() {
   );
 }
 
-function Scene({ apiKey, lat, lng, playing }) {
+function Scene({ apiKey, lat, lng, playing, landmarks }) {
   return (
     <TilesRenderer url={TILESET_URL}>
       <TilesPlugin
@@ -94,6 +97,7 @@ function Scene({ apiKey, lat, lng, playing }) {
         args={{ apiToken: apiKey, autoRefreshToken: true }}
       />
       <CinematicCamera lat={lat} lng={lng} playing={playing} />
+      <LandmarkMarkers landmarks={landmarks} />
     </TilesRenderer>
   );
 }
@@ -149,4 +153,177 @@ function CinematicCamera({ lat, lng, playing }) {
   });
 
   return null;
+}
+
+// Premium on-map landmark markers — one pin + label per landmark whose
+// Wikipedia article carries lat/lng coordinates. Renders via drei's
+// <Html transform={false}> so the labels live in a CSS-transform-free layer
+// (no perspective transform chain — much lighter on the compositor and
+// proven safe for the photoreal tile renderer).
+function LandmarkMarkers({ landmarks }) {
+  const [resolved, setResolved] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setResolved([]);
+    if (!Array.isArray(landmarks) || landmarks.length === 0) return;
+    (async () => {
+      const out = [];
+      for (const lm of landmarks) {
+        if (!lm?.wikipedia) continue;
+        const info = await fetchWikipediaImage(lm.wikipedia);
+        if (cancelled) return;
+        if (info?.coordinates) {
+          out.push({
+            name: lm.name || info.title,
+            url: info.url || null,
+            lat: info.coordinates.lat,
+            lng: info.coordinates.lng,
+          });
+          setResolved([...out]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [landmarks]);
+
+  if (resolved.length === 0) return null;
+
+  return (
+    <>
+      {resolved.map((lm, i) => {
+        // Lift the marker ~30m off the ground so the pin reads above tile
+        // geometry / building rooftops.
+        const pos = latLngToECEF(lm.lat, lm.lng, 30);
+        return (
+          <Html
+            key={`${lm.name}-${i}`}
+            transform={false}
+            position={[pos.x, pos.y, pos.z]}
+            zIndexRange={[10, 0]}
+            style={{ pointerEvents: "none" }}
+          >
+            <div
+              className="animate-fade-in"
+              style={{
+                animationDelay: `${i * 180}ms`,
+                animationFillMode: "both",
+                transform: "translate(-50%, -100%)",
+                width: 220,
+              }}
+            >
+              {/* Pin + connector */}
+              <div
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: "50%",
+                  bottom: 0,
+                  transform: "translateX(-50%)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  pointerEvents: "none",
+                }}
+              >
+                <div
+                  style={{
+                    width: 1,
+                    height: 14,
+                    background:
+                      "linear-gradient(to bottom, rgba(255,255,255,0.0), rgba(255,255,255,0.7))",
+                  }}
+                />
+                <div
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: "50%",
+                    background:
+                      "radial-gradient(circle at 30% 30%, #ffffff, #93c5fd 35%, #fcd34d 100%)",
+                    boxShadow:
+                      "0 0 14px rgba(147,197,253,0.85), 0 0 4px rgba(255,255,255,0.7)",
+                  }}
+                />
+              </div>
+
+              {/* Label card — sits above the pin */}
+              <div
+                style={{
+                  marginBottom: 22,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "8px 12px 8px 8px",
+                  borderRadius: 12,
+                  background: "rgba(8,12,22,0.92)",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                  boxShadow: "0 8px 24px rgba(0,0,0,0.55)",
+                  color: "rgb(241,245,249)",
+                }}
+              >
+                {lm.url ? (
+                  <img
+                    src={lm.url}
+                    alt=""
+                    width={32}
+                    height={32}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      objectFit: "cover",
+                      flexShrink: 0,
+                    }}
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 8,
+                      background:
+                        "linear-gradient(135deg, rgba(59,130,246,0.6), rgba(245,158,11,0.6))",
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: 10,
+                      letterSpacing: "0.18em",
+                      textTransform: "uppercase",
+                      color: "rgb(148,163,184)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    Landmark
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      lineHeight: 1.2,
+                      marginTop: 2,
+                      letterSpacing: "-0.01em",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {lm.name}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Html>
+        );
+      })}
+    </>
+  );
 }
