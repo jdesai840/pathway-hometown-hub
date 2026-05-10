@@ -108,7 +108,7 @@ function Scene({ apiKey, lat, lng, elevation, playing, landmarks }) {
         elevation={elevation}
         playing={playing}
       />
-      <LandmarkMarkers landmarks={landmarks} />
+      <LandmarkMarkers landmarks={landmarks} groundElevation={elevation} />
     </TilesRenderer>
   );
 }
@@ -177,7 +177,7 @@ function CinematicCamera({ lat, lng, elevation = 0, playing }) {
 // <Html transform={false}> so the labels live in a CSS-transform-free layer
 // (no perspective transform chain — much lighter on the compositor and
 // proven safe for the photoreal tile renderer).
-function LandmarkMarkers({ landmarks }) {
+function LandmarkMarkers({ landmarks, groundElevation = 0 }) {
   const [resolved, setResolved] = useState([]);
 
   useEffect(() => {
@@ -211,9 +211,13 @@ function LandmarkMarkers({ landmarks }) {
   return (
     <>
       {resolved.map((lm, i) => {
-        // Lift the marker ~30m off the ground so the pin reads above tile
-        // geometry / building rooftops.
-        const pos = latLngToECEF(lm.lat, lm.lng, 30);
+        // Anchor 30m above the stop's GROUND elevation, not above WGS84
+        // sea level. Without groundElevation, high-elevation cities (Denver,
+        // El Paso, Park City) would have pins sitting hundreds of meters
+        // below visible terrain, and the drei <Html> screen projection
+        // jitters as the camera orbits because the perspective ray
+        // intersects the surface differently each frame.
+        const pos = latLngToECEF(lm.lat, lm.lng, groundElevation + 30);
         return (
           <Html
             key={`${lm.name}-${i}`}
