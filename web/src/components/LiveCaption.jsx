@@ -12,10 +12,27 @@ export default function LiveCaption({ narration, visible }) {
   const currentTimepoints = useApp((s) => s.currentTimepoints);
 
   // Prefer server-provided segmentation + timepoints. Fall back to client-side
-  // splitting + char weighting if either is missing (e.g., mock TTS path).
-  const useServer =
-    currentSentences.length > 0 &&
-    currentTimepoints.length === currentSentences.length;
+  // splitting + char weighting if either is missing OR the timepoint array
+  // looks degenerate (all-zeros, non-monotonic). The latter case is what
+  // happens when Cloud TTS's v1 client silently ignores enableTimePointing.
+  const useServer = (() => {
+    if (currentSentences.length === 0) return false;
+    if (currentTimepoints.length !== currentSentences.length) return false;
+    // Need at least one non-zero (timepoints[0] can legitimately be 0).
+    let hasNonZero = false;
+    for (let i = 0; i < currentTimepoints.length; i++) {
+      if (currentTimepoints[i] > 0) {
+        hasNonZero = true;
+        break;
+      }
+    }
+    if (!hasNonZero) return false;
+    // Monotonic non-decreasing.
+    for (let i = 1; i < currentTimepoints.length; i++) {
+      if (currentTimepoints[i] < currentTimepoints[i - 1]) return false;
+    }
+    return true;
+  })();
 
   const fallbackSentences = useMemo(
     () => (useServer ? [] : splitSentences(narration || "")),
