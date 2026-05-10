@@ -211,69 +211,85 @@ function LandmarkMarkers({ landmarks }) {
                 animationDelay: `${i * 180}ms`,
                 animationFillMode: "both",
                 transform: "translate(-50%, -100%)",
-                width: 220,
+                width: 200,
               }}
             >
-              {/* Pin + connector */}
+              {/* Pin — anchored at the GPS point (bottom-center of container) */}
               <div
                 aria-hidden="true"
                 style={{
                   position: "absolute",
                   left: "50%",
                   bottom: 0,
-                  transform: "translateX(-50%)",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
+                  width: 12,
+                  height: 12,
+                  marginLeft: -6,
+                  borderRadius: "50%",
+                  background:
+                    "radial-gradient(circle at 30% 30%, #ffffff, #93c5fd 35%, #fcd34d 100%)",
+                  boxShadow:
+                    "0 0 16px rgba(147,197,253,0.95), 0 0 5px rgba(255,255,255,0.85)",
                   pointerEvents: "none",
                 }}
-              >
-                <div
-                  style={{
-                    width: 1,
-                    height: 14,
-                    background:
-                      "linear-gradient(to bottom, rgba(255,255,255,0.0), rgba(255,255,255,0.7))",
-                  }}
-                />
-                <div
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: "50%",
-                    background:
-                      "radial-gradient(circle at 30% 30%, #ffffff, #93c5fd 35%, #fcd34d 100%)",
-                    boxShadow:
-                      "0 0 14px rgba(147,197,253,0.85), 0 0 4px rgba(255,255,255,0.7)",
-                  }}
-                />
-              </div>
+              />
 
-              {/* Label card — sits above the pin */}
+              {/* Label card with speech-bubble tail pointing down to the pin */}
               <div
                 style={{
-                  marginBottom: 22,
+                  marginBottom: 16,
                   display: "flex",
                   alignItems: "center",
-                  gap: 10,
-                  padding: "8px 12px 8px 8px",
+                  gap: 9,
+                  padding: "8px 11px 8px 7px",
                   borderRadius: 12,
-                  background: "rgba(8,12,22,0.92)",
+                  background: "rgba(8,12,22,0.94)",
                   border: "1px solid rgba(255,255,255,0.12)",
                   boxShadow: "0 8px 24px rgba(0,0,0,0.55)",
                   color: "rgb(241,245,249)",
+                  position: "relative",
                 }}
               >
+                {/* Speech-bubble tail — a downward-pointing triangle bridging
+                    card and pin. Two stacked borders give a 1px outline that
+                    matches the card. */}
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    bottom: -7,
+                    marginLeft: -7,
+                    width: 0,
+                    height: 0,
+                    borderLeft: "7px solid transparent",
+                    borderRight: "7px solid transparent",
+                    borderTop: "7px solid rgba(255,255,255,0.12)",
+                  }}
+                />
+                <span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    left: "50%",
+                    bottom: -5,
+                    marginLeft: -6,
+                    width: 0,
+                    height: 0,
+                    borderLeft: "6px solid transparent",
+                    borderRight: "6px solid transparent",
+                    borderTop: "6px solid rgba(8,12,22,0.94)",
+                  }}
+                />
                 {lm.url ? (
                   <img
                     src={lm.url}
                     alt=""
-                    width={32}
-                    height={32}
+                    width={30}
+                    height={30}
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 7,
                       objectFit: "cover",
                       flexShrink: 0,
                     }}
@@ -283,41 +299,29 @@ function LandmarkMarkers({ landmarks }) {
                   <div
                     aria-hidden="true"
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 8,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 7,
                       background:
                         "linear-gradient(135deg, rgba(59,130,246,0.6), rgba(245,158,11,0.6))",
                       flexShrink: 0,
                     }}
                   />
                 )}
-                <div style={{ minWidth: 0, flex: 1 }}>
-                  <div
-                    style={{
-                      fontSize: 10,
-                      letterSpacing: "0.18em",
-                      textTransform: "uppercase",
-                      color: "rgb(148,163,184)",
-                      fontWeight: 600,
-                    }}
-                  >
-                    Landmark
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      lineHeight: 1.2,
-                      marginTop: 2,
-                      letterSpacing: "-0.01em",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {lm.name}
-                  </div>
+                <div
+                  style={{
+                    minWidth: 0,
+                    flex: 1,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    lineHeight: 1.2,
+                    letterSpacing: "-0.01em",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {lm.name}
                 </div>
               </div>
             </div>

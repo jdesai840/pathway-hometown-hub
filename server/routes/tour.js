@@ -108,6 +108,27 @@ STOP SELECTION:
 - Order in a sensible geographic flow when possible.
 - Use REAL lat/lng from candidate data for the city's main lat/lng.
 - 'highlightSports' is 1-3 sport names from the city's actual breakdown.
+
+CITY DEEP-DIVE MODE — when the user prompt contains "City deep-dive":
+- The candidates list has EXACTLY ONE city. All 4-6 stops MUST share that
+  same city + state. Do NOT invent other nearby cities for stops.
+- Each stop's stop.lat/lng = the SAME city center coords (use the candidate
+  city's lat/lng for every stop). The 2D map will stay anchored on the city
+  the whole tour; variation happens via viewpoint.
+- Each stop's 'viewpoint' targets a DIFFERENT specific facility WITHIN the
+  city — a university aquatic center, a famous training field, a public
+  pool, a known high-school program's home venue, a club's home base.
+  viewpoint.lat/lng must be very close to the city center (well within
+  ~5 miles) — never put viewpoint coords outside the city's immediate area.
+- Each stop's 'landmarks' should be the facility(ies) featured at that stop,
+  not generic city landmarks. Aim for the facility names that the narration
+  references.
+- Each stop's 'highlightSports' is 1-2 sports tied to that stop's facility,
+  not the whole city's roster. Spread the city's sports across stops so the
+  tour reveals different angles of the pipeline.
+- The narration covers a different angle per stop — different sports,
+  different facilities, different eras / pipelines / club histories. Still
+  cite real sport counts + year ranges per the narration rules above.
 `.trim();
 
 const NOAA_CLIMATE = `
@@ -145,19 +166,16 @@ function buildCandidates(cityHubsDoc, { state, sport, near }) {
     typeof near.lat === "number" &&
     typeof near.lng === "number"
   ) {
-    // City tour — gather metro-area cities within a generous radius.
-    // Default 60mi covers most US metros; expand to 100mi if sparse so
-    // rural-area users still get a usable 4-6 stop tour.
-    const within = (radius) =>
-      cities
-        .map((c) => ({
-          ...c,
-          _miles: haversineMi(near.lat, near.lng, c.lat, c.lng),
-        }))
-        .filter((c) => c._miles <= radius);
-    let scoped = within(60);
-    if (scoped.length < 4) scoped = within(100);
-    pool = scoped.sort((a, b) => b.athleteCount - a.athleteCount);
+    // City tour — DEEP-DIVE into the single closest city to the anchor.
+    // Gemini will generate 4-6 stops all WITHIN that one city, varying by
+    // facility / sport pipeline rather than by city.
+    const ranked = cities
+      .map((c) => ({
+        ...c,
+        _miles: haversineMi(near.lat, near.lng, c.lat, c.lng),
+      }))
+      .sort((a, b) => a._miles - b._miles);
+    pool = ranked.slice(0, 1);
   } else if (state) {
     pool = cities
       .filter((c) => c.state === state.toUpperCase())
@@ -264,7 +282,7 @@ export async function tour(req, res) {
       "Build me a Team USA tour with these inputs:",
       state ? `- State of focus: ${state}` : null,
       near?.label
-        ? `- Tour the metro area around: ${near.label} (the candidate cities below are within ~60 miles of this anchor)`
+        ? `- City deep-dive: build 4-6 stops ENTIRELY WITHIN ${near.label}. Each stop is a different facility / landmark / sport pipeline within this single city — NOT a different city. All stops MUST share the same city and state. Vary by viewpoint (zoom into different specific facilities), highlightSports, landmarks, and narration. See "CITY DEEP-DIVE MODE" in the system prompt.`
         : null,
       sport ? `- Sport of focus: ${sport}` : null,
       theme ? `- Theme: ${theme}` : null,
@@ -350,18 +368,52 @@ export async function tour(req, res) {
       }
       parsed.stops = parsed.stops.map((s) => {
         const stateAnchor = candidatesByState.get((s.state || "").toUpperCase());
-        if (!stateAnchor) return s;
-        const dLat = Math.abs(s.lat - stateAnchor.lat);
-        const dLng = Math.abs(s.lng - stateAnchor.lng);
-        if (dLat > 5 || dLng > 5) {
-          console.warn(
-            `tour stop ${s.city}, ${s.state} coords (${s.lat},${s.lng}) ` +
-            `implausible vs ${stateAnchor.state} anchor (${stateAnchor.lat},${stateAnchor.lng}); ` +
-            `clamping to anchor.`
-          );
-          return { ...s, lat: stateAnchor.lat, lng: stateAnchor.lng };
+        let next = s;
+        if (stateAnchor) {
+          const dLat = Math.abs(s.lat - stateAnchor.lat);
+          const dLng = Math.abs(s.lng - stateAnchor.lng);
+          if (dLat > 5 || dLng > 5) {
+            console.warn(
+              `tour stop ${s.city}, ${s.state} coords (${s.lat},${s.lng}) ` +
+              `implausible vs ${stateAnchor.state} anchor (${stateAnchor.lat},${stateAnchor.lng}); ` +
+              `clamping to anchor.`
+            );
+            next = { ...next, lat: stateAnchor.lat, lng: stateAnchor.lng };
+          }
         }
-        return s;
+        // Viewpoint sanity: must be close to the (now-clamped) stop coords.
+        // The cinematic camera flies to viewpoint, so a wonky viewpoint is
+        // what shows the user "wrong tiles". 5° lat/lng ~= state diameter.
+        // If invalid, fall the viewpoint back to stop.lat/lng — CityCinematic
+        // already prefers stop.lat/lng when viewpoint is missing.
+        const vp = next.viewpoint;
+        if (
+          vp &&
+          typeof vp.lat === "number" &&
+          typeof vp.lng === "number"
+        ) {
+          const dvLat = Math.abs(vp.lat - next.lat);
+          const dvLng = Math.abs(vp.lng - next.lng);
+          if (dvLat > 5 || dvLng > 5) {
+            console.warn(
+              `tour stop ${next.city}, ${next.state} viewpoint (${vp.lat},${vp.lng}) ` +
+              `implausible vs stop (${next.lat},${next.lng}); falling viewpoint back to stop.`
+            );
+            next = {
+              ...next,
+              viewpoint: {
+                ...vp,
+                lat: next.lat,
+                lng: next.lng,
+              },
+            };
+          }
+        } else if (vp) {
+          // viewpoint present but non-numeric — drop so the cinematic falls
+          // back to stop.lat/lng via its own guard.
+          next = { ...next, viewpoint: null };
+        }
+        return next;
       });
     }
     if (!Array.isArray(parsed?.stops) || parsed.stops.length === 0) {
@@ -370,7 +422,14 @@ export async function tour(req, res) {
     console.log(
       "tour returning stops:",
       parsed.stops
-        .map((s) => `${s.city}, ${s.state} @ (${s.lat},${s.lng})`)
+        .map((s) => {
+          const v = s.viewpoint;
+          const vlbl =
+            v && typeof v.lat === "number" && typeof v.lng === "number"
+              ? ` vp(${v.lat.toFixed(3)},${v.lng.toFixed(3)})`
+              : "";
+          return `${s.city}, ${s.state} @ (${s.lat},${s.lng})${vlbl}`;
+        })
         .join(" | ")
     );
     res.json(parsed);

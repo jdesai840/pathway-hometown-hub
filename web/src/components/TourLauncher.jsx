@@ -280,7 +280,7 @@ export default function TourLauncher() {
                   <ul
                     id="tl-state-list"
                     role="listbox"
-                    className="absolute left-0 right-0 top-full mt-2 rounded-xl overflow-hidden z-10"
+                    className="absolute left-0 right-0 bottom-full mb-2 rounded-xl overflow-hidden z-10"
                     style={{
                       background: "rgba(8, 12, 22, 0.92)",
                       backdropFilter: "blur(20px) saturate(160%)",
@@ -339,8 +339,8 @@ export default function TourLauncher() {
           {tab === "city" && (
             <div className="space-y-4">
               <p className="text-[12px] text-slate-400">
-                Tour the metro area around a city. We'll surface the local
-                Olympians and Paralympians plus where they train.
+                Pick a city for a deep-dive tour — its facilities, training
+                pipelines, and Team USA story across multiple sports.
               </p>
               <div className="relative">
                 <input
@@ -356,7 +356,7 @@ export default function TourLauncher() {
                   <ul
                     id="tl-city-list"
                     role="listbox"
-                    className="absolute left-0 right-0 top-full mt-2 rounded-xl overflow-hidden z-10"
+                    className="absolute left-0 right-0 bottom-full mb-2 rounded-xl overflow-hidden z-10"
                     style={{
                       background: "rgba(8, 12, 22, 0.92)",
                       backdropFilter: "blur(20px) saturate(160%)",
