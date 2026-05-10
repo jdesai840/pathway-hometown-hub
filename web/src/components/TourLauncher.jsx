@@ -202,8 +202,10 @@ export default function TourLauncher() {
           <Tab active={tab === "custom"} onClick={() => setTab("custom")}>Interests</Tab>
         </div>
 
-        {/* Tab content */}
+        {/* Tab content — replaced by the loading view while Gemini generates. */}
         <div className="mt-5">
+          {busy ? <PopoutLoading /> : (
+          <>
           {tab === "state" && (
             <div className="space-y-4">
               <div className="relative">
@@ -328,19 +330,11 @@ export default function TourLauncher() {
               </button>
             </div>
           )}
+          </>
+          )}
         </div>
 
-        {/* Loading + error rows — kept inline (in-popout) to avoid mounting a
-            full-screen overlay alongside the photorealistic tiles canvas. */}
-        {busy && (
-          <div className="mt-5 flex items-center justify-center gap-2.5 text-[13px] text-slate-200">
-            <span
-              aria-hidden="true"
-              className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin"
-            />
-            <span>Generating tour with Gemini…</span>
-          </div>
-        )}
+        {/* Error row — busy state is handled by <PopoutLoading /> above. */}
         {error && (
           <p role="alert" className="mt-4 text-[12px] text-red-300 text-center">
             {error}
@@ -348,6 +342,118 @@ export default function TourLauncher() {
         )}
       </div>
     </div>
+    </div>
+  );
+}
+
+// In-popout loading view — shown while Gemini generates a tour. Strictly
+// scoped to the popout's z-30 footprint: no fixed-position elements, no
+// backdrop-filter on the viewport, no global @keyframes injection. Uses
+// only Tailwind built-ins (animate-spin, animate-fade-in) so the
+// photorealistic 3D Tiles cinematic stacking context is never disturbed.
+function PopoutLoading() {
+  const PHASES = [
+    "Finding the country's hometowns…",
+    "Picking each stop's signature view…",
+    "Writing the narration…",
+    "Casting the voice…",
+    "Cueing the camera…",
+  ];
+  const [phase, setPhase] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const t0 = performance.now();
+    let raf = 0;
+    function tick() {
+      const elapsed = (performance.now() - t0) / 1000;
+      // Asymptotic ease-out to 0.95 — never claim "done" until we are.
+      setProgress(Math.min(0.95, 1 - Math.exp(-elapsed / 6)));
+      setPhase(Math.min(PHASES.length - 1, Math.floor(elapsed / 3)));
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <div className="text-center py-4">
+      {/* Dual-ring compass — Tailwind animate-spin with inline duration overrides. */}
+      <div className="relative inline-block w-[88px] h-[88px]" aria-hidden="true">
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 animate-spin"
+          style={{ animationDuration: "5s" }}
+        >
+          <circle
+            cx="50"
+            cy="50"
+            r="42"
+            fill="none"
+            stroke="rgba(59,130,246,0.85)"
+            strokeWidth="3"
+            strokeDasharray="50 200"
+            strokeLinecap="round"
+          />
+        </svg>
+        <svg
+          viewBox="0 0 100 100"
+          className="absolute inset-0 animate-spin"
+          style={{ animationDuration: "3.5s", animationDirection: "reverse" }}
+        >
+          <circle
+            cx="50"
+            cy="50"
+            r="28"
+            fill="none"
+            stroke="rgba(245,158,11,0.85)"
+            strokeWidth="3"
+            strokeDasharray="34 150"
+            strokeLinecap="round"
+          />
+        </svg>
+        <span
+          className="absolute"
+          style={{
+            left: "50%",
+            top: "50%",
+            width: 12,
+            height: 12,
+            marginLeft: -6,
+            marginTop: -6,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #93c5fd, #fcd34d)",
+            boxShadow: "0 0 18px rgba(147,197,253,0.7)",
+          }}
+        />
+      </div>
+
+      {/* Cycling phase message — keyed remount + Tailwind animate-fade-in */}
+      <div className="mt-6 h-6 relative">
+        <p
+          key={phase}
+          className="absolute inset-x-0 text-[14px] text-slate-100 font-medium animate-fade-in"
+        >
+          {PHASES[phase]}
+        </p>
+      </div>
+
+      {/* Asymptotic progress bar */}
+      <div className="mt-5 h-1 rounded-full bg-white/10 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-200 ease-out"
+          style={{
+            width: `${Math.round(progress * 100)}%`,
+            background:
+              "linear-gradient(90deg, rgba(59,130,246,0.9), rgba(245,158,11,0.9))",
+            boxShadow: "0 0 12px rgba(147,197,253,0.45)",
+          }}
+        />
+      </div>
+
+      <p className="mt-6 text-[10px] uppercase tracking-[0.22em] text-slate-500 font-semibold">
+        Powered by Gemini · Cloud TTS
+      </p>
     </div>
   );
 }
