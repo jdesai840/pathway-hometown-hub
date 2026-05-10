@@ -98,6 +98,8 @@ export default function TourLauncher() {
     }
   }
 
+  if (busy) return <LoadingOverlay />;
+
   if (!open) {
     return (
       <button
@@ -120,11 +122,15 @@ export default function TourLauncher() {
     );
   }
 
+  // Outer div owns the centering transform; inner div owns the slide-up
+  // animation. Keeping them on different elements prevents the keyframe's
+  // `transform` from clobbering `-translate-x-1/2` (the off-center bug).
   return (
+    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-[min(560px,calc(100vw-32px))]">
     <div
       role="dialog"
       aria-label="Build your tour"
-      className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-[min(560px,calc(100vw-32px))] max-h-[78vh] overflow-y-auto rounded-3xl animate-slide-up shadow-2xl"
+      className="relative max-h-[78vh] overflow-y-auto rounded-3xl animate-slide-up shadow-2xl"
       style={{
         background: "rgba(8, 12, 22, 0.78)",
         backdropFilter: "blur(24px) saturate(160%)",
@@ -326,21 +332,145 @@ export default function TourLauncher() {
           )}
         </div>
 
-        {/* Loading + error rows */}
-        {busy && (
-          <div className="mt-5 flex items-center justify-center gap-2.5 text-[13px] text-slate-200">
-            <span
-              aria-hidden="true"
-              className="w-3.5 h-3.5 rounded-full border-2 border-white/30 border-t-white animate-spin"
-            />
-            <span>Generating tour with Gemini…</span>
-          </div>
-        )}
+        {/* Error row — busy state is handled by LoadingOverlay (full-screen). */}
         {error && (
           <p role="alert" className="mt-4 text-[12px] text-red-300 text-center">
             {error}
           </p>
         )}
+      </div>
+    </div>
+    </div>
+  );
+}
+
+// Full-screen cinematic loading overlay shown while Gemini generates a tour.
+// Replaces the popout for the entire 10–15s wait so the time feels like
+// content rather than dead air.
+function LoadingOverlay() {
+  const PHASES = [
+    "Finding the country's hometowns…",
+    "Picking each stop's signature view…",
+    "Writing the narration…",
+    "Casting the voice…",
+    "Cueing the camera…",
+  ];
+  const [phase, setPhase] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const t0 = performance.now();
+    let raf = 0;
+    function tick() {
+      const elapsed = (performance.now() - t0) / 1000;
+      // Asymptotic ease-out: 1 - exp(-elapsed/6), clamped to 0.95 so we never
+      // claim "done" until we actually are.
+      const p = Math.min(0.95, 1 - Math.exp(-elapsed / 6));
+      setProgress(p);
+      const idx = Math.min(PHASES.length - 1, Math.floor(elapsed / 3));
+      setPhase(idx);
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return (
+    <div
+      className="fixed inset-0 z-40 flex items-center justify-center px-6"
+      style={{
+        background: "rgba(2,6,14,0.74)",
+        backdropFilter: "blur(24px)",
+        WebkitBackdropFilter: "blur(24px)",
+      }}
+      role="status"
+      aria-live="polite"
+    >
+      <style>{`
+        @keyframes tl-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes tl-spin-rev { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+        @keyframes tl-fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      `}</style>
+
+      <div className="text-center max-w-md w-full">
+        {/* Dual-ring compass glyph */}
+        <div className="relative inline-block w-[120px] h-[120px]" aria-hidden="true">
+          <svg
+            viewBox="0 0 120 120"
+            className="absolute inset-0"
+            style={{ animation: "tl-spin 6s linear infinite", transformOrigin: "center" }}
+          >
+            <circle
+              cx="60"
+              cy="60"
+              r="52"
+              fill="none"
+              stroke="rgba(59,130,246,0.85)"
+              strokeWidth="2.5"
+              strokeDasharray="60 280"
+              strokeLinecap="round"
+            />
+          </svg>
+          <svg
+            viewBox="0 0 120 120"
+            className="absolute inset-0"
+            style={{ animation: "tl-spin-rev 4s linear infinite", transformOrigin: "center" }}
+          >
+            <circle
+              cx="60"
+              cy="60"
+              r="36"
+              fill="none"
+              stroke="rgba(245,158,11,0.85)"
+              strokeWidth="2.5"
+              strokeDasharray="40 200"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span
+            className="absolute"
+            style={{
+              left: "50%",
+              top: "50%",
+              width: 14,
+              height: 14,
+              marginLeft: -7,
+              marginTop: -7,
+              borderRadius: "50%",
+              background: "linear-gradient(135deg, #93c5fd, #fcd34d)",
+              boxShadow: "0 0 24px rgba(147,197,253,0.7)",
+            }}
+          />
+        </div>
+
+        {/* Cycling phase message — keyed so each one fades in fresh */}
+        <div className="mt-10 h-7 relative">
+          <p
+            key={phase}
+            className="absolute inset-x-0 text-[15px] md:text-base text-slate-100 font-medium"
+            style={{ animation: "tl-fade-in 350ms ease-out forwards" }}
+          >
+            {PHASES[phase]}
+          </p>
+        </div>
+
+        {/* Asymptotic progress bar */}
+        <div className="mt-6 h-1 rounded-full bg-white/10 overflow-hidden">
+          <div
+            className="h-full rounded-full"
+            style={{
+              width: `${Math.round(progress * 100)}%`,
+              background:
+                "linear-gradient(90deg, rgba(59,130,246,0.9), rgba(245,158,11,0.9))",
+              boxShadow: "0 0 14px rgba(147,197,253,0.45)",
+              transition: "width 180ms ease-out",
+            }}
+          />
+        </div>
+
+        <p className="mt-8 text-[10px] uppercase tracking-[0.22em] text-slate-500 font-semibold">
+          Powered by Gemini · Cloud TTS · Photorealistic 3D Tiles
+        </p>
       </div>
     </div>
   );
