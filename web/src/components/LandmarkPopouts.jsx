@@ -40,9 +40,13 @@ export default function LandmarkPopouts({ landmarks, visible }) {
   return (
     <div className="pointer-events-none fixed top-1/2 -translate-y-1/2 right-6 z-50 flex flex-col gap-3 max-w-[260px]">
       {resolved.map((lm, i) => (
-        <div
+        <a
           key={lm.url}
-          className="pointer-events-auto glass-strong rounded-2xl overflow-hidden shadow-2xl animate-slide-in-right"
+          href={`https://www.google.com/search?q=${encodeURIComponent(lm.name)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`Search Google for ${lm.name}`}
+          className="pointer-events-auto glass-strong rounded-2xl overflow-hidden shadow-2xl animate-slide-in-right block hover:scale-[1.02] hover:shadow-[0_12px_40px_rgba(147,197,253,0.35)] transition-transform duration-300 focus:outline-none focus:ring-2 focus:ring-white/40"
           style={{
             animationDelay: `${i * 200}ms`,
             animationFillMode: "both",
@@ -72,7 +76,7 @@ export default function LandmarkPopouts({ landmarks, visible }) {
               {lm.name}
             </p>
           </div>
-        </div>
+        </a>
       ))}
     </div>
   );

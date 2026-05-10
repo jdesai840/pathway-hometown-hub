@@ -74,12 +74,28 @@ VIEWPOINT (cinematic camera target):
   campus" 36.0014,-78.9382; "Lake Placid Olympic Center" 44.2795,-73.9799.
 - Include a short 'name' label for the viewpoint.
 
-LANDMARKS (1-3 per stop):
-- Real, well-known places that match what your narration mentions —
-  universities, training centers, stadiums, famous parks.
-- 'wikipedia' is the EXACT Wikipedia article title (with underscores), e.g.,
-  "Duke_University", "Charlotte,_North_Carolina", "U.S._Olympic_%26_Paralympic_Training_Center".
-- Skip obscure landmarks; prefer ones with strong Wikipedia presence.
+LANDMARKS (1-3 per stop) — TRAINING PIPELINE FOR THE SPORTS DISCUSSED:
+- Pick places where Team USA athletes for the SPORT(S) in this stop's
+  highlightSports actually train, develop, or came up through. The goal is to
+  show viewers WHERE to go if they wanted to train for the Olympics in this
+  city. Choose from, in roughly this priority:
+  1) Universities with notable NCAA programs in this sport (and ideally the
+     specific facility, not just the school) — e.g. "Stanford_Aquatic_Center"
+     for swimming, "Pauley_Pavilion" for basketball, "Bo_Jackson_Indoor_Practice_Facility"
+     for track and field.
+  2) Official Olympic / Paralympic training facilities — e.g.
+     "U.S._Olympic_%26_Paralympic_Training_Center", "Lake_Placid_Olympic_Training_Center",
+     "Chula_Vista_Elite_Athlete_Training_Center".
+  3) Famous gyms, rinks, pools, tracks, courses, clubs, or stadiums directly
+     tied to the sport's pipeline in this region.
+- AVOID generic tourist landmarks (Empire State Building, Pikes Peak, the
+  local downtown park, famous bridges, museums) UNLESS they are literally a
+  training venue for the sport (e.g. an open-water bay for sailing, a famous
+  beach for surfing, a public lake known for the regional rowing club).
+- 'wikipedia' is the EXACT Wikipedia article title with underscores. Prefer
+  landmarks with strong Wikipedia presence so we can fetch thumbnails +
+  coordinates. If a specific facility isn't on Wikipedia, fall back to the
+  university or training-center it sits within.
 
 ABSOLUTE RULES:
 - NEVER name an individual athlete.
