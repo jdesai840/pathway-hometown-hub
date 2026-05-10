@@ -339,8 +339,9 @@ export default function TourLauncher() {
           {tab === "city" && (
             <div className="space-y-4">
               <p className="text-[12px] text-slate-400">
-                Pick a city for a deep-dive tour — its facilities, training
-                pipelines, and Team USA story across multiple sports.
+                Pick a city — we'll surface the metro's Olympians and
+                Paralympians, the suburbs they trained in, and the facilities
+                feeding the pipeline.
               </p>
               <div className="relative">
                 <input

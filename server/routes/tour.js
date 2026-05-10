@@ -109,26 +109,20 @@ STOP SELECTION:
 - Use REAL lat/lng from candidate data for the city's main lat/lng.
 - 'highlightSports' is 1-3 sport names from the city's actual breakdown.
 
-CITY DEEP-DIVE MODE — when the user prompt contains "City deep-dive":
-- The candidates list has EXACTLY ONE city. All 4-6 stops MUST share that
-  same city + state. Do NOT invent other nearby cities for stops.
-- Each stop's stop.lat/lng = the SAME city center coords (use the candidate
-  city's lat/lng for every stop). The 2D map will stay anchored on the city
-  the whole tour; variation happens via viewpoint.
-- Each stop's 'viewpoint' targets a DIFFERENT specific facility WITHIN the
-  city — a university aquatic center, a famous training field, a public
-  pool, a known high-school program's home venue, a club's home base.
-  viewpoint.lat/lng must be very close to the city center (well within
-  ~5 miles) — never put viewpoint coords outside the city's immediate area.
-- Each stop's 'landmarks' should be the facility(ies) featured at that stop,
-  not generic city landmarks. Aim for the facility names that the narration
-  references.
-- Each stop's 'highlightSports' is 1-2 sports tied to that stop's facility,
-  not the whole city's roster. Spread the city's sports across stops so the
-  tour reveals different angles of the pipeline.
-- The narration covers a different angle per stop — different sports,
-  different facilities, different eras / pipelines / club histories. Still
-  cite real sport counts + year ranges per the narration rules above.
+CITY METRO MODE — when the user prompt says "Tour the metro area around":
+- The candidate list below is the COMPLETE universe of cities allowed for
+  stops. Pick 4-6 stops, EACH from the candidates. NEVER invent a city or
+  pick a famous Team USA hub that isn't in the candidates list — no Park
+  City, Colorado Springs, San Diego, etc. unless they literally appear in
+  the candidates.
+- Vary stops across the metro: aim for distinct cities/suburbs rather than
+  4 stops in the same town. (e.g. Raleigh + Durham + Chapel Hill + Cary +
+  Holly Springs, not 4× Raleigh.)
+- Each stop is a different real city with its own narration, sports
+  breakdown, and landmarks per the standard rules above.
+- Landmarks at each stop are specific training-pipeline facilities within
+  THAT stop's city (the university, training center, club facility, etc.),
+  same as state tours.
 `.trim();
 
 const NOAA_CLIMATE = `
@@ -166,16 +160,21 @@ function buildCandidates(cityHubsDoc, { state, sport, near }) {
     typeof near.lat === "number" &&
     typeof near.lng === "number"
   ) {
-    // City tour — DEEP-DIVE into the single closest city to the anchor.
-    // Gemini will generate 4-6 stops all WITHIN that one city, varying by
-    // facility / sport pipeline rather than by city.
-    const ranked = cities
-      .map((c) => ({
-        ...c,
-        _miles: haversineMi(near.lat, near.lng, c.lat, c.lng),
-      }))
-      .sort((a, b) => a._miles - b._miles);
-    pool = ranked.slice(0, 1);
+    // City tour — gather metro-area cities within ~30 miles of the anchor.
+    // 30mi covers most US metros (Raleigh-Durham-Chapel Hill triangle is
+    // ~25mi). Auto-expand if too sparse so rural-area users still get a
+    // 4-6 stop tour.
+    const within = (radius) =>
+      cities
+        .map((c) => ({
+          ...c,
+          _miles: haversineMi(near.lat, near.lng, c.lat, c.lng),
+        }))
+        .filter((c) => c._miles <= radius);
+    let scoped = within(30);
+    if (scoped.length < 4) scoped = within(60);
+    if (scoped.length < 4) scoped = within(100);
+    pool = scoped.sort((a, b) => b.athleteCount - a.athleteCount);
   } else if (state) {
     pool = cities
       .filter((c) => c.state === state.toUpperCase())
@@ -282,7 +281,7 @@ export async function tour(req, res) {
       "Build me a Team USA tour with these inputs:",
       state ? `- State of focus: ${state}` : null,
       near?.label
-        ? `- City deep-dive: build 4-6 stops ENTIRELY WITHIN ${near.label}. Each stop is a different facility / landmark / sport pipeline within this single city — NOT a different city. All stops MUST share the same city and state. Vary by viewpoint (zoom into different specific facilities), highlightSports, landmarks, and narration. See "CITY DEEP-DIVE MODE" in the system prompt.`
+        ? `- Tour the metro area around ${near.label}. Pick 4-6 stops, EACH from the candidate cities listed below (all within ~30 miles of this anchor). NEVER use cities that aren't in the candidate list — no nationwide hubs like Park City, Colorado Springs, San Diego, etc. unless they literally appear as candidates. See "CITY METRO MODE" in the system prompt.`
         : null,
       sport ? `- Sport of focus: ${sport}` : null,
       theme ? `- Theme: ${theme}` : null,
@@ -355,6 +354,30 @@ export async function tour(req, res) {
           if (!ok) console.warn("dropping tour stop with no coords", s);
           return ok;
         });
+
+      // CITY-TOUR DEFENSIVE FILTER: when the user asked for a city/metro
+      // tour, stops MUST come from the candidate list. Drop anything Gemini
+      // hallucinated from general knowledge (e.g. it picked San Diego or
+      // Park City for a Raleigh-metro tour). State/sport tours skip this —
+      // they have legitimate canonical-lookup-miss fallback paths.
+      if (near) {
+        parsed.stops = parsed.stops.filter((s) => {
+          const key = `${(s.state || "").toUpperCase()}|${norm(s.city)}`;
+          if (!candidateMap.has(key)) {
+            console.warn(
+              `city tour dropped out-of-candidate stop: ${s.city}, ${s.state}`
+            );
+            return false;
+          }
+          return true;
+        });
+        if (parsed.stops.length < 2) {
+          return res.status(500).json({
+            error:
+              "city tour generation off-target — most stops were outside the requested metro",
+          });
+        }
+      }
 
       // Sanity-clamp: if a stop's state matches a candidate state and the
       // coords are wildly off the candidate's location (>5° lat or lng — a
