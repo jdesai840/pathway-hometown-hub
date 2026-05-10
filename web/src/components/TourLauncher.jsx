@@ -9,6 +9,11 @@ const STATE_LIST = Object.entries(STATE_INFO)
   .map(([code, info]) => ({ code, name: info.name }))
   .sort((a, b) => a.name.localeCompare(b.name));
 
+// Inverse map: "north carolina" -> "NC" for city-query state hints.
+const STATE_NAME_TO_CODE = Object.fromEntries(
+  STATE_LIST.map((s) => [s.name.toLowerCase(), s.code])
+);
+
 const POPULAR_STATES = ["CA", "TX", "NY", "FL", "MN", "CO"];
 
 const SPORT_OPTIONS = [
@@ -40,21 +45,48 @@ function filterStates(query) {
 }
 
 function filterCities(query, cityHubsDoc) {
-  const q = query.trim().toLowerCase();
-  if (!q || !cityHubsDoc?.cities) return [];
+  const raw = query.trim().toLowerCase();
+  if (!raw || !cityHubsDoc?.cities) return [];
+
+  // Tolerate "Raleigh, NC" / "Raleigh nc" / "Raleigh, North Carolina" by
+  // stripping a trailing state hint. If a state was provided, demote
+  // matches outside that state strongly so namesakes (e.g. Springfield)
+  // resolve correctly.
+  let queriedState = null;
+  let stripped = raw;
+  const stateCodeMatch = raw.match(/[,\s]\s*([a-z]{2})$/);
+  if (stateCodeMatch && STATE_INFO[stateCodeMatch[1].toUpperCase()]) {
+    queriedState = stateCodeMatch[1].toUpperCase();
+    stripped = raw.slice(0, stateCodeMatch.index).replace(/,\s*$/, "").trim();
+  } else {
+    // Try full state-name suffix (sorted longest-first so "north carolina"
+    // matches before "carolina").
+    for (const name of Object.keys(STATE_NAME_TO_CODE).sort(
+      (a, b) => b.length - a.length
+    )) {
+      const re = new RegExp(`[,\\s]\\s*${name}$`);
+      if (re.test(raw)) {
+        queriedState = STATE_NAME_TO_CODE[name];
+        stripped = raw.replace(re, "").replace(/,\s*$/, "").trim();
+        break;
+      }
+    }
+  }
+
   const results = [];
   for (const c of cityHubsDoc.cities) {
     const name = c.city.toLowerCase();
-    if (name.startsWith(q)) {
-      results.push({ ...c, score: 0 });
-    } else if (name.includes(q)) {
-      results.push({ ...c, score: 1 });
-    }
+    let score = -1;
+    if (name === stripped) score = 0;
+    else if (name.startsWith(stripped)) score = 1;
+    else if (name.includes(stripped)) score = 2;
+    if (score < 0) continue;
+    // Demote out-of-state matches when the user gave a state hint.
+    if (queriedState && c.state !== queriedState) score += 3;
+    results.push({ ...c, _score: score });
   }
-  // Prefix matches first, then by athlete count desc so the marquee city
-  // (e.g. Springfield, IL) outranks tiny namesakes.
   results.sort(
-    (a, b) => a.score - b.score || (b.athleteCount || 0) - (a.athleteCount || 0)
+    (a, b) => a._score - b._score || (b.athleteCount || 0) - (a.athleteCount || 0)
   );
   return results.slice(0, 7);
 }

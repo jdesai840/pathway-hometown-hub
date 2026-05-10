@@ -232,7 +232,56 @@ export async function tour(req, res) {
     return res.status(500).json({ error: "data unavailable" });
   }
 
-  const candidates = buildCandidates(cityHubsDoc, { state, sport, near });
+  // Auto-promote interests like "Raleigh, NC" or "Raleigh" into a `near`
+  // city anchor so it routes through the city-tour path instead of the
+  // default-branch global top-hubs list. Only fires when no other signal
+  // (state/sport/near) is present and the interests text is short enough
+  // to plausibly be a place name. Free-form interests ("paralympic athletes
+  // in cold-weather states") fall through unchanged.
+  let effectiveNear = near;
+  if (!state && !sport && !effectiveNear && interests) {
+    const trimmed = interests.trim();
+    if (trimmed.length > 0 && trimmed.length <= 60) {
+      const lower = trimmed.toLowerCase();
+      let best = null;
+      for (const c of cityHubsDoc.cities) {
+        const cityLower = c.city.toLowerCase();
+        const safe = cityLower.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const re = new RegExp(`(^|[^a-z])${safe}([^a-z]|$)`);
+        if (!re.test(lower)) continue;
+        const stateCode = c.state.toLowerCase();
+        const stateMentioned =
+          new RegExp(`(^|[^a-z])${stateCode}([^a-z]|$)`).test(lower);
+        // Lower score = better. Prefer matches where the state is also
+        // mentioned, then prefer cities with more athletes (tiebreaker for
+        // namesakes like Springfield, IL > Springfield, MO).
+        const score = stateMentioned ? 0 : 1;
+        if (
+          !best ||
+          score < best._score ||
+          (score === best._score && c.athleteCount > best.athleteCount)
+        ) {
+          best = { ...c, _score: score };
+        }
+      }
+      if (best) {
+        effectiveNear = {
+          lat: best.lat,
+          lng: best.lng,
+          label: `${best.city}, ${best.state}`,
+        };
+        console.log(
+          `interests → auto-detected city anchor: ${effectiveNear.label} (from "${trimmed}")`
+        );
+      }
+    }
+  }
+
+  const candidates = buildCandidates(cityHubsDoc, {
+    state,
+    sport,
+    near: effectiveNear,
+  });
   if (candidates.length === 0) {
     return res.status(400).json({ error: "no matching cities" });
   }
@@ -280,8 +329,8 @@ export async function tour(req, res) {
     const userPrompt = [
       "Build me a Team USA tour with these inputs:",
       state ? `- State of focus: ${state}` : null,
-      near?.label
-        ? `- Tour the metro area around ${near.label}. Pick 4-6 stops, EACH from the candidate cities listed below (all within ~30 miles of this anchor). NEVER use cities that aren't in the candidate list — no nationwide hubs like Park City, Colorado Springs, San Diego, etc. unless they literally appear as candidates. See "CITY METRO MODE" in the system prompt.`
+      effectiveNear?.label
+        ? `- Tour the metro area around ${effectiveNear.label}. Pick 4-6 stops, EACH from the candidate cities listed below (all within ~30 miles of this anchor). NEVER use cities that aren't in the candidate list — no nationwide hubs like Park City, Colorado Springs, San Diego, etc. unless they literally appear as candidates. See "CITY METRO MODE" in the system prompt.`
         : null,
       sport ? `- Sport of focus: ${sport}` : null,
       theme ? `- Theme: ${theme}` : null,
@@ -360,7 +409,7 @@ export async function tour(req, res) {
       // hallucinated from general knowledge (e.g. it picked San Diego or
       // Park City for a Raleigh-metro tour). State/sport tours skip this —
       // they have legitimate canonical-lookup-miss fallback paths.
-      if (near) {
+      if (effectiveNear) {
         parsed.stops = parsed.stops.filter((s) => {
           const key = `${(s.state || "").toUpperCase()}|${norm(s.city)}`;
           if (!candidateMap.has(key)) {
