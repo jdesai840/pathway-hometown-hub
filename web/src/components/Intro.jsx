@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useApp } from "../store.js";
-import Intro3DMap from "./Intro3DMap.jsx";
 
+// Hero content for the "intro" step. The Earth backdrop and outer chrome live
+// in App.jsx so they persist across intro → choose without remounting.
 export default function Intro() {
   const setStep = useApp((s) => s.setStep);
   const hubsDoc = useApp((s) => s.hubsDoc);
@@ -17,33 +18,12 @@ export default function Intro() {
   function handleBegin() {
     if (igniting) return;
     setIgniting(true);
-    // Coordinated transition: dots flash + hero fades, then we route.
-    setTimeout(() => setStep("explore"), 720);
+    // Hero fades, then we route to the mode-choice screen (Earth backdrop continues).
+    setTimeout(() => setStep("choose"), 720);
   }
 
   return (
-    <main
-      className="relative w-full overflow-hidden"
-      style={{ minHeight: "calc(100vh - 3.5rem)" }}
-      aria-labelledby="intro-heading"
-    >
-      {/* Ambient gradient halo */}
-      <div
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        aria-hidden="true"
-      >
-        <div
-          className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full opacity-30 blur-3xl"
-          style={{
-            background:
-              "radial-gradient(ellipse, rgba(59,130,246,0.55) 0%, rgba(245,158,11,0.30) 50%, transparent 75%)",
-          }}
-        />
-      </div>
-
-      {/* Photorealistic 3D Tiles aerial dolly over the US */}
-      <Intro3DMap igniting={igniting} />
-
+    <>
       {/* Radial ignite flash */}
       <div
         aria-hidden="true"
@@ -58,6 +38,7 @@ export default function Intro() {
 
       {/* Hero content */}
       <div
+        aria-labelledby="intro-heading"
         className={`relative max-w-5xl mx-auto px-6 py-16 md:py-24 text-center transition-all duration-500 ${
           igniting
             ? "opacity-0 -translate-y-5"
@@ -147,7 +128,7 @@ export default function Intro() {
           </p>
         )}
       </div>
-    </main>
+    </>
   );
 }
 

@@ -7,7 +7,8 @@ function cryptoRandom() {
 
 // Single source of truth shared between 2D UI, the spatial scene, and the voice agent.
 export const useApp = create((set) => ({
-  step: "intro", // intro | explore
+  step: "intro", // intro | choose | explore
+  viewMode: "explore", // "tour" | "explore" — set by ModeChoice, controls overlay UI
   hubsDoc: null, // /api/hubs response
   cityHubsDoc: null, // /api/city-hubs response
   sportCatalog: null, // /api/sport-catalog response
@@ -35,6 +36,7 @@ export const useApp = create((set) => ({
   inXR: false,
 
   setStep: (step) => set({ step }),
+  setViewMode: (viewMode) => set({ viewMode }),
   setHubsDoc: (hubsDoc) => set({ hubsDoc }),
   setCityHubsDoc: (cityHubsDoc) => set({ cityHubsDoc }),
   setSportCatalog: (sportCatalog) => set({ sportCatalog }),

@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useApp } from "./store.js";
 import { fetchHubs, fetchCityHubs, fetchSportCatalog, fetchConfig } from "./lib/api.js";
 import Intro from "./components/Intro.jsx";
+import ModeChoice from "./components/ModeChoice.jsx";
+import Intro3DMap from "./components/Intro3DMap.jsx";
 import MapExplorer from "./components/MapExplorer.jsx";
 
 export default function App() {
@@ -47,10 +49,38 @@ export default function App() {
         </p>
       </header>
 
-      <div id="main">
-        {step === "intro" && <Intro />}
-        {step === "explore" && <MapExplorer />}
-      </div>
+      {step === "explore" ? (
+        <div id="main">
+          <MapExplorer />
+        </div>
+      ) : (
+        // Intro and choose share the same Earth backdrop — Intro3DMap stays
+        // mounted across the transition for visual continuity.
+        <main
+          id="main"
+          className="relative w-full overflow-hidden"
+          style={{ minHeight: "calc(100vh - 3.5rem)" }}
+        >
+          {/* Ambient gradient halo */}
+          <div
+            className="pointer-events-none absolute inset-0 overflow-hidden"
+            aria-hidden="true"
+          >
+            <div
+              className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[900px] rounded-full opacity-30 blur-3xl"
+              style={{
+                background:
+                  "radial-gradient(ellipse, rgba(59,130,246,0.55) 0%, rgba(245,158,11,0.30) 50%, transparent 75%)",
+              }}
+            />
+          </div>
+
+          <Intro3DMap />
+
+          {step === "intro" && <Intro />}
+          {step === "choose" && <ModeChoice />}
+        </main>
+      )}
     </div>
   );
 }
