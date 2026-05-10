@@ -1,27 +1,52 @@
 import { useMemo } from "react";
 import { useApp } from "../store.js";
 
-// Single-sentence subtitle panel during the tour. Reads progress from the
-// store (audioCurrentTime / audioDuration) so the controller and caption
-// stay in sync.
+// Single-sentence subtitle panel during the tour. Reads progress + per-stop
+// caption data from the store. When the server provides SSML timepoints we
+// use them for exact audio-boundary sync; otherwise we fall back to the
+// previous character-weighted estimation off the narration prop.
 export default function LiveCaption({ narration, visible }) {
   const audioCurrentTime = useApp((s) => s.audioCurrentTime);
   const audioDuration = useApp((s) => s.audioDuration);
+  const currentSentences = useApp((s) => s.currentSentences);
+  const currentTimepoints = useApp((s) => s.currentTimepoints);
 
-  const sentences = useMemo(() => splitSentences(narration || ""), [narration]);
-  const totalChars = sentences.reduce((n, s) => n + s.length, 0) || 1;
-  const progress =
-    audioDuration > 0 ? Math.min(1, audioCurrentTime / audioDuration) : 0;
+  // Prefer server-provided segmentation + timepoints. Fall back to client-side
+  // splitting + char weighting if either is missing (e.g., mock TTS path).
+  const useServer =
+    currentSentences.length > 0 &&
+    currentTimepoints.length === currentSentences.length;
+
+  const fallbackSentences = useMemo(
+    () => (useServer ? [] : splitSentences(narration || "")),
+    [useServer, narration]
+  );
+
+  const sentences = useServer ? currentSentences : fallbackSentences;
 
   let activeIdx = 0;
-  let acc = 0;
-  for (let i = 0; i < sentences.length; i++) {
-    acc += sentences[i].length;
-    if (progress * totalChars <= acc + 1) {
-      activeIdx = i;
-      break;
+  if (useServer) {
+    // Exact: largest i where timepoints[i] <= audioCurrentTime.
+    for (let i = currentTimepoints.length - 1; i >= 0; i--) {
+      if (currentTimepoints[i] <= audioCurrentTime) {
+        activeIdx = i;
+        break;
+      }
     }
-    activeIdx = i;
+  } else {
+    // Char-weighted fallback (existing logic).
+    const totalChars = fallbackSentences.reduce((n, s) => n + s.length, 0) || 1;
+    const progress =
+      audioDuration > 0 ? Math.min(1, audioCurrentTime / audioDuration) : 0;
+    let acc = 0;
+    for (let i = 0; i < fallbackSentences.length; i++) {
+      acc += fallbackSentences[i].length;
+      if (progress * totalChars <= acc + 1) {
+        activeIdx = i;
+        break;
+      }
+      activeIdx = i;
+    }
   }
 
   const activeText = sentences[activeIdx] || "";

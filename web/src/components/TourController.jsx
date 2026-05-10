@@ -27,8 +27,10 @@ export default function TourController() {
   const setTourIndex = useApp((s) => s.setTourIndex);
   const setTourState = useApp((s) => s.setTourState);
   const setAudioProgress = useApp((s) => s.setAudioProgress);
+  const setCurrentCaption = useApp((s) => s.setCurrentCaption);
 
   const audioRef = useRef(null);
+  // audioCache[i] = { url, sentences, timepoints } per pre-fetched stop.
   const [audioCache, setAudioCache] = useState({});
   const loadedKeyRef = useRef(null);
 
@@ -57,7 +59,11 @@ export default function TourController() {
           if (cancelled) return;
           if (r.audioBase64) {
             const blob = base64ToBlob(r.audioBase64, r.mimeType || "audio/mpeg");
-            results[i] = URL.createObjectURL(blob);
+            results[i] = {
+              url: URL.createObjectURL(blob),
+              sentences: Array.isArray(r.sentences) ? r.sentences : [],
+              timepoints: Array.isArray(r.timepoints) ? r.timepoints : [],
+            };
             setAudioCache({ ...results });
           }
         } catch (err) {
@@ -67,7 +73,9 @@ export default function TourController() {
     })();
     return () => {
       cancelled = true;
-      Object.values(audioCache).forEach((u) => URL.revokeObjectURL(u));
+      Object.values(audioCache).forEach((entry) => {
+        if (entry?.url) URL.revokeObjectURL(entry.url);
+      });
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
@@ -111,17 +119,28 @@ export default function TourController() {
   // ── Load + play audio when stop changes ────────────────────────────────────
   useEffect(() => {
     if (!tour || tourState !== "playing") return;
-    const url = audioCache[tourIndex];
+    const entry = audioCache[tourIndex];
     const audio = audioRef.current;
-    if (!url || !audio) return;
+    if (!entry?.url || !audio) return;
     const key = `${tour.title}|${tourIndex}`;
     if (loadedKeyRef.current === key) return;
     loadedKeyRef.current = key;
     audio.pause();
     audio.currentTime = 0;
-    audio.src = url;
+    audio.src = entry.url;
     audio.play().catch(() => {});
   }, [tour, tourState, tourIndex, audioCache]);
+
+  // ── Publish current stop's caption sentences + timepoints to the store ─────
+  // LiveCaption reads these to swap captions exactly on each audio boundary.
+  useEffect(() => {
+    const entry = audioCache[tourIndex];
+    if (entry?.sentences && entry?.timepoints) {
+      setCurrentCaption(entry.sentences, entry.timepoints);
+    } else {
+      setCurrentCaption([], []);
+    }
+  }, [tourIndex, audioCache, setCurrentCaption]);
 
   // ── Audio time → store + cinematic-flag derivation ─────────────────────────
   // audioRef points to a <audio> element that's mounted unconditionally below,

@@ -28,6 +28,10 @@ export const useApp = create((set) => ({
   tourCinematic: false, // when true, the photorealistic 3D city viewport is active
   audioCurrentTime: 0, // synced from <audio> element in TourController
   audioDuration: 0,    // ditto
+  // Per-stop caption data emitted by Cloud TTS SSML timepointing — used by
+  // LiveCaption to swap sentences exactly on each audio boundary.
+  currentSentences: [],
+  currentTimepoints: [], // seconds, parallel to currentSentences
 
   // Multi-turn chat with the geo agent.
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
@@ -58,13 +62,24 @@ export const useApp = create((set) => ({
       selectedCityKey: null,
       audioCurrentTime: 0,
       audioDuration: 0,
+      currentSentences: [],
+      currentTimepoints: [],
     }),
   setTourState: (tourState) => set({ tourState }),
   setTourIndex: (tourIndex) =>
-    set({ tourIndex, tourCinematic: false, audioCurrentTime: 0, audioDuration: 0 }),
+    set({
+      tourIndex,
+      tourCinematic: false,
+      audioCurrentTime: 0,
+      audioDuration: 0,
+      currentSentences: [],
+      currentTimepoints: [],
+    }),
   setTourCinematic: (tourCinematic) => set({ tourCinematic }),
   setAudioProgress: (audioCurrentTime, audioDuration) =>
     set({ audioCurrentTime, audioDuration }),
+  setCurrentCaption: (currentSentences, currentTimepoints) =>
+    set({ currentSentences, currentTimepoints }),
   endTour: () =>
     set({
       tour: null,
@@ -73,6 +88,8 @@ export const useApp = create((set) => ({
       tourCinematic: false,
       audioCurrentTime: 0,
       audioDuration: 0,
+      currentSentences: [],
+      currentTimepoints: [],
     }),
   addChatMessage: (msg) =>
     set((s) => ({ chatMessages: [...s.chatMessages, { id: cryptoRandom(), ts: Date.now(), ...msg }] })),
