@@ -123,7 +123,7 @@ export default function SportFilter() {
             <ToggleBtn
               active={mode === "recency"}
               onClick={() => setMode("recency")}
-              title="LA28 era — athletes who last competed in 2020 or later (Tokyo, Beijing, Paris, Milano-Cortina). Current pipeline view."
+              title="LA28 era — athletes who competed at Paris 2024 or later (Paris 2024, Milano-Cortina 2026, current qualifiers). Active LA28 pipeline."
             >
               LA28
             </ToggleBtn>
