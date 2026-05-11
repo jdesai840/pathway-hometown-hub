@@ -82,7 +82,11 @@ export default function CityCinematic() {
             "radial-gradient(ellipse at center, transparent 60%, rgba(4,6,10,0.78) 100%)",
         }}
       />
-      {/* Subtle title — top-left, no kitschy "Flyover" label */}
+      {/* Subtle title — top-left, no kitschy "Flyover" label. Holds
+          city/state eyebrow, viewpoint heading, and (for Pathway
+          facility stops only) the recommended-sport pill. Keeping
+          everything in one corner leaves the photoreal center of the
+          frame unobstructed. */}
       {cinematic && stop && target && (
         <div className="pointer-events-none absolute top-6 left-6">
           <p className="text-[10px] uppercase tracking-[0.3em] text-slate-300/80 font-semibold">
@@ -93,16 +97,10 @@ export default function CityCinematic() {
               {stop.viewpoint.name}
             </p>
           )}
+          {stop?.type === "facility" && stop?.highlightSports?.[0] && (
+            <CinematicSportPillInline sport={stop.highlightSports[0]} />
+          )}
         </div>
-      )}
-
-      {/* Sport pill — surfaces the recommended sport during Pathway
-          facility stops. Sits just above the LiveCaption strip so it
-          reads as part of the caption frame. Only renders for
-          facility-type stops (Pathway tours); the hometown stop has
-          a multi-sport overview, no single sport to feature. */}
-      {cinematic && stop?.type === "facility" && stop?.highlightSports?.[0] && (
-        <CinematicSportPill sport={stop.highlightSports[0]} />
       )}
     </div>
   );
@@ -413,53 +411,52 @@ function LandmarkMarkers({ landmarks, groundElevation = 0 }) {
   );
 }
 
-// Sport pill rendered during Pathway facility stops. Sits just above
-// the LiveCaption strip (bottom-anchored) so it visually completes the
-// caption frame. Auto-detects Olympic / Paralympic from the sport name
-// to pick the accent color.
+// Sport pill rendered during Pathway facility stops. Sits inline under
+// the top-left subtitle block so all stop metadata stays in one corner
+// and the photoreal center of the frame stays unobstructed. Auto-
+// detects Olympic / Paralympic from the sport name to pick the accent
+// color.
 const PARA_PREFIXES = ["para ", "wheelchair ", "sled ", "goalball", "boccia"];
 function isParalympicSport(name) {
   const n = (name || "").toLowerCase();
   return PARA_PREFIXES.some((p) => n.startsWith(p) || n === p.trim());
 }
 
-function CinematicSportPill({ sport }) {
+function CinematicSportPillInline({ sport }) {
   if (!sport) return null;
   const isPara = isParalympicSport(sport);
   const dotColor = isPara ? "#f59e0b" : "#3b82f6";
   const accentLabel = isPara ? "Paralympic" : "Olympic";
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[192px] z-[60] flex justify-center px-6">
-      <div
-        className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full animate-fade-in"
+    <div
+      className="inline-flex items-center gap-2 px-3 py-1 rounded-full mt-2 animate-fade-in"
+      style={{
+        background: "rgba(8, 12, 22, 0.72)",
+        backdropFilter: "blur(12px) saturate(140%)",
+        WebkitBackdropFilter: "blur(12px) saturate(140%)",
+        border: "1px solid rgba(255,255,255,0.10)",
+        boxShadow: "0 4px 16px rgba(0,0,0,0.45)",
+      }}
+    >
+      <span
+        aria-hidden="true"
         style={{
-          background: "rgba(8, 12, 22, 0.72)",
-          backdropFilter: "blur(14px) saturate(140%)",
-          WebkitBackdropFilter: "blur(14px) saturate(140%)",
-          border: "1px solid rgba(255,255,255,0.10)",
-          boxShadow: "0 6px 24px rgba(0,0,0,0.45)",
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: dotColor,
+          boxShadow: `0 0 8px ${dotColor}`,
         }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            width: 8,
-            height: 8,
-            borderRadius: "50%",
-            background: dotColor,
-            boxShadow: `0 0 10px ${dotColor}`,
-          }}
-        />
-        <span className="text-[10px] uppercase tracking-[0.22em] text-slate-400 font-semibold">
-          {accentLabel}
-        </span>
-        <span className="text-slate-700" aria-hidden="true">
-          ·
-        </span>
-        <span className="font-display font-bold text-white text-sm tracking-tight">
-          {sport}
-        </span>
-      </div>
+      />
+      <span className="text-[9px] uppercase tracking-[0.22em] text-slate-400 font-semibold">
+        {accentLabel}
+      </span>
+      <span className="text-slate-700" aria-hidden="true">
+        ·
+      </span>
+      <span className="font-display font-bold text-white text-[13px] tracking-tight">
+        {sport}
+      </span>
     </div>
   );
 }
