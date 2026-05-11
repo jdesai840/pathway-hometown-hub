@@ -1,5 +1,4 @@
 import MapScene from "./MapScene.jsx";
-import VoiceMic from "./VoiceMic.jsx";
 import SportFilter from "./SportFilter.jsx";
 import AgentStreamPanel from "./AgentStreamPanel.jsx";
 import HubDetail from "./HubDetail.jsx";
@@ -46,8 +45,6 @@ export default function MapExplorer() {
             boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
           }}
         >
-          <VoiceMic />
-          <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
           <SportFilter />
         </div>
       )}

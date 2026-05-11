@@ -1,31 +1,12 @@
 import { VertexAI, FunctionCallingMode } from "@google-cloud/vertexai";
 import { loadHubs } from "../lib/hubs.js";
 import { geoSystemPrompt, geoTools } from "../lib/geoPrompts.js";
-import {
-  filterBySport,
-  filterByState,
-  topHubs,
-  topHubsForSport,
-  compareStates,
-  surfaceUnderexposedHub,
-} from "../lib/hubQueries.js";
+import { buildGeoToolHandlers } from "../lib/geoHandlers.js";
 import { mockGeoQuery } from "./mockGeo.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
-
-function buildToolHandlers(hubsDoc) {
-  return {
-    filter_by_sport: (args) => filterBySport(hubsDoc.hubs, args || {}),
-    filter_by_state: (args) => filterByState(hubsDoc.hubs, args || {}),
-    top_hubs: (args) => topHubs(hubsDoc.hubs, args || {}),
-    top_hubs_for_sport: (args) => topHubsForSport(hubsDoc.hubs, args || {}),
-    compare_states: (args) => compareStates(hubsDoc.hubs, hubsDoc.stateTotals, args || {}),
-    surface_underexposed_hub: (args) =>
-      surfaceUnderexposedHub(hubsDoc.hubs, hubsDoc.stateTotals, args || {}),
-  };
-}
 
 function historyToContents(history) {
   if (!Array.isArray(history)) return [];
@@ -67,7 +48,7 @@ export async function voiceQuery(req, res) {
       toolConfig: { functionCallingConfig: { mode: FunctionCallingMode?.AUTO || "AUTO" } },
       generationConfig: { temperature: 0.3 },
     });
-    const handlers = buildToolHandlers(hubsDoc);
+    const handlers = await buildGeoToolHandlers(hubsDoc);
 
     const contents = [
       ...historyToContents(history),

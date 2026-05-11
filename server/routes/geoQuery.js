@@ -1,40 +1,16 @@
 import { VertexAI, FunctionCallingMode } from "@google-cloud/vertexai";
 import { loadHubs } from "../lib/hubs.js";
-import { loadAthleteIndex } from "../lib/athleteIndex.js";
-import { queryAthletes } from "../lib/athleteQueries.js";
 import {
   geoSystemPrompt,
   geoStreamingSystemPrompt,
   geoTools,
 } from "../lib/geoPrompts.js";
-import {
-  filterBySport,
-  filterByState,
-  topHubs,
-  topHubsForSport,
-  compareStates,
-  surfaceUnderexposedHub,
-} from "../lib/hubQueries.js";
+import { buildGeoToolHandlers } from "../lib/geoHandlers.js";
 import { mockGeoQuery } from "./mockGeo.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
 const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
-
-// Async because the new query_athletes handler needs the athlete index loaded.
-async function buildToolHandlers(hubsDoc) {
-  const athleteIdx = await loadAthleteIndex();
-  return {
-    filter_by_sport: (args) => filterBySport(hubsDoc.hubs, args || {}),
-    filter_by_state: (args) => filterByState(hubsDoc.hubs, args || {}),
-    top_hubs: (args) => topHubs(hubsDoc.hubs, args || {}),
-    top_hubs_for_sport: (args) => topHubsForSport(hubsDoc.hubs, args || {}),
-    compare_states: (args) => compareStates(hubsDoc.hubs, hubsDoc.stateTotals, args || {}),
-    surface_underexposed_hub: (args) =>
-      surfaceUnderexposedHub(hubsDoc.hubs, hubsDoc.stateTotals, args || {}),
-    query_athletes: (args) => queryAthletes(athleteIdx.records, args || {}),
-  };
-}
 
 // One-line human label for each tool call. Surfaces in the streaming UI's
 // activity log ("● query_athletes — Found 47 swimmers grouped by city").
@@ -125,7 +101,7 @@ export async function geoQuery(req, res) {
 
   let handlers;
   try {
-    handlers = await buildToolHandlers(hubsDoc);
+    handlers = await buildGeoToolHandlers(hubsDoc);
   } catch (err) {
     console.error("buildToolHandlers failed", err);
     return res.status(500).json({ error: "athlete index unavailable" });
