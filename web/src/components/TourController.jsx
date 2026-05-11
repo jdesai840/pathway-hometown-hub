@@ -36,19 +36,33 @@ export default function TourController() {
 
   // ── Pre-fetch all narration audio when tour starts ─────────────────────────
   useEffect(() => {
-    if (!tour) return;
-    // CRITICAL: hard-silence the audio element BEFORE clearing the cache so the
-    // pause/play bridge effect can't ask the browser to resume the previous
-    // tour's last URL while the new audio is still being fetched.
+    // ALWAYS silence + reset the audio element on tour change — whether it's
+    // a new tour starting, a swap, OR the tour ending (tour=null). This is
+    // the single source of truth for "tour-id changed, audio must stop."
+    // Previously the audio could keep playing on close, and back-to-back
+    // tours could briefly play the prior tour's audio (stale audioCache
+    // closure during the React render before setAudioCache applied).
     const audio = audioRef.current;
     if (audio) {
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
     }
-    let cancelled = false;
-    setAudioCache({});
     loadedKeyRef.current = null;
+
+    // Functional update so we capture the LIVE cache (from whichever tour
+    // just ended) and revoke its blob URLs before clearing.
+    setAudioCache((prev) => {
+      Object.values(prev).forEach((e) => e?.url && URL.revokeObjectURL(e.url));
+      return {};
+    });
+
+    if (!tour) return; // tour ended — nothing to fetch.
+
+    // New tour: fetch TTS per stop, tag each entry with the tour's title so
+    // a stale entry from the previous tour (still in the closure before
+    // setAudioCache applies) is filtered out by the audio-play effect.
+    let cancelled = false;
     (async () => {
       const results = {};
       for (let i = 0; i < tour.stops.length; i++) {
@@ -63,6 +77,7 @@ export default function TourController() {
               url: URL.createObjectURL(blob),
               sentences: Array.isArray(r.sentences) ? r.sentences : [],
               timepoints: Array.isArray(r.timepoints) ? r.timepoints : [],
+              tourTitle: tour.title, // identity tag — see audio-play guard
             };
             setAudioCache({ ...results });
           }
@@ -73,11 +88,7 @@ export default function TourController() {
     })();
     return () => {
       cancelled = true;
-      Object.values(audioCache).forEach((entry) => {
-        if (entry?.url) URL.revokeObjectURL(entry.url);
-      });
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tour]);
 
   // ── Snap 2D map to the stop's city. No zoom animation — atomic update,
@@ -122,6 +133,10 @@ export default function TourController() {
     const entry = audioCache[tourIndex];
     const audio = audioRef.current;
     if (!entry?.url || !audio) return;
+    // Identity guard: skip stale entries from a previous tour that haven't
+    // been cleared yet (setAudioCache({}) is async — there's a render window
+    // where audioCache still has the prior tour's URLs).
+    if (entry.tourTitle && entry.tourTitle !== tour.title) return;
     const key = `${tour.title}|${tourIndex}`;
     if (loadedKeyRef.current === key) return;
     loadedKeyRef.current = key;
@@ -171,12 +186,18 @@ export default function TourController() {
   }, [setTourCinematic, setAudioProgress]);
 
   // ── Reactive bridge: TourOverlay sets tourState to "paused"/"playing", we
-  //    actually pause/play the audio element here ───────────────────────────
+  //    actually pause/play the audio element here. Also pauses on tour=null
+  //    (close button) as defense-in-depth — the prefetch effect already
+  //    silences on tour change but this guarantees audio stops even if some
+  //    later effect re-played it before the prefetch ran.
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio || !tour) return;
-    if (tourState === "paused") audio.pause();
-    else if (tourState === "playing" && audio.src && audio.paused) {
+    if (!audio) return;
+    if (!tour || tourState === "paused") {
+      audio.pause();
+      return;
+    }
+    if (tourState === "playing" && audio.src && audio.paused) {
       audio.play().catch(() => {});
     }
   }, [tour, tourState]);
