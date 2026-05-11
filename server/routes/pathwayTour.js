@@ -21,22 +21,92 @@ function stripCitations(text) {
     .trim();
 }
 
+// Exact match (case-insensitive). Loose substring matching used to make
+// "Track and Field" wrongly pair with "Para Track and Field" (one is a
+// substring of the other). The pathway prompt requires facility.sport to
+// match a recommendedSports[].sport verbatim, so strict equality is
+// correct.
 function sportMatches(facilitySport, target) {
   if (!facilitySport || !target) return false;
-  const a = String(facilitySport).toLowerCase();
-  const b = String(target).toLowerCase();
-  return a === b || a.includes(b) || b.includes(a);
+  return String(facilitySport).trim().toLowerCase() ===
+    String(target).trim().toLowerCase();
+}
+
+// Coarse distance check (haversine) so we can reject geocoder hits that
+// land in the wrong region (Nominatim's tiered retry occasionally matches
+// "Robert F. X" in Texas when the real facility is in Ohio).
+function haversineMi(a, b) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * 3958.8 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 // Prefer Nominatim (Google-Maps-comparable accuracy) for the facility's
 // exact location; fall back to the Gemini-emitted approximate coords;
-// give up otherwise.
+// give up otherwise. Sanity-checks Nominatim hits against the Gemini
+// coord (within 100mi) and the city/state token — rejecting cases where
+// the suffix-strip retry matches the wrong place in another state.
 async function bestCoords(f, fallbackCity) {
   const query = `${f.name}, ${f.city || fallbackCity}`
     .trim()
     .replace(/,\s*$/, "");
   const geo = await geocode(query);
   if (geo) {
+    // Sanity check #1: if Gemini gave us approximate coords, require the
+    // Nominatim hit to be within 100mi. Catches Texas-vs-Ohio mismatches.
+    if (typeof f.lat === "number" && typeof f.lng === "number") {
+      const d = haversineMi({ lat: f.lat, lng: f.lng }, { lat: geo.lat, lng: geo.lng });
+      if (d > 100) {
+        console.warn(
+          `geocode rejected — too far from Gemini coord (${d.toFixed(0)}mi):`,
+          f.name,
+          "→",
+          geo.formattedAddress
+        );
+        return { lat: f.lat, lng: f.lng, source: "gemini-fallback" };
+      }
+    }
+    // Sanity check #2: the facility's stated state should appear in
+    // Nominatim's formatted address (most facilities specify "City, ST").
+    const stateMatch = (f.city || "").match(/,\s*([A-Z]{2})\s*$/);
+    if (stateMatch && geo.formattedAddress) {
+      const stateCode = stateMatch[1].toUpperCase();
+      const addrLower = geo.formattedAddress.toLowerCase();
+      const STATE_NAMES = {
+        AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas",
+        CA: "california", CO: "colorado", CT: "connecticut", DE: "delaware",
+        FL: "florida", GA: "georgia", HI: "hawaii", ID: "idaho",
+        IL: "illinois", IN: "indiana", IA: "iowa", KS: "kansas",
+        KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
+        MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi",
+        MO: "missouri", MT: "montana", NE: "nebraska", NV: "nevada",
+        NH: "new hampshire", NJ: "new jersey", NM: "new mexico", NY: "new york",
+        NC: "north carolina", ND: "north dakota", OH: "ohio", OK: "oklahoma",
+        OR: "oregon", PA: "pennsylvania", RI: "rhode island", SC: "south carolina",
+        SD: "south dakota", TN: "tennessee", TX: "texas", UT: "utah",
+        VT: "vermont", VA: "virginia", WA: "washington", WV: "west virginia",
+        WI: "wisconsin", WY: "wyoming", DC: "district of columbia",
+      };
+      const fullName = STATE_NAMES[stateCode];
+      if (fullName && !addrLower.includes(fullName)) {
+        console.warn(
+          `geocode rejected — state mismatch (expected ${stateCode}):`,
+          f.name,
+          "→",
+          geo.formattedAddress
+        );
+        if (typeof f.lat === "number" && typeof f.lng === "number") {
+          return { lat: f.lat, lng: f.lng, source: "gemini-fallback" };
+        }
+        return null;
+      }
+    }
     return { lat: geo.lat, lng: geo.lng, source: "nominatim" };
   }
   if (typeof f.lat === "number" && typeof f.lng === "number") {
