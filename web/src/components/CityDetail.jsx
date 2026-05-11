@@ -55,7 +55,7 @@ export default function CityDetail() {
     <aside
       role="complementary"
       aria-labelledby="city-detail-heading"
-      className="fixed top-44 right-4 bottom-4 w-[440px] max-w-[42vw] rounded-2xl glass-strong p-5 overflow-y-auto z-30 shadow-2xl animate-slide-in-right"
+      className="fixed top-56 right-4 bottom-4 w-[440px] max-w-[42vw] rounded-2xl glass-strong p-5 overflow-y-auto z-30 shadow-2xl animate-slide-in-right"
       key={selectedCityKey}
     >
       <div className="flex justify-between items-start gap-3">

@@ -49,7 +49,7 @@ export default function HubDetail() {
     <aside
       role="complementary"
       aria-labelledby="hub-detail-heading"
-      className="fixed top-44 right-4 bottom-4 w-[440px] max-w-[42vw] rounded-2xl bg-slate-900/95 border border-slate-700 backdrop-blur p-5 overflow-y-auto z-30 shadow-2xl"
+      className="fixed top-56 right-4 bottom-4 w-[440px] max-w-[42vw] rounded-2xl bg-slate-900/95 border border-slate-700 backdrop-blur p-5 overflow-y-auto z-30 shadow-2xl"
     >
       <div className="flex justify-between items-start">
         <div>
