@@ -59,21 +59,26 @@ export default function AgentStreamPanel() {
       role="region"
       aria-label="Agent dock"
     >
-      {/* AskBar — always visible. Chevron toggle floats in the AskBar's
-          top-right corner so the user can hide the dock body. */}
-      <div className="relative">
-        <VoiceMic />
-        {hasCollapsibleContent && (
-          <button
-            type="button"
-            onClick={toggleDockCollapsed}
-            aria-label={collapsed ? "Expand agent response" : "Collapse agent response"}
-            className="absolute top-2 right-2 w-6 h-6 rounded-full text-slate-400 hover:text-slate-50 hover:bg-white/10 flex items-center justify-center text-[10px] transition focus:outline-none focus:ring-2 focus:ring-white/40"
-          >
+      {/* AskBar — always visible. */}
+      <VoiceMic />
+
+      {/* Collapse/expand handle — full-width strip that reads as a drawer
+          handle. Sits between the AskBar and the stream content. Only
+          rendered when there IS something to hide. */}
+      {hasCollapsibleContent && (
+        <button
+          type="button"
+          onClick={toggleDockCollapsed}
+          aria-label={collapsed ? "Expand agent response" : "Collapse agent response"}
+          aria-expanded={!collapsed}
+          className="w-full border-t border-white/10 bg-white/[0.04] hover:bg-white/[0.09] text-slate-200 hover:text-slate-50 text-[11px] font-semibold tracking-wide px-4 py-2 flex items-center justify-center gap-2 transition focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white/40"
+        >
+          <span aria-hidden="true" className="text-sm leading-none">
             {collapsed ? "▸" : "▾"}
-          </button>
-        )}
-      </div>
+          </span>
+          <span>{collapsed ? "Show response" : "Hide response"}</span>
+        </button>
+      )}
 
       {stream.active && !collapsed && (
         <>
