@@ -101,27 +101,46 @@ function passesSanityCheck(geo, f, label = "") {
 }
 
 // Resolve a facility to precise coords. Order:
-//   (a) Address geocode — Nominatim is rock-solid for street addresses,
-//       this is where the user perceives "the pin lands on the building."
-//   (b) POI-name geocode — works for major universities + named landmarks.
-//   (c) Gemini-emitted approximate coords — last resort, off by ~10m+.
+//   (a) POI-name lookup — Google's POI index pinpoints the actual
+//       building (e.g. "Pavilion Center Dr Pool" for the Mermaids).
+//       Only trusted when the result has POI types; otherwise it
+//       could be a broad area / locality match.
+//   (b) Address geocode — reliable parcel centroid when Gemini emits
+//       a real street address.
+//   (c) Whatever non-POI geocoder result we got from (a).
+//   (d) Gemini-emitted approximate coords — last resort.
 async function bestCoords(f, fallbackCity) {
-  // (a) Address geocode (the precise path).
-  if (typeof f.address === "string" && f.address.trim()) {
-    const geo = await geocode(f.address.trim());
-    if (geo && passesSanityCheck(geo, f, "address")) {
-      return { lat: geo.lat, lng: geo.lng, source: "nominatim-address" };
-    }
-  }
-  // (b) POI-name geocode.
   const nameQuery = `${f.name}, ${f.city || fallbackCity}`
     .trim()
     .replace(/,\s*$/, "");
-  const geo = await geocode(nameQuery);
-  if (geo && passesSanityCheck(geo, f, "name")) {
-    return { lat: geo.lat, lng: geo.lng, source: "nominatim-poi" };
+
+  // (a) POI-name lookup; only trust when types confirm establishment / POI.
+  const geoPoi = await geocode(nameQuery);
+  if (
+    geoPoi &&
+    passesSanityCheck(geoPoi, f, "poi") &&
+    Array.isArray(geoPoi.types) &&
+    geoPoi.types.some(
+      (t) => t === "establishment" || t === "point_of_interest"
+    )
+  ) {
+    return { lat: geoPoi.lat, lng: geoPoi.lng, source: "google-poi" };
   }
-  // (c) Gemini fallback.
+
+  // (b) Address geocode (precise parcel centroid).
+  if (typeof f.address === "string" && f.address.trim()) {
+    const geoAddr = await geocode(f.address.trim());
+    if (geoAddr && passesSanityCheck(geoAddr, f, "address")) {
+      return { lat: geoAddr.lat, lng: geoAddr.lng, source: "google-address" };
+    }
+  }
+
+  // (c) Non-POI result from (a) — still better than nothing.
+  if (geoPoi && passesSanityCheck(geoPoi, f, "fallback-poi")) {
+    return { lat: geoPoi.lat, lng: geoPoi.lng, source: "geocoder-fallback" };
+  }
+
+  // (d) Gemini's approximate coord.
   if (typeof f.lat === "number" && typeof f.lng === "number") {
     return { lat: f.lat, lng: f.lng, source: "gemini" };
   }

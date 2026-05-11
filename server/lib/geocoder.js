@@ -46,6 +46,7 @@ async function nominatimOnce(query) {
       lat: Number(hit.lat),
       lng: Number(hit.lon),
       formattedAddress: hit.display_name || query,
+      types: [], // shape parity with Google results; Nominatim doesn't expose POI types
       source: "nominatim",
     };
   } catch (err) {

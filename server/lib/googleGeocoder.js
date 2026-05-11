@@ -5,7 +5,11 @@
 // Photoreal Tiles. Falls back gracefully if the API returns denied / no
 // result (the higher-level geocoder then tries Nominatim → Gemini coords).
 
-const KEY = process.env.MAPS_API_KEY;
+// Prefer the dedicated unrestricted server-side key (created via gcloud,
+// restricted to Geocoding API only). Fall back to MAPS_API_KEY in case
+// it's been opened up — though that's referrer-restricted by default
+// and Google's Geocoding API explicitly refuses referrer-restricted keys.
+const KEY = process.env.GOOGLE_GEOCODING_KEY || process.env.MAPS_API_KEY;
 const cache = new Map();
 
 export async function googleGeocode(query) {
@@ -29,6 +33,7 @@ export async function googleGeocode(query) {
           lat: loc.lat,
           lng: loc.lng,
           formattedAddress: j.results[0].formatted_address || query,
+          types: Array.isArray(j.results[0].types) ? j.results[0].types : [],
           source: "google",
         };
       } else if (j.status === "REQUEST_DENIED") {
