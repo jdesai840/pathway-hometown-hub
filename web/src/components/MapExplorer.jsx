@@ -37,7 +37,7 @@ export default function MapExplorer() {
           compositing artifacts from a hidden-but-present panel. */}
       {showExploreUI && (
         <div
-          className="absolute top-4 left-4 w-[400px] max-w-[42vw] z-20 rounded-2xl overflow-hidden animate-slide-up"
+          className="absolute top-4 left-4 w-[400px] max-w-[42vw] z-20 rounded-2xl animate-slide-up"
           style={{
             background: "rgba(8, 12, 22, 0.55)",
             backdropFilter: "blur(14px) saturate(140%)",
