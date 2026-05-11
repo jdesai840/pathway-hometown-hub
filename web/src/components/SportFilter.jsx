@@ -176,7 +176,7 @@ export default function SportFilter() {
       {open && (
         <div
           ref={dropdownRef}
-          className="absolute z-30 left-3.5 right-3.5 top-full mt-1 max-h-72 overflow-y-auto rounded-xl glass-strong shadow-2xl animate-fade-in"
+          className="absolute z-30 left-3.5 right-3.5 top-full mt-1 max-h-56 overflow-y-auto rounded-xl glass-strong shadow-2xl animate-fade-in"
         >
           {matches.length === 0 ? (
             <div className="p-3 text-xs text-slate-400">No sports match.</div>
@@ -186,21 +186,9 @@ export default function SportFilter() {
                 <li key={`${s.sport}|${s.category}`}>
                   <button
                     onClick={() => pickSport(s.sport)}
-                    className="w-full text-left px-3 py-1.5 hover:bg-slate-800/70 flex items-center justify-between gap-3 focus:outline-none focus:bg-slate-800/70 transition"
+                    className="w-full text-left px-3 py-1.5 hover:bg-slate-800/70 focus:outline-none focus:bg-slate-800/70 transition"
                   >
                     <span className="text-sm text-slate-50 truncate">{s.sport}</span>
-                    <span className="flex items-center gap-2 text-[11px] shrink-0">
-                      <span
-                        className={
-                          s.category === "Paralympic"
-                            ? "text-paralympic font-semibold"
-                            : "text-olympic font-semibold"
-                        }
-                      >
-                        {s.category}
-                      </span>
-                      <span className="text-slate-400 num">{s.athletes}</span>
-                    </span>
                   </button>
                 </li>
               ))}
