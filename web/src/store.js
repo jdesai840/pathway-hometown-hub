@@ -51,6 +51,9 @@ export const useApp = create((set) => ({
     error: null,
     done: false,
   },
+  // When true, AgentStreamPanel hides everything except the AskBar so the
+  // CityDetail/HubDetail panel below has the full right column.
+  agentDockCollapsed: false,
 
   inXR: false,
 
@@ -126,7 +129,12 @@ export const useApp = create((set) => ({
         error: null,
         done: false,
       },
+      // Always bring the response back into view when a new question starts.
+      agentDockCollapsed: false,
     })),
+  toggleDockCollapsed: () =>
+    set((s) => ({ agentDockCollapsed: !s.agentDockCollapsed })),
+  setDockCollapsed: (v) => set({ agentDockCollapsed: !!v }),
   appendToolEvent: (ev) =>
     set((s) => ({
       agentStream: {

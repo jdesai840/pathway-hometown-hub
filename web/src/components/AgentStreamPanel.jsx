@@ -17,6 +17,18 @@ export default function AgentStreamPanel() {
   const rehighlight = useApp((s) => s.rehighlight);
   const setSelectedState = useApp((s) => s.setSelectedState);
   const messages = useApp((s) => s.chatMessages);
+  const collapsed = useApp((s) => s.agentDockCollapsed);
+  const toggleDockCollapsed = useApp((s) => s.toggleDockCollapsed);
+  const setDockCollapsed = useApp((s) => s.setDockCollapsed);
+  const selectedState = useApp((s) => s.selectedState);
+  const selectedCityKey = useApp((s) => s.selectedCityKey);
+
+  // Auto-collapse the dock when the user clicks into a state/city detail so
+  // the CityDetail/HubDetail panel below is fully visible. Re-expand stays
+  // intentional — user clicks the chevron, or starts a new stream.
+  useEffect(() => {
+    if (selectedState || selectedCityKey) setDockCollapsed(true);
+  }, [selectedState, selectedCityKey, setDockCollapsed]);
 
   // Auto-scroll narration as tokens arrive.
   const bodyRef = useRef(null);
@@ -29,6 +41,9 @@ export default function AgentStreamPanel() {
     .filter((m) => m.role === "user")
     .slice(stream.active ? -4 : -3, stream.active ? -1 : undefined)
     .reverse();
+
+  // Only show the collapse chevron when there's something hidden by it.
+  const hasCollapsibleContent = stream.active || recentQs.length > 0;
 
   return (
     <div
@@ -44,10 +59,23 @@ export default function AgentStreamPanel() {
       role="region"
       aria-label="Agent dock"
     >
-      {/* AskBar — always visible */}
-      <VoiceMic />
+      {/* AskBar — always visible. Chevron toggle floats in the AskBar's
+          top-right corner so the user can hide the dock body. */}
+      <div className="relative">
+        <VoiceMic />
+        {hasCollapsibleContent && (
+          <button
+            type="button"
+            onClick={toggleDockCollapsed}
+            aria-label={collapsed ? "Expand agent response" : "Collapse agent response"}
+            className="absolute top-2 right-2 w-6 h-6 rounded-full text-slate-400 hover:text-slate-50 hover:bg-white/10 flex items-center justify-center text-[10px] transition focus:outline-none focus:ring-2 focus:ring-white/40"
+          >
+            {collapsed ? "▸" : "▾"}
+          </button>
+        )}
+      </div>
 
-      {stream.active && (
+      {stream.active && !collapsed && (
         <>
           <div className="border-t border-white/10" />
 
@@ -163,8 +191,8 @@ export default function AgentStreamPanel() {
       )}
 
       {/* Recent Qs replay row — shown when there's any history, regardless of
-          whether a stream is in flight. */}
-      {recentQs.length > 0 && (
+          whether a stream is in flight. Hidden when the dock is collapsed. */}
+      {recentQs.length > 0 && !collapsed && (
         <div className="px-4 py-2 border-t border-white/10 flex flex-wrap gap-1.5">
           <span className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mr-1 self-center">
             Recent:
