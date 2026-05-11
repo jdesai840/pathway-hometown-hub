@@ -165,3 +165,37 @@
   0%, 100% { opacity: 0.7; transform: scale(1); }
   50% { opacity: 1; transform: scale(1.08); }
 }
+
+/* ============================================================
+   AI agent — conic-gradient ring + typewriter caret
+   ============================================================ */
+@keyframes hh-ai-ring-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes hh-caret-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+.hh-ai-ring {
+  position: absolute;
+  inset: -3px;
+  border-radius: 9999px;
+  background: conic-gradient(from 0deg, transparent 0%, #3b82f6 33%, #f59e0b 66%, transparent 100%);
+  animation: hh-ai-ring-spin 6s linear infinite;
+  opacity: 0.55;
+  filter: blur(4px);
+  pointer-events: none;
+}
+.hh-ai-ring-fast {
+  animation-duration: 1.8s;
+  opacity: 0.9;
+}
+.hh-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  vertical-align: -2px;
+  margin-left: 2px;
+  background: currentColor;
+  animation: hh-caret-blink 1s steps(1) infinite;
+}

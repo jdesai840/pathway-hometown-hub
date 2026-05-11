@@ -37,6 +37,21 @@ export const useApp = create((set) => ({
   // Each message: {id, role: 'user'|'model', text, ts, intent?, highlights?, facts?, transcript?}
   chatMessages: [],
 
+  // In-flight streaming response from the agent. Rendered by AgentStreamPanel
+  // (top-right of Map Explorer). When done, the result is also pushed into
+  // chatMessages so the history persists across closes.
+  agentStream: {
+    active: false,
+    query: "",
+    toolEvents: [], // [{name, brief, doneAt?}]
+    narration: "", // accumulating from streamed tokens
+    intent: null,
+    highlights: [],
+    facts: [],
+    error: null,
+    done: false,
+  },
+
   inXR: false,
 
   setStep: (step) => set({ step }),
@@ -96,6 +111,68 @@ export const useApp = create((set) => ({
   rehighlight: (highlights) => set({ highlightedStates: highlights || [] }),
   clearChat: () => set({ chatMessages: [], highlightedStates: [] }),
   setInXR: (inXR) => set({ inXR }),
+
+  // ─── Streaming agent ────────────────────────────────────────────────────
+  startAgentStream: (query) =>
+    set(() => ({
+      agentStream: {
+        active: true,
+        query,
+        toolEvents: [],
+        narration: "",
+        intent: null,
+        highlights: [],
+        facts: [],
+        error: null,
+        done: false,
+      },
+    })),
+  appendToolEvent: (ev) =>
+    set((s) => ({
+      agentStream: {
+        ...s.agentStream,
+        toolEvents: [...s.agentStream.toolEvents, ev],
+      },
+    })),
+  appendNarrationToken: (text) =>
+    set((s) => ({
+      agentStream: { ...s.agentStream, narration: s.agentStream.narration + text },
+    })),
+  completeStream: ({ intent, highlights, facts, narration }) =>
+    set((s) => {
+      const finalNarration = narration ?? s.agentStream.narration;
+      const finalHighlights = Array.isArray(highlights) ? highlights : [];
+      const finalFacts = Array.isArray(facts) ? facts : [];
+      return {
+        agentStream: {
+          ...s.agentStream,
+          narration: finalNarration,
+          intent: intent || s.agentStream.intent,
+          highlights: finalHighlights,
+          facts: finalFacts,
+          done: true,
+        },
+        highlightedStates: finalHighlights,
+        chatMessages: [
+          ...s.chatMessages,
+          {
+            id: cryptoRandom(),
+            ts: Date.now(),
+            role: "model",
+            text: finalNarration,
+            intent: intent || null,
+            highlights: finalHighlights,
+            facts: finalFacts,
+          },
+        ],
+      };
+    }),
+  closeStream: () =>
+    set((s) => ({ agentStream: { ...s.agentStream, active: false } })),
+  streamError: (message) =>
+    set((s) => ({
+      agentStream: { ...s.agentStream, error: message, done: true },
+    })),
 }));
 
 // Aggregate hubs to state-level intensity for the choropleth, given current filters.

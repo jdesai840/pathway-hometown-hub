@@ -35,6 +35,7 @@ echo "==> Uploading data files to gs://$GCS_BUCKET/"
 gcloud storage cp data/hubs.json "gs://$GCS_BUCKET/hubs.json"
 gcloud storage cp data/sport-catalog.json "gs://$GCS_BUCKET/sport-catalog.json"
 gcloud storage cp data/city-hubs.json "gs://$GCS_BUCKET/city-hubs.json"
+gcloud storage cp data/athletes.raw.json "gs://$GCS_BUCKET/athletes.raw.json"
 echo
 
 # 2. Deploy the combined service

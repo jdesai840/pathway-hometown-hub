@@ -14,7 +14,7 @@ NOAA US Climate Regions (states → region):
 - Non-contiguous: AK, HI, VI, PR — distinct climate stories.
 `.trim();
 
-export function geoSystemPrompt(hubsDoc) {
+function baseSystemBlock(hubsDoc) {
   const totals = hubsDoc.totals;
   const range = hubsDoc.reference?.allTimeRange || [];
   return [
@@ -22,9 +22,14 @@ export function geoSystemPrompt(hubsDoc) {
     "Team USA Olympic and Paralympic athletes come from across the United States.",
     "",
     "DATA YOU HAVE ACCESS TO (via tools):",
-    `- ${totals.athleteCount} athletes (Olympic: ${totals.byCategory.Olympic.athleteCount}, Paralympic: ${totals.byCategory.Paralympic.athleteCount})`,
-    `- All historical Games covered: ${range[0]} – ${range[1]}`,
-    "- Aggregated to (state, sport, Olympic|Paralympic) hubs with recency weighting toward LA28 prep horizon.",
+    "- AGGREGATED HUBS (filter_by_sport / filter_by_state / top_hubs / compare_states / surface_underexposed_hub):",
+    `    ${totals.athleteCount} athletes (Olympic: ${totals.byCategory.Olympic.athleteCount}, Paralympic: ${totals.byCategory.Paralympic.athleteCount}),`,
+    `    Games covered ${range[0]}–${range[1]}, rolled up to (state, sport, Olympic|Paralympic) hubs with recency weighting toward LA28.`,
+    "- FULL DATASET (query_athletes): all 8,525 scraped Team USA records with per-athlete sport(s), category",
+    "    (Olympian / Paralympian / Team USA non-Games), Games years, qualified years, birth year, hometown city + state,",
+    "    medal counts (gold/silver/bronze/total), and Paralympic classification. Aggregates only — names never exposed.",
+    "    Use query_athletes when the question goes beyond state×sport hubs — e.g. hometown cities, average ages,",
+    "    decade-by-decade growth, medal totals, para-classification distributions.",
     "",
     "CLIMATE CONTEXT (use to enrich narration when relevant):",
     CLIMATE_REGIONS_TEXT,
@@ -33,10 +38,16 @@ export function geoSystemPrompt(hubsDoc) {
     "1. Olympic and Paralympic data get equal analytical depth, equal narrative weight.",
     "2. Use sport names exactly as returned by the tools.",
     "3. Conditional language only ('could', 'may', 'potentially'). Never guarantee outcomes.",
-    "4. Never reference individual athletes.",
+    "4. Never reference individual athletes by name. Speak at hub / aggregate / hometown-city level only.",
     '5. Never use "former" or "past" Olympian/Paralympian.',
     "6. No timing data references.",
     "7. When a question touches geography or sport distribution, weave in climate-region context where it could matter (e.g., 'altitude in the Southwest'), but never as a deterministic claim.",
+  ].join("\n");
+}
+
+export function geoSystemPrompt(hubsDoc) {
+  return [
+    baseSystemBlock(hubsDoc),
     "",
     "WORKFLOW:",
     "- Inspect the user's question. Choose ONE OR MORE tools to gather data.",
@@ -48,6 +59,29 @@ export function geoSystemPrompt(hubsDoc) {
     "  }",
     "- If the user's question doesn't match the dataset (e.g. medal predictions, individual",
     "  athletes), respond with intent='out_of_scope' and explain politely in narration.",
+  ].join("\n");
+}
+
+// Streaming-mode variant. Same hard rules; the output contract changes so the
+// frontend can render narration tokens as they arrive and parse highlights /
+// facts from a trailing meta block.
+export function geoStreamingSystemPrompt(hubsDoc) {
+  return [
+    baseSystemBlock(hubsDoc),
+    "",
+    "WORKFLOW (STREAMING):",
+    "- Inspect the user's question. Call tools as needed.",
+    "- After tools return, write the NARRATION first as plain prose (2-4 sentences, second person,",
+    "  parity-respecting, conditional). DO NOT wrap it in JSON. DO NOT prefix it.",
+    "- Then on a new line, emit EXACTLY this meta block:",
+    "  <<META>>",
+    "  {\"intent\":\"…\",\"highlights\":[\"CA\",\"MN\"],\"facts\":[\"…\",\"…\"]}",
+    "  <<END>>",
+    "- intent: short string describing what you did. highlights: up to 8 two-letter state codes",
+    "  to emphasize on the map. facts: 2-5 short bullet strings (no leading dash).",
+    "- Emit nothing after <<END>>. The narration body and the meta block are the ENTIRE response.",
+    "- If the question is out of scope, write a polite redirect for the narration and use",
+    "  intent='out_of_scope' with empty highlights/facts.",
   ].join("\n");
 }
 
@@ -115,6 +149,44 @@ export const geoTools = [
           type: "object",
           properties: {
             excludeStates: { type: "array", items: { type: "string" }, description: "States already shown that should not be returned." },
+          },
+        },
+      },
+      {
+        name: "query_athletes",
+        description:
+          "Query the FULL 8,525-record scraped Team USA athlete dataset for fine-grained aggregates. " +
+          "Use this when the question goes beyond state×sport hubs — e.g. top hometown cities for a sport, " +
+          "average birth year, decade-by-decade growth, medal totals by state, para-classification mix. " +
+          "Returns counts and group aggregates only; individual athlete names are never exposed.",
+        parameters: {
+          type: "object",
+          properties: {
+            filters: {
+              type: "object",
+              description: "Narrow the record set before grouping.",
+              properties: {
+                sport: { type: "string", description: "Case-insensitive partial match against any sport name." },
+                category: { type: "string", enum: ["Olympic", "Paralympic", "Team USA"] },
+                season: { type: "string", enum: ["Summer", "Winter"] },
+                state: { type: "string", description: "Two-letter code or full state name." },
+                city: { type: "string", description: "Hometown city, case-insensitive partial match." },
+                yearMin: { type: "integer", description: "Earliest Games year (inclusive) — match if any years[] ≥ this." },
+                yearMax: { type: "integer", description: "Latest Games year (inclusive) — match if any years[] ≤ this." },
+                medalist: { type: "boolean", description: "If true: only athletes with total medals > 0." },
+              },
+            },
+            group_by: {
+              type: "string",
+              enum: ["state", "city", "sport", "year", "category", "decade"],
+              description: "Optional. When set, returns groups[] sorted by metric. When omitted, returns an overall summary.",
+            },
+            metric: {
+              type: "string",
+              enum: ["count", "medals", "avg_birth_year"],
+              description: "Sort metric for groups. Default 'count'.",
+            },
+            limit: { type: "integer", description: "Max groups to return (default 20, hard max 50)." },
           },
         },
       },

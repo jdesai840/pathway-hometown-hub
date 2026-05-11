@@ -1,7 +1,7 @@
 import MapScene from "./MapScene.jsx";
 import VoiceMic from "./VoiceMic.jsx";
 import SportFilter from "./SportFilter.jsx";
-import ChatThread from "./ChatThread.jsx";
+import AgentStreamPanel from "./AgentStreamPanel.jsx";
 import HubDetail from "./HubDetail.jsx";
 import CityDetail from "./CityDetail.jsx";
 import MapHud from "./MapHud.jsx";
@@ -49,10 +49,11 @@ export default function MapExplorer() {
           <VoiceMic />
           <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
           <SportFilter />
-          <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
-          <ChatThread />
         </div>
       )}
+
+      {/* Top-right streaming agent dashboard — only in Map Explorer mode. */}
+      {showExploreUI && <AgentStreamPanel />}
 
       <ClimateLegend />
 
