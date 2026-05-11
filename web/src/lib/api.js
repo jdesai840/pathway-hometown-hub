@@ -44,6 +44,10 @@ export function postNarrate({ state, sport }) {
   return postJSON("/api/narrate", { state, sport });
 }
 
+export function postPathway({ city, state, category }) {
+  return postJSON("/api/pathway", { city, state, category });
+}
+
 export function postTour({ state, sport, theme, interests, near }) {
   return postJSON("/api/tour", { state, sport, theme, interests, near });
 }

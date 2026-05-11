@@ -7,6 +7,7 @@ export default function Intro() {
   const setStep = useApp((s) => s.setStep);
   const hubsDoc = useApp((s) => s.hubsDoc);
   const cityHubsDoc = useApp((s) => s.cityHubsDoc);
+  const openPathwayLauncher = useApp((s) => s.openPathwayLauncher);
   const [igniting, setIgniting] = useState(false);
 
   const totalAthletes = hubsDoc?.totals.athleteCount;
@@ -98,24 +99,43 @@ export default function Intro() {
           </div>
         )}
 
-        <button
-          onClick={handleBegin}
-          disabled={igniting}
-          className="group mt-12 relative inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-white/60 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_44px_rgba(147,197,253,0.5)] shadow-[0_0_28px_rgba(147,197,253,0.25)] animate-slide-up"
+        <div
+          className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-3 animate-slide-up"
           style={{ animationDelay: "220ms" }}
         >
-          <span className="relative z-10">Begin the journey</span>
-          <span aria-hidden="true" className="relative z-10 text-lg group-hover:translate-x-0.5 transition-transform">→</span>
-          {/* Glow ring */}
-          <span
-            aria-hidden="true"
-            className="absolute inset-0 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
+          <button
+            onClick={handleBegin}
+            disabled={igniting}
+            className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-full bg-white text-slate-900 font-semibold focus:outline-none focus:ring-2 focus:ring-white/60 transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_44px_rgba(147,197,253,0.5)] shadow-[0_0_28px_rgba(147,197,253,0.25)]"
+          >
+            <span className="relative z-10">Begin the journey</span>
+            <span aria-hidden="true" className="relative z-10 text-lg group-hover:translate-x-0.5 transition-transform">→</span>
+            <span
+              aria-hidden="true"
+              className="absolute inset-0 rounded-full opacity-60 group-hover:opacity-100 transition-opacity"
+              style={{
+                boxShadow:
+                  "0 0 0 1px rgba(255,255,255,0.6) inset, 0 0 36px rgba(147,197,253,0.45)",
+              }}
+            />
+          </button>
+
+          <button
+            onClick={openPathwayLauncher}
+            disabled={igniting}
+            className="group relative inline-flex items-center gap-2 px-8 py-4 rounded-full text-white font-semibold focus:outline-none focus:ring-2 focus:ring-white/60 transition-all duration-300 hover:scale-[1.03]"
             style={{
+              background:
+                "linear-gradient(110deg, rgba(59,130,246,0.95), rgba(245,158,11,0.95))",
               boxShadow:
-                "0 0 0 1px rgba(255,255,255,0.6) inset, 0 0 36px rgba(147,197,253,0.45)",
+                "0 0 0 1px rgba(255,255,255,0.18) inset, 0 0 32px rgba(147,197,253,0.35)",
             }}
-          />
-        </button>
+          >
+            <span aria-hidden="true" className="relative z-10">✦</span>
+            <span className="relative z-10">Find your pathway</span>
+            <span aria-hidden="true" className="relative z-10 text-lg group-hover:translate-x-0.5 transition-transform">→</span>
+          </button>
+        </div>
 
         <p
           className="mt-6 text-[11px] text-slate-500 animate-fade-in"

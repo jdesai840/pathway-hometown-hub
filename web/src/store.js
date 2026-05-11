@@ -55,6 +55,14 @@ export const useApp = create((set) => ({
   // CityDetail/HubDetail panel below has the full right column.
   agentDockCollapsed: false,
 
+  // Pathway feature — personalized hometown→hub recommendation plan.
+  pathway: {
+    launcherOpen: false,
+    loading: false,
+    result: null, // { userLocation, nearbyHubs, recommendedSports, paralympicCounterpart, facilities, narration, disclaimer, citations }
+    error: null,
+  },
+
   inXR: false,
 
   setStep: (step) => set({ step }),
@@ -180,6 +188,33 @@ export const useApp = create((set) => ({
   streamError: (message) =>
     set((s) => ({
       agentStream: { ...s.agentStream, error: message, done: true },
+    })),
+
+  // ─── Pathway ────────────────────────────────────────────────────────────
+  openPathwayLauncher: () =>
+    set((s) => ({
+      pathway: { ...s.pathway, launcherOpen: true, error: null },
+    })),
+  closePathwayLauncher: () =>
+    set((s) => ({ pathway: { ...s.pathway, launcherOpen: false } })),
+  startPathway: () =>
+    set((s) => ({
+      pathway: { ...s.pathway, loading: true, error: null, result: null },
+    })),
+  completePathway: (result) =>
+    set((s) => ({
+      pathway: {
+        ...s.pathway,
+        loading: false,
+        result,
+        launcherOpen: false,
+      },
+    })),
+  closePathwayResult: () =>
+    set((s) => ({ pathway: { ...s.pathway, result: null } })),
+  pathwayError: (message) =>
+    set((s) => ({
+      pathway: { ...s.pathway, loading: false, error: message },
     })),
 }));
 

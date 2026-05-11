@@ -15,6 +15,7 @@ export default function MapExplorer() {
   const tourActive = Boolean(tour);
   const viewMode = useApp((s) => s.viewMode);
   const setViewMode = useApp((s) => s.setViewMode);
+  const openPathwayLauncher = useApp((s) => s.openPathwayLauncher);
 
   // Exploration UI (chat, filters, side panels) shows only when the user is
   // explicitly in Map Explorer mode AND no tour is running.
@@ -112,6 +113,24 @@ export default function MapExplorer() {
           >
             Reset view
           </button>
+
+          {/* Find your pathway — gradient pill, opens the same launcher as
+              the Intro CTA. Hidden in Tour mode to avoid clutter. */}
+          {!tourActive && (
+            <button
+              type="button"
+              onClick={openPathwayLauncher}
+              aria-label="Find your local pathway to Team USA"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold tracking-wide text-white border border-white/20 hover:scale-[1.03] hover:shadow-[0_0_18px_rgba(147,197,253,0.5)] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/60"
+              style={{
+                background:
+                  "linear-gradient(110deg, rgba(59,130,246,0.92), rgba(245,158,11,0.92))",
+              }}
+            >
+              <span aria-hidden="true">✦</span>
+              Find your pathway
+            </button>
+          )}
         </div>
 
         <MapHud />

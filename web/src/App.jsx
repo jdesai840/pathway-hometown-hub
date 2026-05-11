@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useApp } from "./store.js";
 import { fetchHubs, fetchCityHubs, fetchSportCatalog, fetchConfig } from "./lib/api.js";
 import Intro from "./components/Intro.jsx";
+import PathwayLauncher from "./components/PathwayLauncher.jsx";
+import PathwayResult from "./components/PathwayResult.jsx";
 import ModeChoice from "./components/ModeChoice.jsx";
 import Intro3DMap from "./components/Intro3DMap.jsx";
 import MapExplorer from "./components/MapExplorer.jsx";
@@ -81,6 +83,11 @@ export default function App() {
           {step === "choose" && <ModeChoice />}
         </main>
       )}
+
+      {/* Pathway launcher + result render across all steps (intro, choose,
+          explore) so the CTA in any view opens the same flow. */}
+      <PathwayLauncher />
+      <PathwayResult />
     </div>
   );
 }
