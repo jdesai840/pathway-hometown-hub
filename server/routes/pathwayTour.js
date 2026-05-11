@@ -189,6 +189,7 @@ export async function pathwayTour(req, res) {
     `Over the next few stops, you'll see one facility for each recommended sport that could be a starting point.`;
 
   stops.push({
+    type: "hometown",
     city: u.city,
     state: u.state,
     lat: u.lat,
@@ -240,6 +241,7 @@ export async function pathwayTour(req, res) {
           )
         );
         stops.push({
+          type: "facility",
           city: facCity,
           state: facState,
           lat: coords.lat,
@@ -282,6 +284,7 @@ export async function pathwayTour(req, res) {
         `which has produced ${ts?.count || fallbackHub.athleteCount} Team USA athlete${(ts?.count || fallbackHub.athleteCount) === 1 ? "" : "s"} in this sport — ` +
         `a hub worth tracking as you explore the path.`;
       stops.push({
+        type: "facility",
         city: fallbackHub.city,
         state: fallbackHub.state,
         lat: fallbackHub.lat,

@@ -40,6 +40,9 @@ export default function CityCinematic() {
             ? stop.viewpoint.elevation
             : 0,
         name: stop.viewpoint?.name || `${stop.city}, ${stop.state}`,
+        // Pathway tour tags each stop with type: "hometown" | "facility" so
+        // the cinematic can pick an appropriate orbit scale.
+        type: stop.type || "hometown",
       }
     : null;
 
@@ -65,6 +68,7 @@ export default function CityCinematic() {
           lat={target.lat}
           lng={target.lng}
           elevation={target.elevation}
+          stopType={target.type}
           playing={tourState === "playing" && cinematic}
           landmarks={stop?.landmarks}
         />
@@ -95,17 +99,35 @@ export default function CityCinematic() {
   );
 }
 
-function Scene({ apiKey, lat, lng, elevation, playing, landmarks }) {
+function Scene({ apiKey, lat, lng, elevation, stopType, playing, landmarks }) {
+  const tilesRef = useRef(null);
+
+  // GoogleCloudAuthPlugin's useRecommendedSettings: true forces
+  // errorTarget=20 (cost-optimized — produces blurry tiles at close
+  // range). Override to a tighter target so close-up facility shots
+  // resolve building geometry sharply.
+  useEffect(() => {
+    if (tilesRef.current) {
+      tilesRef.current.errorTarget = 6;
+    }
+  });
+
   return (
-    <TilesRenderer url={TILESET_URL}>
+    <TilesRenderer url={TILESET_URL} ref={tilesRef}>
       <TilesPlugin
         plugin={GoogleCloudAuthPlugin}
-        args={{ apiToken: apiKey, autoRefreshToken: true }}
+        args={{
+          apiToken: apiKey,
+          autoRefreshToken: true,
+          // We set errorTarget manually after the plugin attaches.
+          useRecommendedSettings: false,
+        }}
       />
       <CinematicCamera
         lat={lat}
         lng={lng}
         elevation={elevation}
+        stopType={stopType}
         playing={playing}
       />
       <LandmarkMarkers landmarks={landmarks} groundElevation={elevation} />
@@ -113,17 +135,28 @@ function Scene({ apiKey, lat, lng, elevation, playing, landmarks }) {
   );
 }
 
-// Closer, more cinematic orbit. Camera is ~700-1100m altitude / 1500-2400m
-// radius — close enough to read individual buildings and street layout.
-// `elevation` is the GROUND ELEVATION (meters above WGS84) at this lat/lng,
-// supplied by the server's Elevation API lookup. Without it, frame.center
-// sits at sea level and high-elevation cities (Denver, El Paso, Park City,
-// etc.) end up with the camera underneath the actual terrain — photoreal
-// tiles fail. With elevation, the 370-630m orbit is above-ground at every
-// city regardless of how high the surrounding terrain is.
-function CinematicCamera({ lat, lng, elevation = 0, playing }) {
+// Cinematic camera orbit. `elevation` is GROUND elevation (meters above
+// WGS84) at this lat/lng from the server's Elevation API lookup —
+// otherwise the camera would sit at sea level and end up underneath
+// the terrain at high-elevation cities.
+//
+// Orbit scale is chosen by `stopType`:
+//   - "hometown" → wide skyline orbit (850–1350m radius, 370–630m alt)
+//     ideal for showing a city's overall geography
+//   - "facility" → tight building orbit (240–400m radius, 110–210m alt)
+//     ideal for showing a single suburban building (swim club, university
+//     program, training center) at a scale where the building fills the
+//     frame instead of being a distant dot
+const ORBIT = {
+  hometown: { radiusBase: 1100, radiusVar: 250, altBase: 500, altVar: 130 },
+  facility: { radiusBase: 320, radiusVar: 80, altBase: 160, altVar: 50 },
+};
+
+function CinematicCamera({ lat, lng, elevation = 0, stopType = "hometown", playing }) {
   const { camera } = useThree();
   const t0 = useRef(performance.now());
+
+  const params = ORBIT[stopType] || ORBIT.hometown;
 
   const frame = useMemo(() => {
     const center = latLngToECEF(lat, lng, elevation);
@@ -138,21 +171,19 @@ function CinematicCamera({ lat, lng, elevation = 0, playing }) {
     // Initial position so tile renderer can pre-load while user is still on 2D
     const startPos = new THREE.Vector3()
       .copy(frame.center)
-      .addScaledVector(frame.eastVec, 1100)
-      .addScaledVector(frame.upVec, 500);
+      .addScaledVector(frame.eastVec, params.radiusBase)
+      .addScaledVector(frame.upVec, params.altBase);
     camera.position.copy(startPos);
     camera.up.copy(frame.upVec);
     camera.lookAt(frame.center);
     camera.updateProjectionMatrix();
-  }, [camera, frame]);
+  }, [camera, frame, params.radiusBase, params.altBase]);
 
   useFrame(() => {
     const elapsed = (performance.now() - t0.current) / 1000;
-    // Tight orbit at building-skyline altitude. Smaller frustum = fewer tiles
-    // to stream + much more detail per tile.
     const angle = (playing ? elapsed * 0.05 : 0) + Math.PI / 5;
-    const radiusM = 1100 + Math.sin(elapsed * 0.18) * 250; // 850–1350m
-    const altitudeM = 500 + Math.sin(elapsed * 0.13) * 130; // 370–630m
+    const radiusM = params.radiusBase + Math.sin(elapsed * 0.18) * params.radiusVar;
+    const altitudeM = params.altBase + Math.sin(elapsed * 0.13) * params.altVar;
 
     const tangent = new THREE.Vector3()
       .copy(frame.eastVec).multiplyScalar(Math.cos(angle))
