@@ -47,68 +47,81 @@ function haversineMi(a, b) {
   return 2 * 3958.8 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
-// Prefer Nominatim (Google-Maps-comparable accuracy) for the facility's
-// exact location; fall back to the Gemini-emitted approximate coords;
-// give up otherwise. Sanity-checks Nominatim hits against the Gemini
-// coord (within 100mi) and the city/state token — rejecting cases where
-// the suffix-strip retry matches the wrong place in another state.
+const STATE_NAMES = {
+  AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas",
+  CA: "california", CO: "colorado", CT: "connecticut", DE: "delaware",
+  FL: "florida", GA: "georgia", HI: "hawaii", ID: "idaho",
+  IL: "illinois", IN: "indiana", IA: "iowa", KS: "kansas",
+  KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
+  MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi",
+  MO: "missouri", MT: "montana", NE: "nebraska", NV: "nevada",
+  NH: "new hampshire", NJ: "new jersey", NM: "new mexico", NY: "new york",
+  NC: "north carolina", ND: "north dakota", OH: "ohio", OK: "oklahoma",
+  OR: "oregon", PA: "pennsylvania", RI: "rhode island", SC: "south carolina",
+  SD: "south dakota", TN: "tennessee", TX: "texas", UT: "utah",
+  VT: "vermont", VA: "virginia", WA: "washington", WV: "west virginia",
+  WI: "wisconsin", WY: "wyoming", DC: "district of columbia",
+};
+
+// Catch geocoder hits that landed at the wrong building (different state,
+// or way too far from where Gemini said the facility is).
+function passesSanityCheck(geo, f, label = "") {
+  // Within 100mi of Gemini's approximation, when we have one.
+  if (typeof f.lat === "number" && typeof f.lng === "number") {
+    const d = haversineMi(
+      { lat: f.lat, lng: f.lng },
+      { lat: geo.lat, lng: geo.lng }
+    );
+    if (d > 100) {
+      console.warn(
+        `geocode rejected ${label} — too far from Gemini coord (${d.toFixed(0)}mi):`,
+        f.name,
+        "→",
+        geo.formattedAddress
+      );
+      return false;
+    }
+  }
+  // State token must appear in Nominatim's formatted address.
+  const stateMatch = (f.city || "").match(/,\s*([A-Z]{2})\s*$/);
+  if (stateMatch && geo.formattedAddress) {
+    const stateCode = stateMatch[1].toUpperCase();
+    const fullName = STATE_NAMES[stateCode];
+    if (fullName && !geo.formattedAddress.toLowerCase().includes(fullName)) {
+      console.warn(
+        `geocode rejected ${label} — state mismatch (expected ${stateCode}):`,
+        f.name,
+        "→",
+        geo.formattedAddress
+      );
+      return false;
+    }
+  }
+  return true;
+}
+
+// Resolve a facility to precise coords. Order:
+//   (a) Address geocode — Nominatim is rock-solid for street addresses,
+//       this is where the user perceives "the pin lands on the building."
+//   (b) POI-name geocode — works for major universities + named landmarks.
+//   (c) Gemini-emitted approximate coords — last resort, off by ~10m+.
 async function bestCoords(f, fallbackCity) {
-  const query = `${f.name}, ${f.city || fallbackCity}`
+  // (a) Address geocode (the precise path).
+  if (typeof f.address === "string" && f.address.trim()) {
+    const geo = await geocode(f.address.trim());
+    if (geo && passesSanityCheck(geo, f, "address")) {
+      return { lat: geo.lat, lng: geo.lng, source: "nominatim-address" };
+    }
+  }
+  // (b) POI-name geocode.
+  const nameQuery = `${f.name}, ${f.city || fallbackCity}`
     .trim()
     .replace(/,\s*$/, "");
-  const geo = await geocode(query);
-  if (geo) {
-    // Sanity check #1: if Gemini gave us approximate coords, require the
-    // Nominatim hit to be within 100mi. Catches Texas-vs-Ohio mismatches.
-    if (typeof f.lat === "number" && typeof f.lng === "number") {
-      const d = haversineMi({ lat: f.lat, lng: f.lng }, { lat: geo.lat, lng: geo.lng });
-      if (d > 100) {
-        console.warn(
-          `geocode rejected — too far from Gemini coord (${d.toFixed(0)}mi):`,
-          f.name,
-          "→",
-          geo.formattedAddress
-        );
-        return { lat: f.lat, lng: f.lng, source: "gemini-fallback" };
-      }
-    }
-    // Sanity check #2: the facility's stated state should appear in
-    // Nominatim's formatted address (most facilities specify "City, ST").
-    const stateMatch = (f.city || "").match(/,\s*([A-Z]{2})\s*$/);
-    if (stateMatch && geo.formattedAddress) {
-      const stateCode = stateMatch[1].toUpperCase();
-      const addrLower = geo.formattedAddress.toLowerCase();
-      const STATE_NAMES = {
-        AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas",
-        CA: "california", CO: "colorado", CT: "connecticut", DE: "delaware",
-        FL: "florida", GA: "georgia", HI: "hawaii", ID: "idaho",
-        IL: "illinois", IN: "indiana", IA: "iowa", KS: "kansas",
-        KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
-        MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi",
-        MO: "missouri", MT: "montana", NE: "nebraska", NV: "nevada",
-        NH: "new hampshire", NJ: "new jersey", NM: "new mexico", NY: "new york",
-        NC: "north carolina", ND: "north dakota", OH: "ohio", OK: "oklahoma",
-        OR: "oregon", PA: "pennsylvania", RI: "rhode island", SC: "south carolina",
-        SD: "south dakota", TN: "tennessee", TX: "texas", UT: "utah",
-        VT: "vermont", VA: "virginia", WA: "washington", WV: "west virginia",
-        WI: "wisconsin", WY: "wyoming", DC: "district of columbia",
-      };
-      const fullName = STATE_NAMES[stateCode];
-      if (fullName && !addrLower.includes(fullName)) {
-        console.warn(
-          `geocode rejected — state mismatch (expected ${stateCode}):`,
-          f.name,
-          "→",
-          geo.formattedAddress
-        );
-        if (typeof f.lat === "number" && typeof f.lng === "number") {
-          return { lat: f.lat, lng: f.lng, source: "gemini-fallback" };
-        }
-        return null;
-      }
-    }
-    return { lat: geo.lat, lng: geo.lng, source: "nominatim" };
+  const geo = await geocode(nameQuery);
+  if (geo && passesSanityCheck(geo, f, "name")) {
+    return { lat: geo.lat, lng: geo.lng, source: "nominatim-poi" };
   }
+  // (c) Gemini fallback.
   if (typeof f.lat === "number" && typeof f.lng === "number") {
     return { lat: f.lat, lng: f.lng, source: "gemini" };
   }
@@ -217,9 +230,12 @@ export async function pathwayTour(req, res) {
         const noteText = facility.note
           ? ` ${stripCitations(facility.note)}`
           : "";
+        const locationPhrase = facility.address
+          ? `at ${facility.address}`
+          : `in ${facility.city || facCity}`;
         const narration = await redactNames(
           stripCitations(
-            `For ${s.sport}, ${facility.name} in ${facility.city || facCity} could be a starting point — ` +
+            `For ${s.sport}, ${facility.name} ${locationPhrase} could be a starting point — ` +
               `a ${facility.type.toLowerCase()} worth exploring.${noteText}`
           )
         );

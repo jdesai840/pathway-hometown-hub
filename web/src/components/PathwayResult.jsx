@@ -325,6 +325,19 @@ function FacilityRow({ facility }) {
         {facility.city && (
           <p className="text-[11px] text-slate-400 mt-0.5">{facility.city}</p>
         )}
+        {facility.address && (
+          <p className="text-[10px] text-slate-500 mt-0.5 font-mono leading-snug">
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(facility.address)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hover:text-slate-300 hover:underline transition"
+              title="Open in Google Maps"
+            >
+              {facility.address}
+            </a>
+          </p>
+        )}
         {facility.note && (
           <p className="text-xs text-slate-300 mt-1 leading-snug">
             {facility.note}
