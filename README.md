@@ -233,4 +233,4 @@ Type your hometown. Find your pathway. Fly through it in photoreal 3D.
 
 ## License
 
-MIT. See [LICENSE](./LICENSE).
+Apache License 2.0. See [LICENSE](./LICENSE).
