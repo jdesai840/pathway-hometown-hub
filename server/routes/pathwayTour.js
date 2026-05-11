@@ -1,6 +1,25 @@
 import { geocode } from "../lib/geocoder.js";
 import { redactNames } from "../lib/nilGuard.js";
 
+// Strip URLs, [N] markers, and parenthetical domain citations from text
+// before it goes into a cinematic narration. The Pathway Result UI shows
+// citations separately as clickable chips; they shouldn't be read out loud
+// by Cloud TTS or appear in subtitles.
+function stripCitations(text) {
+  if (typeof text !== "string" || !text) return text;
+  return text
+    .replace(/\bhttps?:\/\/[^\s)]+/gi, "") // bare URLs
+    .replace(/\[\d+(?:\s*,\s*\d+)*\]/g, "") // [1], [2, 3] markers
+    .replace(
+      /\(\s*(?:per |via |see |source:?\s*)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/\S*)?\s*\)/gi,
+      ""
+    ) // (cleveland.edu), (per ngb.org), (source: foo.com)
+    .replace(/\s*\(\s*\)/g, "") // dangling " ()"
+    .replace(/\s+([.,;])/g, "$1") // " ." → "."
+    .replace(/\s{2,}/g, " ") // collapse whitespace
+    .trim();
+}
+
 // Compose a photoreal cinematic tour from a /api/pathway response. Output
 // shape matches /api/tour exactly so the frontend's TourController +
 // CityCinematic + LiveCaption pipeline picks it up with zero changes.
@@ -36,8 +55,10 @@ export async function pathwayTour(req, res) {
     lat: u.lat,
     lng: u.lng,
     narration: await redactNames(
-      `Your pathway begins here in ${u.city}, ${u.state}. From this corner of the map, ` +
-        `Team USA's hometown pipeline branches out in directions you may not have realized.`
+      stripCitations(
+        `Your pathway begins here in ${u.city}, ${u.state}. From this corner of the map, ` +
+          `Team USA's hometown pipeline branches out in directions you may not have realized.`
+      )
     ),
     highlightSports: recommendedSportNames.slice(0, 3),
     landmarks: [],
@@ -63,10 +84,12 @@ export async function pathwayTour(req, res) {
     const facilityCity = (f.city || "").split(",")[0].trim() || u.city;
     const facilityState =
       (f.city || "").split(",")[1]?.trim() || u.state;
-    const noteText = f.note ? ` ${f.note}` : "";
+    const cleanNote = f.note ? ` ${stripCitations(f.note)}` : "";
     const narration = await redactNames(
-      `${f.name} in ${f.city || facilityCity} could be a starting point — a ${f.type.toLowerCase()} ` +
-        `worth exploring for visits, programs, or events.${noteText}`
+      stripCitations(
+        `${f.name} in ${f.city || facilityCity} could be a starting point — a ${f.type.toLowerCase()} ` +
+          `worth exploring for visits, programs, or events.${cleanNote}`
+      )
     );
     stops.push({
       city: facilityCity,
@@ -75,7 +98,12 @@ export async function pathwayTour(req, res) {
       lng: geo.lng,
       narration,
       highlightSports: recommendedSportNames.slice(0, 2),
-      landmarks: [{ name: f.name, wikipedia: null }],
+      // Carry the facility coords on the landmark so the in-scene pin
+      // renderer (CityCinematic LandmarkMarkers) places a labeled marker
+      // at the facility's GPS point.
+      landmarks: [
+        { name: f.name, wikipedia: null, lat: geo.lat, lng: geo.lng },
+      ],
       viewpoint: { lat: geo.lat, lng: geo.lng, name: f.name },
     });
   }
@@ -95,9 +123,11 @@ export async function pathwayTour(req, res) {
         ? `, with notable strength in ${topSport.sport} (${topSport.count} ${topSport.category} ${topSport.count === 1 ? "athlete" : "athletes"})`
         : "";
       const narration = await redactNames(
-        `${h.city}, ${h.state} sits ${h.distMi || "near"} miles away with ${h.athleteCount} ` +
-          `Team USA ${h.athleteCount === 1 ? "athlete" : "athletes"}${sportLine}. ` +
-          "It's a hub worth tracking from your area."
+        stripCitations(
+          `${h.city}, ${h.state} sits ${h.distMi || "near"} miles away with ${h.athleteCount} ` +
+            `Team USA ${h.athleteCount === 1 ? "athlete" : "athletes"}${sportLine}. ` +
+            "It's a hub worth tracking from your area."
+        )
       );
       stops.push({
         city: h.city,
@@ -106,7 +136,9 @@ export async function pathwayTour(req, res) {
         lng: h.lng,
         narration,
         highlightSports: topSport ? [topSport.sport] : [],
-        landmarks: [],
+        landmarks: [
+          { name: `${h.city}, ${h.state}`, wikipedia: null, lat: h.lat, lng: h.lng },
+        ],
         viewpoint: { lat: h.lat, lng: h.lng, name: `${h.city}, ${h.state}` },
       });
     }

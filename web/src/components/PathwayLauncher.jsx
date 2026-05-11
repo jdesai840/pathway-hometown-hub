@@ -160,19 +160,14 @@ export default function PathwayLauncher() {
             </div>
           </fieldset>
 
-          <div className="relative">
-            {loading && (
-              <span aria-hidden="true" className="hh-ai-ring hh-ai-ring-fast" />
-            )}
-            <button
-              type="submit"
-              disabled={!canSubmit}
-              className="relative z-10 w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-olympic to-paralympic text-white text-sm font-semibold disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-white/60 transition hover:shadow-[0_0_24px_rgba(147,197,253,0.45)]"
-            >
-              <span aria-hidden="true">✦</span>
-              {loading ? "Finding your pathway…" : "Show my pathway"}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-olympic to-paralympic text-white text-sm font-semibold disabled:opacity-40 focus:outline-none focus:ring-2 focus:ring-white/60 transition hover:shadow-[0_0_24px_rgba(147,197,253,0.45)]"
+          >
+            <span aria-hidden="true">✦</span>
+            {loading ? "Finding your pathway…" : "Show my pathway"}
+          </button>
 
           {/* Validation hint OR loading stage — single status slot. */}
           <div className="min-h-[18px] text-center">

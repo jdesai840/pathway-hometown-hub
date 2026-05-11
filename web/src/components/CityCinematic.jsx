@@ -187,6 +187,18 @@ function LandmarkMarkers({ landmarks, groundElevation = 0 }) {
     (async () => {
       const out = [];
       for (const lm of landmarks) {
+        // Path A — landmark already carries coords (Pathway tours).
+        if (typeof lm?.lat === "number" && typeof lm?.lng === "number") {
+          out.push({
+            name: lm.name || "Landmark",
+            url: null,
+            lat: lm.lat,
+            lng: lm.lng,
+          });
+          setResolved([...out]);
+          continue;
+        }
+        // Path B — resolve from Wikipedia (existing AI Tour landmarks).
         if (!lm?.wikipedia) continue;
         const info = await fetchWikipediaImage(lm.wikipedia);
         if (cancelled) return;
