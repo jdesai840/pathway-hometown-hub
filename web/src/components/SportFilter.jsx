@@ -1,16 +1,44 @@
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useApp } from "../store.js";
 
-const QUICK_PICKS = [
+// Category-scoped quick-pick chips. Pills shown under the search bar change
+// based on the active Olympic / Paralympic / Both toggle so the chip row is
+// always relevant to what the user just selected.
+const OLYMPIC_QUICK_PICKS = [
   "Track and Field",
   "Swimming",
-  "Curling",
+  "Basketball",
   "Ice Hockey",
-  "Wheelchair Basketball",
-  "Para Track and Field",
   "Snowboarding",
+  "Curling",
+];
+
+const PARALYMPIC_QUICK_PICKS = [
+  "Para Track and Field",
+  "Para Swimming",
+  "Wheelchair Basketball",
+  "Sled Hockey",
+  "Para Alpine Skiing",
+  "Goalball",
+];
+
+// "Both" mode: interleave Olympic + Paralympic pairs so each Olympic sport
+// sits next to its Paralympic counterpart. The visual parity is the message.
+const BOTH_QUICK_PICKS = [
+  "Track and Field",
+  "Para Track and Field",
+  "Swimming",
+  "Para Swimming",
+  "Ice Hockey",
   "Sled Hockey",
 ];
+
+const PARA_PREFIXES = ["Para ", "Wheelchair ", "Sled ", "Goalball", "Boccia"];
+function isParalympicSport(name) {
+  return PARA_PREFIXES.some((p) =>
+    name === p || name.startsWith(p)
+  );
+}
 
 export default function SportFilter() {
   const sportFilter = useApp((s) => s.sportFilter);
@@ -182,8 +210,18 @@ export default function SportFilter() {
         <PillBtn active={sportFilter === null} onClick={() => setSportFilter(null)}>
           All sports
         </PillBtn>
-        {QUICK_PICKS.slice(0, 6).map((s) => (
-          <PillBtn key={s} active={sportFilter === s} onClick={() => setSportFilter(s)}>
+        {(categoryFilter === "Olympic"
+          ? OLYMPIC_QUICK_PICKS
+          : categoryFilter === "Paralympic"
+          ? PARALYMPIC_QUICK_PICKS
+          : BOTH_QUICK_PICKS
+        ).map((s) => (
+          <PillBtn
+            key={s}
+            active={sportFilter === s}
+            onClick={() => setSportFilter(s)}
+            accent={isParalympicSport(s) ? "paralympic" : "olympic"}
+          >
             {s}
           </PillBtn>
         ))}
@@ -230,7 +268,16 @@ function ToggleBtn({ active, onClick, children, accent }) {
   );
 }
 
-function PillBtn({ active, onClick, children }) {
+function PillBtn({ active, onClick, children, accent }) {
+  // Category-tinted hover border so the Olympic vs Paralympic identity
+  // of each chip is readable at a glance — especially in "Both" mode
+  // where Olympic and Paralympic sports sit next to each other.
+  const hoverBorder =
+    accent === "paralympic"
+      ? "hover:border-paralympic/60"
+      : accent === "olympic"
+      ? "hover:border-olympic/60"
+      : "hover:border-slate-500";
   return (
     <button
       onClick={onClick}
@@ -238,7 +285,7 @@ function PillBtn({ active, onClick, children }) {
       className={`text-[10px] px-2 py-0.5 rounded-full transition focus:outline-none focus:ring-2 focus:ring-white/40 ${
         active
           ? "bg-white text-slate-900 font-semibold"
-          : "bg-slate-800/60 text-slate-300 hover:bg-slate-700/70 border border-slate-700/40"
+          : `bg-slate-800/60 text-slate-300 hover:bg-slate-700/70 border border-slate-700/40 ${hoverBorder}`
       }`}
     >
       {children}
