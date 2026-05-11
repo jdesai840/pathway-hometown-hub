@@ -1,6 +1,6 @@
-import { geocode } from "../lib/geocoder.js";
 import { redactNames } from "../lib/nilGuard.js";
 import { attachElevations } from "../lib/elevation.js";
+import { bestCoords } from "../lib/landmarkCoords.js";
 
 // Strip URLs, [N] markers, and parenthetical domain citations from text
 // before it goes into a cinematic narration. Citations live as clickable
@@ -35,122 +35,8 @@ function sportMatches(facilitySport, target) {
 // Coarse distance check (haversine) so we can reject geocoder hits that
 // land in the wrong region (Nominatim's tiered retry occasionally matches
 // "Robert F. X" in Texas when the real facility is in Ohio).
-function haversineMi(a, b) {
-  const toRad = (d) => (d * Math.PI) / 180;
-  const dLat = toRad(b.lat - a.lat);
-  const dLng = toRad(b.lng - a.lng);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
-  const h =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
-  return 2 * 3958.8 * Math.asin(Math.min(1, Math.sqrt(h)));
-}
-
-const STATE_NAMES = {
-  AL: "alabama", AK: "alaska", AZ: "arizona", AR: "arkansas",
-  CA: "california", CO: "colorado", CT: "connecticut", DE: "delaware",
-  FL: "florida", GA: "georgia", HI: "hawaii", ID: "idaho",
-  IL: "illinois", IN: "indiana", IA: "iowa", KS: "kansas",
-  KY: "kentucky", LA: "louisiana", ME: "maine", MD: "maryland",
-  MA: "massachusetts", MI: "michigan", MN: "minnesota", MS: "mississippi",
-  MO: "missouri", MT: "montana", NE: "nebraska", NV: "nevada",
-  NH: "new hampshire", NJ: "new jersey", NM: "new mexico", NY: "new york",
-  NC: "north carolina", ND: "north dakota", OH: "ohio", OK: "oklahoma",
-  OR: "oregon", PA: "pennsylvania", RI: "rhode island", SC: "south carolina",
-  SD: "south dakota", TN: "tennessee", TX: "texas", UT: "utah",
-  VT: "vermont", VA: "virginia", WA: "washington", WV: "west virginia",
-  WI: "wisconsin", WY: "wyoming", DC: "district of columbia",
-};
-
-// Catch geocoder hits that landed at the wrong building (different state,
-// or way too far from where Gemini said the facility is).
-function passesSanityCheck(geo, f, label = "") {
-  // Within 100mi of Gemini's approximation, when we have one.
-  if (typeof f.lat === "number" && typeof f.lng === "number") {
-    const d = haversineMi(
-      { lat: f.lat, lng: f.lng },
-      { lat: geo.lat, lng: geo.lng }
-    );
-    if (d > 100) {
-      console.warn(
-        `geocode rejected ${label} — too far from Gemini coord (${d.toFixed(0)}mi):`,
-        f.name,
-        "→",
-        geo.formattedAddress
-      );
-      return false;
-    }
-  }
-  // State token must appear in the formatted address. Google writes 2-letter
-  // codes ("Las Vegas, NV 89144"); Nominatim writes full names
-  // ("Las Vegas, Clark County, Nevada"). Accept either.
-  const stateMatch = (f.city || "").match(/,\s*([A-Z]{2})\s*$/);
-  if (stateMatch && geo.formattedAddress) {
-    const stateCode = stateMatch[1].toUpperCase();
-    const fullName = STATE_NAMES[stateCode];
-    const addrLower = geo.formattedAddress.toLowerCase();
-    const codeMatch = new RegExp(`\\b${stateCode}\\b`).test(geo.formattedAddress);
-    const nameMatch = fullName && addrLower.includes(fullName);
-    if (!codeMatch && !nameMatch) {
-      console.warn(
-        `geocode rejected ${label} — state mismatch (expected ${stateCode}):`,
-        f.name,
-        "→",
-        geo.formattedAddress
-      );
-      return false;
-    }
-  }
-  return true;
-}
-
-// Resolve a facility to precise coords. Order:
-//   (a) POI-name lookup — Google's POI index pinpoints the actual
-//       building (e.g. "Pavilion Center Dr Pool" for the Mermaids).
-//       Only trusted when the result has POI types; otherwise it
-//       could be a broad area / locality match.
-//   (b) Address geocode — reliable parcel centroid when Gemini emits
-//       a real street address.
-//   (c) Whatever non-POI geocoder result we got from (a).
-//   (d) Gemini-emitted approximate coords — last resort.
-async function bestCoords(f, fallbackCity) {
-  const nameQuery = `${f.name}, ${f.city || fallbackCity}`
-    .trim()
-    .replace(/,\s*$/, "");
-
-  // (a) POI-name lookup; only trust when types confirm establishment / POI.
-  const geoPoi = await geocode(nameQuery);
-  if (
-    geoPoi &&
-    passesSanityCheck(geoPoi, f, "poi") &&
-    Array.isArray(geoPoi.types) &&
-    geoPoi.types.some(
-      (t) => t === "establishment" || t === "point_of_interest"
-    )
-  ) {
-    return { lat: geoPoi.lat, lng: geoPoi.lng, source: "google-poi" };
-  }
-
-  // (b) Address geocode (precise parcel centroid).
-  if (typeof f.address === "string" && f.address.trim()) {
-    const geoAddr = await geocode(f.address.trim());
-    if (geoAddr && passesSanityCheck(geoAddr, f, "address")) {
-      return { lat: geoAddr.lat, lng: geoAddr.lng, source: "google-address" };
-    }
-  }
-
-  // (c) Non-POI result from (a) — still better than nothing.
-  if (geoPoi && passesSanityCheck(geoPoi, f, "fallback-poi")) {
-    return { lat: geoPoi.lat, lng: geoPoi.lng, source: "geocoder-fallback" };
-  }
-
-  // (d) Gemini's approximate coord.
-  if (typeof f.lat === "number" && typeof f.lng === "number") {
-    return { lat: f.lat, lng: f.lng, source: "gemini" };
-  }
-  return null;
-}
+// bestCoords / passesSanityCheck / haversineMi / STATE_NAMES live in
+// server/lib/landmarkCoords.js — shared with /api/tour.
 
 // Compose a sport-structured cinematic tour from the pathway response.
 // Stop 0: the user's hometown — narrated with the local sport-mix

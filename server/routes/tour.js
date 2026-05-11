@@ -2,6 +2,7 @@ import { VertexAI } from "@google-cloud/vertexai";
 import { loadCityHubs } from "../lib/cityHubs.js";
 import { redactNames } from "../lib/nilGuard.js";
 import { attachElevations } from "../lib/elevation.js";
+import { bestCoords } from "../lib/landmarkCoords.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
@@ -699,6 +700,45 @@ export async function tour(req, res) {
     // Anchor the cinematic camera + landmark pins to ground elevation per
     // stop (shared helper). Without this, high-elevation cities drop the
     // camera below visible terrain and pins drift relative to surface tiles.
+    // Enrich each landmark with precise GPS so the photoreal pin
+    // anchors on the actual building. Same cascade as Pathway tours:
+    // Google POI → Google address → Nominatim → stop-center fallback.
+    // Failures are swallowed so a single bad landmark can't kill the
+    // tour; the frontend's Wikipedia-coord path remains as a backup.
+    for (const stop of parsed.stops || []) {
+      if (!Array.isArray(stop?.landmarks)) continue;
+      for (const lm of stop.landmarks) {
+        if (!lm?.name) continue;
+        if (typeof lm.lat === "number" && typeof lm.lng === "number") continue;
+        try {
+          const coords = await bestCoords(
+            {
+              name: lm.name,
+              city: `${stop.city}, ${stop.state}`,
+              lat: stop.lat,
+              lng: stop.lng,
+            },
+            stop.city
+          );
+          // Only attach when we got a precise hit (POI/address). The
+          // "gemini" source here would just be the stop's city center,
+          // which is no better than the existing Wikipedia path — let
+          // the frontend fall through to Wikipedia in that case.
+          if (
+            coords &&
+            (coords.source === "google-poi" ||
+              coords.source === "google-address" ||
+              coords.source === "geocoder-fallback")
+          ) {
+            lm.lat = coords.lat;
+            lm.lng = coords.lng;
+          }
+        } catch (err) {
+          console.warn("landmark geocode failed", lm.name, err?.message);
+        }
+      }
+    }
+
     await attachElevations(parsed.stops);
 
     console.log(
