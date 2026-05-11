@@ -4,10 +4,14 @@ import { MarkerClusterer, SuperClusterAlgorithm } from "@googlemaps/markercluste
 import { useApp } from "../store.js";
 import { STATE_TO_CLIMATE, CLIMATE_REGIONS } from "../data/climate-regions.js";
 
-// LA28 mode = athletes whose latest competition year is >= 2014. 12-year
-// window matches the reference.decay constant in the dataset — captures
-// the current pipeline + recent past, drops athletes from long-gone eras.
-const LA28_CUTOFF = 2014;
+// LA28 mode = athletes whose latest competition year is >= 2020. Captures
+// the four-Games "current pipeline" era: Tokyo 2020 (Summer), Beijing 2022
+// (Winter), Paris 2024 (Summer), Milano-Cortina 2026 (Winter). Athletes who
+// last competed before 2020 are legacy and don't show on the LA28 view.
+// The dataset's recency-decay constant (12y) was an internal weighting
+// device — for the user-facing toggle we want an intuitive 4-Games cutoff
+// instead of a 6+ Games "recent-ish" bucket.
+const LA28_CUTOFF = 2020;
 
 // Animated HTML markers via AdvancedMarkerElement. Each pin breathes with a
 // CSS pulse, clusters glow and scale up on hover. Hybrid satellite map shows

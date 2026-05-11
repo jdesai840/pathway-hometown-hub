@@ -120,10 +120,18 @@ export default function SportFilter() {
         </fieldset>
         <fieldset aria-label="Recency vs all-time mode">
           <div className="inline-flex rounded-full bg-slate-950/60 p-0.5 text-[11px] border border-slate-700/40">
-            <ToggleBtn active={mode === "recency"} onClick={() => setMode("recency")}>
+            <ToggleBtn
+              active={mode === "recency"}
+              onClick={() => setMode("recency")}
+              title="LA28 era — athletes who last competed in 2020 or later (Tokyo, Beijing, Paris, Milano-Cortina). Current pipeline view."
+            >
               LA28
             </ToggleBtn>
-            <ToggleBtn active={mode === "all_time"} onClick={() => setMode("all_time")}>
+            <ToggleBtn
+              active={mode === "all_time"}
+              onClick={() => setMode("all_time")}
+              title="All-time — every Team USA athlete in the dataset. Olympic 1900–2026, Paralympic 1976–2026."
+            >
               All-time
             </ToggleBtn>
           </div>
@@ -250,7 +258,7 @@ export default function SportFilter() {
   );
 }
 
-function ToggleBtn({ active, onClick, children, accent }) {
+function ToggleBtn({ active, onClick, children, accent, title }) {
   const accentCls =
     accent === "olympic"
       ? active ? "bg-olympic text-white" : "text-olympic"
@@ -261,6 +269,7 @@ function ToggleBtn({ active, onClick, children, accent }) {
     <button
       onClick={onClick}
       aria-pressed={active}
+      title={title}
       className={`px-2.5 py-0.5 rounded-full transition focus:outline-none focus:ring-2 focus:ring-white/40 font-medium ${accentCls}`}
     >
       {children}
