@@ -13,7 +13,6 @@ export default function Intro() {
   const olympic = hubsDoc?.totals.byCategory.Olympic.athleteCount;
   const paralympic = hubsDoc?.totals.byCategory.Paralympic.athleteCount;
   const cityCount = cityHubsDoc?.cities.length;
-  const yearRange = hubsDoc?.reference?.allTimeRange;
 
   function handleBegin() {
     if (igniting) return;
@@ -93,8 +92,8 @@ export default function Intro() {
             style={{ animationDelay: "180ms" }}
           >
             <Stat label="Athletes" target={totalAthletes} />
-            <Stat label="Olympic" target={olympic} accent="olympic" />
-            <Stat label="Paralympic" target={paralympic} accent="paralympic" />
+            <Stat label="Olympic" target={olympic} accent="olympic" sub="1900–2026" />
+            <Stat label="Paralympic" target={paralympic} accent="paralympic" sub="1976–2026" />
             <Stat label="Cities" target={cityCount} />
           </div>
         )}
@@ -118,22 +117,20 @@ export default function Intro() {
           />
         </button>
 
-        {yearRange && (
-          <p
-            className="mt-6 text-[11px] text-slate-500 animate-fade-in"
-            style={{ animationDelay: "300ms" }}
-          >
-            {yearRange[0]}–{yearRange[1]} · Olympic and Paralympic data given equal prominence ·
-            No athlete names or photos
-          </p>
-        )}
+        <p
+          className="mt-6 text-[11px] text-slate-500 animate-fade-in"
+          style={{ animationDelay: "300ms" }}
+        >
+          Olympic 1900–2026 · Paralympic 1976–2026 · Equal prominence in every view ·
+          No athlete names or photos
+        </p>
       </div>
     </>
   );
 }
 
 // Animated number counter — counts from 0 to target over ~1.6s ease-out
-function Stat({ label, target, accent }) {
+function Stat({ label, target, accent, sub }) {
   const [shown, setShown] = useState(0);
   const startRef = useRef(null);
   useEffect(() => {
@@ -177,6 +174,11 @@ function Stat({ label, target, accent }) {
       <div className="text-[10px] uppercase tracking-[0.18em] text-slate-400 mt-1.5 font-semibold">
         {label}
       </div>
+      {sub && (
+        <div className="text-[10px] text-slate-500 mt-0.5 font-medium tabular-nums">
+          {sub}
+        </div>
+      )}
     </div>
   );
 }
