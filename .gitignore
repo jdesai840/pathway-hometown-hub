@@ -44,3 +44,6 @@ venv/
 
 # cloud
 .gcloudignore.bak
+
+# claude code / planning artifacts
+.claude/
