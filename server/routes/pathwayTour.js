@@ -1,5 +1,6 @@
 import { geocode } from "../lib/geocoder.js";
 import { redactNames } from "../lib/nilGuard.js";
+import { attachElevations } from "../lib/elevation.js";
 
 // Strip URLs, [N] markers, and parenthetical domain citations from text
 // before it goes into a cinematic narration. The Pathway Result UI shows
@@ -149,6 +150,12 @@ export async function pathwayTour(req, res) {
       .status(422)
       .json({ error: "Not enough geocodable stops to compose a tour." });
   }
+
+  // Anchor the cinematic camera + landmark pins to ground elevation per stop.
+  // Without this, high-elevation cities (Las Vegas, Denver, Park City) drop
+  // the camera below visible terrain and pins drift relative to surface tiles
+  // as the camera orbits.
+  await attachElevations(stops);
 
   res.json({
     title: `Your Pathway from ${u.city}, ${u.state}`,

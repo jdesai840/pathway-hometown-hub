@@ -1,6 +1,7 @@
 import { VertexAI } from "@google-cloud/vertexai";
 import { loadCityHubs } from "../lib/cityHubs.js";
 import { redactNames } from "../lib/nilGuard.js";
+import { attachElevations } from "../lib/elevation.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
@@ -695,61 +696,10 @@ export async function tour(req, res) {
       return res.status(500).json({ error: "no usable stops in tour" });
     }
 
-    // ── Attach ground elevation to each stop's viewpoint ─────────────────
-    // The cinematic camera positions itself relative to frame.center, which
-    // we currently build from latLngToECEF(lat, lng, 0) — i.e., the WGS84
-    // ellipsoid (~sea level). For high-elevation cities (El Paso 1140m,
-    // Denver 1610m, Park City 2100m) the camera ends up underneath the
-    // terrain and the photoreal tiles fail. Use Open-Meteo's free elevation
-    // API (no key, no auth, server-friendly — Google's Maps Elevation key
-    // is HTTP-referrer restricted so it can't be called server-side).
-    // Graceful fallback on API failure — server reverts to today's
-    // behavior, no regression.
-    try {
-      const lats = parsed.stops
-        .map((s) => {
-          const v = s.viewpoint;
-          return v && typeof v.lat === "number" ? v.lat : s.lat;
-        })
-        .join(",");
-      const lngs = parsed.stops
-        .map((s) => {
-          const v = s.viewpoint;
-          return v && typeof v.lng === "number" ? v.lng : s.lng;
-        })
-        .join(",");
-      const url = `https://api.open-meteo.com/v1/elevation?latitude=${lats}&longitude=${lngs}`;
-      const r = await fetch(url);
-      const data = await r.json();
-      if (Array.isArray(data.elevation) && data.elevation.length === parsed.stops.length) {
-        parsed.stops.forEach((s, i) => {
-          const elev = data.elevation[i];
-          if (typeof elev === "number") {
-            if (!s.viewpoint) {
-              s.viewpoint = { lat: s.lat, lng: s.lng };
-            }
-            s.viewpoint.elevation = elev;
-          }
-        });
-        console.log(
-          "attached elevations:",
-          parsed.stops
-            .map((s) =>
-              typeof s.viewpoint?.elevation === "number"
-                ? Math.round(s.viewpoint.elevation) + "m"
-                : "?"
-            )
-            .join(", ")
-        );
-      } else {
-        console.warn(
-          "elevation API count mismatch (non-fatal):",
-          JSON.stringify(data).slice(0, 200)
-        );
-      }
-    } catch (err) {
-      console.warn("elevation lookup failed (non-fatal):", err.message);
-    }
+    // Anchor the cinematic camera + landmark pins to ground elevation per
+    // stop (shared helper). Without this, high-elevation cities drop the
+    // camera below visible terrain and pins drift relative to surface tiles.
+    await attachElevations(parsed.stops);
 
     console.log(
       "tour returning stops:",
