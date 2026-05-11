@@ -223,13 +223,18 @@ function LandmarkMarkers({ landmarks, groundElevation = 0 }) {
   return (
     <>
       {resolved.map((lm, i) => {
-        // Anchor 30m above the stop's GROUND elevation, not above WGS84
-        // sea level. Without groundElevation, high-elevation cities (Denver,
-        // El Paso, Park City) would have pins sitting hundreds of meters
-        // below visible terrain, and the drei <Html> screen projection
-        // jitters as the camera orbits because the perspective ray
-        // intersects the surface differently each frame.
-        const pos = latLngToECEF(lm.lat, lm.lng, groundElevation + 30);
+        // Anchor the pin's bottom-center dot ~2 meters above the GROUND
+        // elevation, NOT above WGS84 sea level (that would put pins
+        // hundreds of meters underground in high-elevation cities).
+        // Why +2 (not +30)? Under the cinematic's oblique camera tilt,
+        // a 30m vertical offset projects to ~30m of HORIZONTAL screen
+        // offset from the true GPS point (offset ≈ 30·tan(camera tilt)).
+        // That makes the pin appear "across the parking lot" from the
+        // actual building Google Maps shows for the same lat/lng.
+        // +2m keeps the dot flush with the photoreal tile surface
+        // (covers Open-Meteo vs Google-tile elevation disagreement of
+        // 1-3m) so the pin lands exactly on the right building.
+        const pos = latLngToECEF(lm.lat, lm.lng, groundElevation + 2);
         return (
           <Html
             key={`${lm.name}-${i}`}
