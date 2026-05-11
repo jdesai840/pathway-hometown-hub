@@ -4,8 +4,12 @@ import { postPathway } from "../lib/api.js";
 
 const LOADING_STAGES = [
   "📍 Locating your hometown…",
-  "🗺  Scanning hubs within 150 miles…",
-  "✦ Grounding facilities with Google Search…",
+  "🗺  Scanning Team USA hubs within 150 miles…",
+  "🏛  Mapping your local Olympic & Paralympic pipeline…",
+  "🏊 Cross-referencing the nearby sport hubs…",
+  "✦ Asking Gemini to ground recommendations in Google Search…",
+  "🏗  Verifying facilities and university programs…",
+  "🎯 Pairing each sport with a real local facility…",
   "🪶 Composing your pathway…",
 ];
 
@@ -38,7 +42,7 @@ export default function PathwayLauncher() {
     }
     const id = setInterval(() => {
       setStageIndex((i) => Math.min(i + 1, LOADING_STAGES.length - 1));
-    }, 1800);
+    }, 2800);
     return () => clearInterval(id);
   }, [loading]);
 
