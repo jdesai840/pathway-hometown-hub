@@ -176,27 +176,29 @@ export default function SportFilter() {
       {open && (
         <div
           ref={dropdownRef}
-          className="absolute z-30 left-3.5 right-3.5 top-full mt-1 max-h-56 overflow-y-auto rounded-xl glass-strong shadow-2xl animate-fade-in"
+          className="absolute z-30 left-3.5 right-3.5 top-full mt-1 max-h-48 overflow-y-auto rounded-xl glass-strong shadow-2xl animate-fade-in"
         >
           {matches.length === 0 ? (
             <div className="p-3 text-xs text-slate-400">No sports match.</div>
           ) : (
             <ul role="listbox" className="py-1">
-              {matches.slice(0, 50).map((s) => (
+              {matches.map((s) => (
                 <li key={`${s.sport}|${s.category}`}>
                   <button
                     onClick={() => pickSport(s.sport)}
-                    className="w-full text-left px-3 py-1.5 hover:bg-slate-800/70 focus:outline-none focus:bg-slate-800/70 transition"
+                    className="w-full text-left px-3 py-1.5 hover:bg-slate-800/70 flex items-center justify-between gap-3 focus:outline-none focus:bg-slate-800/70 transition"
                   >
                     <span className="text-sm text-slate-50 truncate">{s.sport}</span>
+                    <span
+                      className={`text-[10px] font-semibold shrink-0 uppercase tracking-wide ${
+                        s.category === "Paralympic" ? "text-paralympic" : "text-olympic"
+                      }`}
+                    >
+                      {s.category}
+                    </span>
                   </button>
                 </li>
               ))}
-              {matches.length > 50 && (
-                <li className="px-3 py-2 text-[10px] text-slate-500 italic">
-                  Showing top 50. Keep typing to narrow.
-                </li>
-              )}
             </ul>
           )}
         </div>
