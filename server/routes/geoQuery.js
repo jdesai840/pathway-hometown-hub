@@ -6,6 +6,7 @@ import {
   geoTools,
 } from "../lib/geoPrompts.js";
 import { buildGeoToolHandlers } from "../lib/geoHandlers.js";
+import { redactNames, redactNamesArr } from "../lib/nilGuard.js";
 import { mockGeoQuery } from "./mockGeo.js";
 
 const PROJECT = process.env.GCP_PROJECT;
@@ -149,9 +150,16 @@ async function geoQuerySync({ res, text, history, hubsDoc, handlers }) {
       const jsonStart = textOut.indexOf("{");
       const jsonEnd = textOut.lastIndexOf("}");
       if (jsonStart === -1 || jsonEnd === -1) {
-        return res.json({ intent: "raw", narration: textOut, highlights: [], facts: [] });
+        return res.json({
+          intent: "raw",
+          narration: await redactNames(textOut),
+          highlights: [],
+          facts: [],
+        });
       }
       const parsed = JSON.parse(textOut.slice(jsonStart, jsonEnd + 1));
+      parsed.narration = await redactNames(parsed.narration);
+      parsed.facts = await redactNamesArr(parsed.facts);
       return res.json(parsed);
     }
     res.status(500).json({ error: "agent loop exceeded depth" });
@@ -253,12 +261,19 @@ async function geoQueryStream({ req, res, text, history, hubsDoc, handlers }) {
     }
 
     const narrationOnly = stripMetaTail(narrationOut);
+    // Final defense-in-depth: scrub any athlete name the model may have
+    // produced. The streamed `token` events upstream are prompt-constrained;
+    // this guarantees the persisted (history-stored) narration is name-free.
+    const cleanNarration = await redactNames(narrationOnly);
+    const cleanFacts = await redactNamesArr(
+      Array.isArray(metaJson?.facts) ? metaJson.facts : []
+    );
     sse(res, {
       type: "done",
-      narration: narrationOnly,
+      narration: cleanNarration,
       intent: metaJson?.intent || "answered",
       highlights: Array.isArray(metaJson?.highlights) ? metaJson.highlights : [],
-      facts: Array.isArray(metaJson?.facts) ? metaJson.facts : [],
+      facts: cleanFacts,
     });
   } catch (err) {
     console.error("geoQueryStream failed", err);

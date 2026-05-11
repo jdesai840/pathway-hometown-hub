@@ -1,6 +1,7 @@
 import { VertexAI } from "@google-cloud/vertexai";
 import { loadHubs } from "../lib/hubs.js";
 import { narrateHubSystemPrompt } from "../lib/geoPrompts.js";
+import { redactNames } from "../lib/nilGuard.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
@@ -60,7 +61,7 @@ export async function narrate(req, res) {
       ],
     });
     const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "";
-    res.json({ narration: text });
+    res.json({ narration: await redactNames(text) });
   } catch (err) {
     console.error("narrate failed", err);
     res.status(500).json({ error: "narrate failed" });

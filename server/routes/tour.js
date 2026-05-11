@@ -1,5 +1,6 @@
 import { VertexAI } from "@google-cloud/vertexai";
 import { loadCityHubs } from "../lib/cityHubs.js";
+import { redactNames } from "../lib/nilGuard.js";
 
 const PROJECT = process.env.GCP_PROJECT;
 const LOCATION = process.env.GCP_LOCATION || "us-central1";
@@ -763,6 +764,17 @@ export async function tour(req, res) {
         })
         .join(" | ")
     );
+
+    // NIL guard: scrub any athlete name from model-generated tour fields.
+    // City/state/landmark labels come from our own data and are unaffected.
+    parsed.title = await redactNames(parsed.title);
+    parsed.summary = await redactNames(parsed.summary);
+    for (const s of parsed.stops || []) {
+      if (typeof s.narration === "string") {
+        s.narration = await redactNames(s.narration);
+      }
+    }
+
     res.json(parsed);
   } catch (err) {
     console.error("tour failed", err);

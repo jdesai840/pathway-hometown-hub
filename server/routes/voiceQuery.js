@@ -2,6 +2,7 @@ import { VertexAI, FunctionCallingMode } from "@google-cloud/vertexai";
 import { loadHubs } from "../lib/hubs.js";
 import { geoSystemPrompt, geoTools } from "../lib/geoPrompts.js";
 import { buildGeoToolHandlers } from "../lib/geoHandlers.js";
+import { redactNames, redactNamesArr } from "../lib/nilGuard.js";
 import { mockGeoQuery } from "./mockGeo.js";
 
 const PROJECT = process.env.GCP_PROJECT;
@@ -87,9 +88,18 @@ export async function voiceQuery(req, res) {
       const jsonStart = textOut.indexOf("{");
       const jsonEnd = textOut.lastIndexOf("}");
       if (jsonStart === -1 || jsonEnd === -1) {
-        return res.json({ intent: "raw", narration: textOut, highlights: [], facts: [] });
+        return res.json({
+          intent: "raw",
+          narration: await redactNames(textOut),
+          highlights: [],
+          facts: [],
+        });
       }
       const parsed = JSON.parse(textOut.slice(jsonStart, jsonEnd + 1));
+      // NIL guard: scrub any athlete name from model output. transcript
+      // is the user's own utterance and stays as-is.
+      parsed.narration = await redactNames(parsed.narration);
+      parsed.facts = await redactNamesArr(parsed.facts);
       return res.json(parsed);
     }
     res.status(500).json({ error: "voice agent loop exceeded depth" });
