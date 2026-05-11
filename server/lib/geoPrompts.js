@@ -42,6 +42,11 @@ function baseSystemBlock(hubsDoc) {
     '5. Never use "former" or "past" Olympian/Paralympian.',
     "6. No timing data references.",
     "7. When a question touches geography or sport distribution, weave in climate-region context where it could matter (e.g., 'altitude in the Southwest'), but never as a deterministic claim.",
+    "8. BE SPECIFIC. When a tool returns hubs/cities/sports with counts, NAME them in your narration.",
+    "   DO NOT generalize to 'larger cities', 'smaller towns', 'several hubs', or 'a few states' without listing concrete examples from the tool results.",
+    "   Every narration must cite at least 2 specific hubs (state codes, city names, or 'City, ST' pairs) with their counts or year anchors from tool returns.",
+    "   If the user asks about SMALL or LESSER-KNOWN hubs, scan past the top 1-2 metros in the tool result and surface 2-4 mid- or small-tier hubs by name with their counts.",
+    "   Vague answers that don't ground in tool data are not acceptable. Skip filler like 'Your question is a great one' or 'Olympic dreams can take root anywhere' — get straight to the named, counted data.",
   ].join("\n");
 }
 
@@ -54,8 +59,8 @@ export function geoSystemPrompt(hubsDoc) {
     "- After tools return, return STRICT JSON: {",
     "    intent: short string describing what you did,",
     "    highlights: array of 2-letter state codes to emphasize on the map (max 8),",
-    "    narration: 2-4 sentences in second person, parity-respecting, conditional,",
-    "    facts: array of short bullet strings the UI can render as supporting points",
+    "    narration: 2-4 sentences in second person, parity-respecting, conditional, CITING at least 2 specific hubs (city/state names) with counts or year anchors pulled from tool results — no generic 'larger cities' / 'smaller towns' filler,",
+    "    facts: array of short bullet strings the UI can render as supporting points (each fact should also reference concrete hub names + counts where applicable)",
     "  }",
     "- If the user's question doesn't match the dataset (e.g. medal predictions, individual",
     "  athletes), respond with intent='out_of_scope' and explain politely in narration.",
@@ -72,7 +77,8 @@ export function geoStreamingSystemPrompt(hubsDoc) {
     "WORKFLOW (STREAMING):",
     "- Inspect the user's question. Call tools as needed.",
     "- After tools return, write the NARRATION first as plain prose (2-4 sentences, second person,",
-    "  parity-respecting, conditional). DO NOT wrap it in JSON. DO NOT prefix it.",
+    "  parity-respecting, conditional). The narration MUST include at least 2 named hubs/cities and at least 1 specific count or year drawn from tool results.",
+    "  Skip generic intro/outro filler — go straight to the named, counted data. DO NOT wrap it in JSON. DO NOT prefix it.",
     "- Then on a new line, emit EXACTLY this meta block:",
     "  <<META>>",
     "  {\"intent\":\"…\",\"highlights\":[\"CA\",\"MN\"],\"facts\":[\"…\",\"…\"]}",
@@ -156,9 +162,12 @@ export const geoTools = [
         name: "query_athletes",
         description:
           "Query the FULL 8,525-record scraped Team USA athlete dataset for fine-grained aggregates. " +
-          "Use this when the question goes beyond state×sport hubs — e.g. top hometown cities for a sport, " +
-          "average birth year, decade-by-decade growth, medal totals by state, para-classification mix. " +
-          "Returns counts and group aggregates only; individual athlete names are never exposed.",
+          "Use this whenever the user asks about hometowns / cities / towns / small towns / lesser-known hubs / " +
+          "mid-size cities / state×sport breakdowns / generational shifts / medal totals / para-classification " +
+          "distributions. Example: 'What small towns in NC have the most Olympians?' → " +
+          "{filters: {state: 'NC', category: 'Olympic'}, group_by: 'city', limit: 20}. Then in the narration, " +
+          "look past the top 1-2 metros (e.g. Charlotte, Raleigh) and report 3-4 specific smaller-city names with " +
+          "their athlete counts. Returns counts and group aggregates only; individual athlete names are never exposed.",
         parameters: {
           type: "object",
           properties: {
