@@ -82,12 +82,17 @@ function passesSanityCheck(geo, f, label = "") {
       return false;
     }
   }
-  // State token must appear in Nominatim's formatted address.
+  // State token must appear in the formatted address. Google writes 2-letter
+  // codes ("Las Vegas, NV 89144"); Nominatim writes full names
+  // ("Las Vegas, Clark County, Nevada"). Accept either.
   const stateMatch = (f.city || "").match(/,\s*([A-Z]{2})\s*$/);
   if (stateMatch && geo.formattedAddress) {
     const stateCode = stateMatch[1].toUpperCase();
     const fullName = STATE_NAMES[stateCode];
-    if (fullName && !geo.formattedAddress.toLowerCase().includes(fullName)) {
+    const addrLower = geo.formattedAddress.toLowerCase();
+    const codeMatch = new RegExp(`\\b${stateCode}\\b`).test(geo.formattedAddress);
+    const nameMatch = fullName && addrLower.includes(fullName);
+    if (!codeMatch && !nameMatch) {
       console.warn(
         `geocode rejected ${label} — state mismatch (expected ${stateCode}):`,
         f.name,
