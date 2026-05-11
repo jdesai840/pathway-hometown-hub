@@ -1,12 +1,15 @@
-// Geocoder for facility/landmark names. Uses OpenStreetMap Nominatim — the
-// project's Google Maps API key is HTTP-referrer-restricted (intended for
-// Maps JS + Photoreal Tiles) and the Geocoding API isn't enabled. Nominatim
-// is free, keyless, accurate for US POIs, and server-friendly.
+// Geocoder for facility addresses + POI names. Cascades through:
+//   (a) Google Maps Geocoding API (authoritative — same coord stack used by
+//       Photoreal Tiles and Google Maps. Keeps lookup vendor consistent.)
+//   (b) OpenStreetMap Nominatim — kept as a fallback in case Google denies
+//       the request or the API isn't enabled.
 //
-// Usage policy compliance:
+// Nominatim usage policy compliance:
 // - Identify the app via User-Agent (required).
 // - At most ~1 request/second across the whole process (we use 1.1s gap).
 // - Cache aggressively to avoid re-hitting the same query.
+
+import { googleGeocode } from "./googleGeocoder.js";
 
 const USER_AGENT =
   "Pathway-TeamUSA-Hackathon/1.0 (krisjaybittensor@gmail.com)";
@@ -83,10 +86,15 @@ export async function geocode(query) {
   const key = query.toLowerCase().trim();
   if (cache.has(key)) return cache.get(key);
 
-  let out = null;
-  for (const q of queryVariations(query)) {
-    out = await nominatimOnce(q);
-    if (out) break;
+  // (a) Authoritative path: Google Maps Geocoding API.
+  let out = await googleGeocode(query);
+
+  // (b) Fallback to Nominatim with tiered retry if Google had no hit.
+  if (!out) {
+    for (const q of queryVariations(query)) {
+      out = await nominatimOnce(q);
+      if (out) break;
+    }
   }
 
   cache.set(key, out);

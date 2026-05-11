@@ -230,12 +230,12 @@ export async function pathwayTour(req, res) {
         const noteText = facility.note
           ? ` ${stripCitations(facility.note)}`
           : "";
-        const locationPhrase = facility.address
-          ? `at ${facility.address}`
-          : `in ${facility.city || facCity}`;
+        // Address stays visible in the Pathway Result UI (as a clickable
+        // Google Maps link) but stays OUT of the spoken narration —
+        // reading street addresses aloud feels robotic.
         const narration = await redactNames(
           stripCitations(
-            `For ${s.sport}, ${facility.name} ${locationPhrase} could be a starting point — ` +
+            `For ${s.sport}, ${facility.name} in ${facility.city || facCity} could be a starting point — ` +
               `a ${facility.type.toLowerCase()} worth exploring.${noteText}`
           )
         );
