@@ -40,6 +40,7 @@ export default function PathwayResult() {
 
   const {
     userLocation,
+    category,
     nearbyHubs = [],
     recommendedSports = [],
     paralympicCounterpart,
@@ -48,6 +49,17 @@ export default function PathwayResult() {
     disclaimer,
     citations = [],
   } = result;
+
+  // Title of the counterpart section adapts to the user's category
+  // choice: Olympic→Paralympic counterpart, Paralympic→Olympic
+  // counterpart, Both→Related sport. The JSON field is always called
+  // paralympicCounterpart but its CONTENTS swap based on category.
+  const counterpartTitle =
+    category === "Paralympic"
+      ? "Olympic counterpart"
+      : category === "Olympic"
+      ? "Paralympic counterpart"
+      : "Related sport";
 
   return (
     <div
@@ -139,10 +151,12 @@ export default function PathwayResult() {
           </Section>
         )}
 
-        {/* Paralympic counterpart */}
+        {/* Counterpart sport — title + card colors depend on the
+            user's category choice. SportCard auto-detects Olympic
+            vs Paralympic from sport.category / name prefix. */}
         {paralympicCounterpart && (
-          <Section title="Paralympic counterpart">
-            <SportCard sport={paralympicCounterpart} paralympic />
+          <Section title={counterpartTitle}>
+            <SportCard sport={paralympicCounterpart} />
           </Section>
         )}
 

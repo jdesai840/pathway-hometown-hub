@@ -172,6 +172,9 @@ export async function pathway(req, res) {
 
     res.json({
       userLocation,
+      // Echo the user's category choice so the UI can label the
+      // counterpart section correctly (Paralympic / Olympic / Related).
+      category: cat,
       nearbyHubs,
       ...parsed,
       citations,
