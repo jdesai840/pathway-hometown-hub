@@ -4,6 +4,11 @@ import { MarkerClusterer, SuperClusterAlgorithm } from "@googlemaps/markercluste
 import { useApp } from "../store.js";
 import { STATE_TO_CLIMATE, CLIMATE_REGIONS } from "../data/climate-regions.js";
 
+// LA28 mode = athletes whose latest competition year is >= 2014. 12-year
+// window matches the reference.decay constant in the dataset — captures
+// the current pipeline + recent past, drops athletes from long-gone eras.
+const LA28_CUTOFF = 2014;
+
 // Animated HTML markers via AdvancedMarkerElement. Each pin breathes with a
 // CSS pulse, clusters glow and scale up on hover. Hybrid satellite map shows
 // through the semi-transparent layouts.
@@ -16,34 +21,61 @@ export default function CityMarkers() {
   const cityHubsDoc = useApp((s) => s.cityHubsDoc);
   const sportFilter = useApp((s) => s.sportFilter);
   const categoryFilter = useApp((s) => s.categoryFilter);
+  const mode = useApp((s) => s.mode);
   const climateOverlay = useApp((s) => s.climateOverlay);
   const selectedCityKey = useApp((s) => s.selectedCityKey);
   const setSelectedCityKey = useApp((s) => s.setSelectedCityKey);
   const tour = useApp((s) => s.tour);
   const tourActive = Boolean(tour);
 
-  const filteredCityKeys = useMemo(() => {
-    if (!cityHubsDoc) return null;
-    if (!sportFilter && !categoryFilter) return null;
-    const set = new Set();
-    const sportLower = sportFilter?.toLowerCase();
+  // Aggregate filtered hubs per city. The previous logic only hid cities
+  // that didn't match — pins still showed each city's UNFILTERED total.
+  // Now we sum per-hub athleteCount under the current filters so the pin
+  // shows the actual count matching what the user selected.
+  const visibleCities = useMemo(() => {
+    if (!cityHubsDoc) return [];
+    const sportLower = sportFilter ? sportFilter.toLowerCase() : null;
+    const useRecency = mode === "recency";
+    const noFilters = !sportLower && !categoryFilter && !useRecency;
+
+    // Fast path: no filters at all → use the precomputed city totals.
+    if (noFilters) {
+      return cityHubsDoc.cities.map((c) => ({
+        ...c,
+        _count: c.athleteCount,
+        _oly: c.olympicAthletes,
+        _para: c.paralympicAthletes,
+      }));
+    }
+
+    // Slow path: walk hubs, apply filters, aggregate by city.
+    const byCity = new Map();
     for (const h of cityHubsDoc.hubs) {
       if (sportLower && !h.sport.toLowerCase().includes(sportLower)) continue;
       if (categoryFilter && h.category !== categoryFilter) continue;
-      set.add(`${h.state}|${h.cityKey}`);
+      if (useRecency && (h.latestYear ?? 0) < LA28_CUTOFF) continue;
+      const key = `${h.state}|${h.cityKey}`;
+      const cur = byCity.get(key) || { olympic: 0, paralympic: 0, total: 0 };
+      if (h.category === "Olympic") cur.olympic += h.athleteCount;
+      else cur.paralympic += h.athleteCount;
+      cur.total += h.athleteCount;
+      byCity.set(key, cur);
     }
-    return set;
-  }, [cityHubsDoc, sportFilter, categoryFilter]);
-
-  const visibleCities = useMemo(() => {
-    if (!cityHubsDoc) return [];
-    return filteredCityKeys
-      ? cityHubsDoc.cities.filter((c) => filteredCityKeys.has(`${c.state}|${c.cityKey}`))
-      : cityHubsDoc.cities;
-  }, [cityHubsDoc, filteredCityKeys]);
+    return cityHubsDoc.cities
+      .filter((c) => byCity.has(`${c.state}|${c.cityKey}`))
+      .map((c) => {
+        const counts = byCity.get(`${c.state}|${c.cityKey}`);
+        return {
+          ...c,
+          _count: counts.total,
+          _oly: counts.olympic,
+          _para: counts.paralympic,
+        };
+      });
+  }, [cityHubsDoc, sportFilter, categoryFilter, mode]);
 
   const max = useMemo(
-    () => Math.max(1, ...visibleCities.map((c) => c.athleteCount)),
+    () => Math.max(1, ...visibleCities.map((c) => c._count)),
     [visibleCities]
   );
 
@@ -61,10 +93,10 @@ export default function CityMarkers() {
 
     const markers = [];
     for (const c of visibleCities) {
-      const intensity = c.athleteCount / max;
+      const intensity = c._count / max;
       const norm = Math.pow(intensity, 0.4);
-      const total = c.olympicAthletes + c.paralympicAthletes;
-      const paraRatio = total > 0 ? c.paralympicAthletes / total : 0;
+      const filteredTotal = c._oly + c._para;
+      const paraRatio = filteredTotal > 0 ? c._para / filteredTotal : 0;
       const fillColor = climateOverlay
         ? climateColorForState(c.state)
         : blend("#3b82f6", "#f59e0b", paraRatio);
@@ -72,7 +104,7 @@ export default function CityMarkers() {
       const isSelected = key === selectedCityKey;
 
       const el = buildPinElement({
-        count: c.athleteCount,
+        count: c._count,
         color: fillColor,
         intensity: norm,
         selected: isSelected,
@@ -81,9 +113,9 @@ export default function CityMarkers() {
       const marker = new markerLib.AdvancedMarkerElement({
         map: null, // clusterer manages map attachment
         position: { lat: c.lat, lng: c.lng },
-        title: `${c.city}, ${c.state} — ${c.athleteCount} Team USA athletes`,
+        title: `${c.city}, ${c.state} — ${c._count} Team USA athletes`,
         content: el,
-        zIndex: Math.floor(c.athleteCount),
+        zIndex: Math.floor(c._count),
       });
       marker.addListener("click", () => setSelectedCityKey(key));
       marker.cityKey = key; // for cluster lookup

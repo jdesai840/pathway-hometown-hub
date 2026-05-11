@@ -121,7 +121,17 @@ export default function SportFilter() {
             setOpen(true);
           }}
           onFocus={() => setOpen(true)}
-          placeholder={sportFilter ? "swap sport…" : `search ${allSports.length} sports`}
+          placeholder={
+            sportFilter
+              ? "swap sport…"
+              : `search ${matches.length} ${
+                  categoryFilter === "Olympic"
+                    ? "Olympic"
+                    : categoryFilter === "Paralympic"
+                    ? "Paralympic"
+                    : ""
+                } sports`.replace(/\s+/g, " ").trim()
+          }
           className="flex-1 bg-slate-950/60 border border-slate-700/60 rounded-full px-3 py-1.5 text-[12px] text-slate-50 focus:outline-none focus:ring-2 focus:ring-white/40 placeholder:text-slate-500 transition min-w-0"
           aria-label="Search sports"
         />
