@@ -104,7 +104,10 @@ export async function pathway(req, res) {
         role: "system",
         parts: [{ text: pathwaySystemPrompt() }],
       },
-      tools: [{ googleSearchRetrieval: {} }],
+      // Gemini 2.5 deprecated googleSearchRetrieval; the live API now accepts
+      // googleSearch. The SDK's TS types are stale; we pass the right field
+      // raw.
+      tools: [{ googleSearch: {} }],
       generationConfig: { temperature: 0.3, maxOutputTokens: 4096 },
     });
 
