@@ -44,13 +44,22 @@ export async function pathwayTour(req, res) {
     viewpoint: { lat: u.lat, lng: u.lng, name: `${u.city}, ${u.state}` },
   });
 
-  // Stops 1..N — geocoded facilities.
+  // Stops 1..N — facilities. Prefer Gemini-provided lat/lng (it knows the
+  // coords of major universities + training centers); fall back to Maps
+  // Geocoding API if available; skip otherwise.
   for (const f of r.facilities || []) {
     if (stops.length >= 5) break;
     if (!f?.name || f.type === "Category") continue;
-    const query = `${f.name}, ${f.city || ""}`.trim().replace(/,\s*$/, "");
-    const geo = await geocode(query);
+
+    let geo = null;
+    if (typeof f.lat === "number" && typeof f.lng === "number") {
+      geo = { lat: f.lat, lng: f.lng };
+    } else {
+      const query = `${f.name}, ${f.city || ""}`.trim().replace(/,\s*$/, "");
+      geo = await geocode(query);
+    }
     if (!geo) continue;
+
     const facilityCity = (f.city || "").split(",")[0].trim() || u.city;
     const facilityState =
       (f.city || "").split(",")[1]?.trim() || u.state;
