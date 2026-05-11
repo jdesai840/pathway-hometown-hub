@@ -67,10 +67,7 @@ export default function SportFilter() {
   }
 
   return (
-    <div
-      className="glass rounded-2xl p-3.5 space-y-2.5 relative animate-slide-up"
-      style={{ animationDelay: "30ms" }}
-    >
+    <div className="px-4 py-3.5 space-y-2.5 relative">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <fieldset aria-label="Olympic or Paralympic">
           <div className="inline-flex rounded-full bg-slate-950/60 p-0.5 text-[11px] border border-slate-700/40">

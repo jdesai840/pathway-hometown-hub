@@ -87,7 +87,7 @@ export default function VoiceMic() {
   }
 
   return (
-    <div className="glass rounded-2xl p-3.5 space-y-2.5 animate-slide-up">
+    <div className="px-4 py-3.5 space-y-2.5">
       <div className="flex items-center gap-2.5">
         <button
           onMouseDown={startRecord}

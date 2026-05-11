@@ -15,22 +15,13 @@ export default function ChatThread() {
     }
   }, [messages.length]);
 
-  if (messages.length === 0) {
-    return (
-      <div className="glass rounded-2xl p-3 text-[11px] text-slate-300 leading-relaxed">
-        <span className="text-slate-400">Try </span>
-        <em className="text-slate-100">"Where does Team USA wrestling come from?"</em>
-        <span className="text-slate-400"> · </span>
-        <em className="text-slate-100">"Show me a surprising hub."</em>
-        <br />
-        <span className="text-slate-500">Follow-ups carry context.</span>
-      </div>
-    );
-  }
+  // Empty state — no extra hint block. The mic input placeholder already
+  // tells the user what to do. Cleaner left panel without a redundant tip.
+  if (messages.length === 0) return null;
 
   return (
-    <div className="glass rounded-2xl overflow-hidden flex flex-col max-h-[40vh]">
-      <div className="px-3.5 py-2 border-b border-slate-700/40 flex items-center justify-between">
+    <div className="flex flex-col max-h-[40vh]">
+      <div className="px-4 py-2 flex items-center justify-between">
         <p className="text-[10px] uppercase tracking-widest text-slate-300 font-semibold">
           Conversation
         </p>
@@ -44,7 +35,7 @@ export default function ChatThread() {
       </div>
       <div
         ref={scrollerRef}
-        className="flex-1 overflow-y-auto p-3 space-y-2.5"
+        className="flex-1 overflow-y-auto px-3.5 pb-3.5 space-y-2.5"
         aria-live="polite"
       >
         {messages.map((m) => (

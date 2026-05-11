@@ -27,17 +27,26 @@ export default function MapExplorer() {
         <MapScene />
       </div>
 
-      {/* Top-left agent stack — visible only in Map Explorer mode (not Tour
-          mode, not during an active tour). Stays mounted so chat history /
-          sport filter survive across mode toggles. */}
+      {/* Top-left agent panel — ONE unified glass surface with internal
+          dividers between the agent input, the sport filter, and the chat
+          thread. Cleaner than three independent floating cards. */}
       <div
-        className={`absolute top-4 left-4 w-[400px] max-w-[42vw] space-y-2.5 z-20 transition-opacity duration-500 ${
+        className={`absolute top-4 left-4 w-[400px] max-w-[42vw] z-20 rounded-2xl overflow-hidden animate-slide-up transition-opacity duration-500 ${
           showExploreUI ? "opacity-100" : "opacity-0 pointer-events-none"
         }`}
+        style={{
+          background: "rgba(8, 12, 22, 0.55)",
+          backdropFilter: "blur(14px) saturate(140%)",
+          WebkitBackdropFilter: "blur(14px) saturate(140%)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.45)",
+        }}
         aria-hidden={!showExploreUI}
       >
         <VoiceMic />
+        <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
         <SportFilter />
+        <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.06)" }} />
         <ChatThread />
       </div>
 
@@ -55,16 +64,19 @@ export default function MapExplorer() {
         <CityDetail />
       </div>
 
-      <TourLauncher />
+      {/* TourLauncher (Start Tour pill) — ONLY in Tour mode. Map Explorer is
+          for free exploration, no tour-launch surface there. */}
+      {viewMode === "tour" && <TourLauncher />}
+
       {/* Tour overlay (captions, popouts, control bar) lives OUTSIDE <Map>
           so its position:fixed escapes the map's transformed containing block. */}
       <TourOverlay />
       {/* Photorealistic 3D city viewport, fades in mid-narration during a tour stop */}
       <CityCinematic />
 
-      {/* Mode toggle — top-right pill. Disabled while a tour is actively
-          playing; user can still finish or exit the tour first. */}
-      <div className="absolute top-4 right-4 z-30">
+      {/* Mode toggle — bottom-left, just above the MapHud "Drag pan…" card.
+          Disabled while a tour is actively playing. */}
+      <div className="absolute bottom-[78px] left-4 z-30">
         <button
           type="button"
           onClick={() =>
