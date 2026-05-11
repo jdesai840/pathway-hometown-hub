@@ -49,7 +49,12 @@ export default function MapScene() {
         rotateControl={false}
         tilt={0}
         restriction={{
-          latLngBounds: { north: 60, south: 18, west: -135, east: -60 },
+          // Covers all 50 states. Old bbox (north: 60, west: -135) clipped
+          // Alaska cities above 60°N (Fairbanks, Kotzebue) and Hawaii
+          // (~-157°W) — pins rendered in the DOM but the camera couldn't
+          // center on them. Excludes only the Aleutian tail across the
+          // antimeridian, which isn't in the dataset.
+          latLngBounds: { north: 72, south: 18, west: -170, east: -60 },
           strictBounds: false,
         }}
         clickableIcons={false}
