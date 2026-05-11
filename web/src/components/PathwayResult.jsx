@@ -1,9 +1,40 @@
+import { useState } from "react";
 import { useApp } from "../store.js";
+import { postPathwayTour } from "../lib/api.js";
 
 // Full-screen modal that renders the Pathway plan result.
 export default function PathwayResult() {
   const result = useApp((s) => s.pathway.result);
   const closePathwayResult = useApp((s) => s.closePathwayResult);
+  const setTour = useApp((s) => s.setTour);
+  const setViewMode = useApp((s) => s.setViewMode);
+  const setStep = useApp((s) => s.setStep);
+
+  const [loadingTour, setLoadingTour] = useState(false);
+  const [tourError, setTourError] = useState(null);
+
+  async function launchCinematicTour() {
+    if (loadingTour || !result) return;
+    setLoadingTour(true);
+    setTourError(null);
+    try {
+      const tour = await postPathwayTour(result);
+      if (tour?.error) {
+        setTourError(tour.error);
+        return;
+      }
+      // Make sure the user lands in the cinematic player even if they
+      // launched from the Intro page (step==="intro").
+      setStep("explore");
+      setViewMode("tour");
+      setTour(tour);
+      closePathwayResult();
+    } catch (err) {
+      setTourError(err.message || "Failed to compose cinematic tour");
+    } finally {
+      setLoadingTour(false);
+    }
+  }
 
   if (!result) return null;
 
@@ -145,6 +176,46 @@ export default function PathwayResult() {
             </div>
           </Section>
         )}
+
+        {/* Cinematic-tour CTA — the big move that ties Pathway back to the
+            photoreal map. */}
+        <div className="mt-5 pt-5 border-t border-white/10">
+          <button
+            onClick={launchCinematicTour}
+            disabled={loadingTour}
+            className="group relative w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-white font-semibold disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-white/60 transition-all duration-300 hover:scale-[1.02]"
+            style={{
+              background:
+                "linear-gradient(110deg, rgba(59,130,246,0.95), rgba(245,158,11,0.95))",
+              boxShadow:
+                "0 0 0 1px rgba(255,255,255,0.18) inset, 0 0 32px rgba(147,197,253,0.35)",
+            }}
+          >
+            <span aria-hidden="true" className="text-base">
+              🎬
+            </span>
+            <span>
+              {loadingTour
+                ? "Composing your cinematic…"
+                : "Take the cinematic tour"}
+            </span>
+            <span
+              aria-hidden="true"
+              className="text-lg group-hover:translate-x-0.5 transition-transform"
+            >
+              →
+            </span>
+          </button>
+          <p className="mt-2 text-[11px] text-slate-400 leading-snug text-center">
+            Fly through your hometown and each recommended facility in
+            photorealistic 3D, with narrated context for every stop.
+          </p>
+          {tourError && (
+            <p role="alert" className="mt-2 text-xs text-red-300 text-center">
+              {tourError}
+            </p>
+          )}
+        </div>
 
         {/* Disclaimer */}
         {disclaimer && (

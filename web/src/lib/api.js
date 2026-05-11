@@ -48,6 +48,10 @@ export function postPathway({ city, state, category }) {
   return postJSON("/api/pathway", { city, state, category });
 }
 
+export function postPathwayTour(pathwayResult) {
+  return postJSON("/api/pathway-tour", pathwayResult);
+}
+
 export function postTour({ state, sport, theme, interests, near }) {
   return postJSON("/api/tour", { state, sport, theme, interests, near });
 }

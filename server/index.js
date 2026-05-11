@@ -7,6 +7,7 @@ import { geoQuery } from "./routes/geoQuery.js";
 import { voiceQuery } from "./routes/voiceQuery.js";
 import { narrate } from "./routes/narrate.js";
 import { pathway } from "./routes/pathway.js";
+import { pathwayTour } from "./routes/pathwayTour.js";
 import { getHubs } from "./routes/getHubs.js";
 import { getCityHubs } from "./routes/getCityHubs.js";
 import { getSportCatalog } from "./routes/getSportCatalog.js";
@@ -28,6 +29,7 @@ app.post("/api/geo-query", geoQuery);
 app.post("/api/voice-query", voiceQuery);
 app.post("/api/narrate", narrate);
 app.post("/api/pathway", pathway);
+app.post("/api/pathway-tour", pathwayTour);
 app.post("/api/tour", tour);
 app.post("/api/tts", tts);
 
