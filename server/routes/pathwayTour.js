@@ -3,31 +3,58 @@ import { redactNames } from "../lib/nilGuard.js";
 import { attachElevations } from "../lib/elevation.js";
 
 // Strip URLs, [N] markers, and parenthetical domain citations from text
-// before it goes into a cinematic narration. The Pathway Result UI shows
-// citations separately as clickable chips; they shouldn't be read out loud
-// by Cloud TTS or appear in subtitles.
+// before it goes into a cinematic narration. Citations live as clickable
+// chips in the Pathway Result card — they shouldn't be read aloud by
+// Cloud TTS or appear in subtitles.
 function stripCitations(text) {
   if (typeof text !== "string" || !text) return text;
   return text
-    .replace(/\bhttps?:\/\/[^\s)]+/gi, "") // bare URLs
-    .replace(/\[\d+(?:\s*,\s*\d+)*\]/g, "") // [1], [2, 3] markers
+    .replace(/\bhttps?:\/\/[^\s)]+/gi, "")
+    .replace(/\[\d+(?:\s*,\s*\d+)*\]/g, "")
     .replace(
       /\(\s*(?:per |via |see |source:?\s*)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/\S*)?\s*\)/gi,
       ""
-    ) // (cleveland.edu), (per ngb.org), (source: foo.com)
-    .replace(/\s*\(\s*\)/g, "") // dangling " ()"
-    .replace(/\s+([.,;])/g, "$1") // " ." → "."
-    .replace(/\s{2,}/g, " ") // collapse whitespace
+    )
+    .replace(/\s*\(\s*\)/g, "")
+    .replace(/\s+([.,;])/g, "$1")
+    .replace(/\s{2,}/g, " ")
     .trim();
 }
 
-// Compose a photoreal cinematic tour from a /api/pathway response. Output
-// shape matches /api/tour exactly so the frontend's TourController +
-// CityCinematic + LiveCaption pipeline picks it up with zero changes.
+function sportMatches(facilitySport, target) {
+  if (!facilitySport || !target) return false;
+  const a = String(facilitySport).toLowerCase();
+  const b = String(target).toLowerCase();
+  return a === b || a.includes(b) || b.includes(a);
+}
+
+// Prefer Nominatim (Google-Maps-comparable accuracy) for the facility's
+// exact location; fall back to the Gemini-emitted approximate coords;
+// give up otherwise.
+async function bestCoords(f, fallbackCity) {
+  const query = `${f.name}, ${f.city || fallbackCity}`
+    .trim()
+    .replace(/,\s*$/, "");
+  const geo = await geocode(query);
+  if (geo) {
+    return { lat: geo.lat, lng: geo.lng, source: "nominatim" };
+  }
+  if (typeof f.lat === "number" && typeof f.lng === "number") {
+    return { lat: f.lat, lng: f.lng, source: "gemini" };
+  }
+  return null;
+}
+
+// Compose a sport-structured cinematic tour from the pathway response.
+// Stop 0: the user's hometown — narrated with the local sport-mix
+//   breakdown so the viewer understands the density of their own area.
+// Stops 1..N: one stop per recommended sport (and the Paralympic
+//   counterpart), each centered on the facility paired with that sport.
+//   Falls back to the nearest hub for that sport if no facility is
+//   tagged.
 //
-// Stop 0: the user's hometown coords (anchors the cinematic personally).
-// Stops 1..N: each non-Category facility, geocoded via Maps API.
-// Fallback: top nearbyHubs if we have <3 stops.
+// Output shape matches /api/tour so the frontend's TourController +
+// CityCinematic + LiveCaption pipeline picks it up without changes.
 export async function pathwayTour(req, res) {
   const r = req.body || {};
   const u = r.userLocation;
@@ -43,104 +70,151 @@ export async function pathwayTour(req, res) {
       .json({ error: "userLocation with lat/lng/city/state is required" });
   }
 
-  const recommendedSportNames = Array.isArray(r.recommendedSports)
-    ? r.recommendedSports.map((s) => s.sport).filter(Boolean)
-    : [];
+  // Build the ordered list of sports to feature.
+  const sports = [
+    ...(r.recommendedSports || []).map((s) => ({
+      sport: s.sport,
+      category: s.category || "Olympic",
+      why: s.why || "",
+    })),
+  ];
+  if (r.paralympicCounterpart?.sport) {
+    sports.push({
+      sport: r.paralympicCounterpart.sport,
+      category: "Paralympic",
+      why: r.paralympicCounterpart.why || "",
+    });
+  }
 
   const stops = [];
 
-  // Stop 0 — the user's hometown.
+  // ── Stop 0 — the user's hometown w/ sport breakdown ────────────────
+  const homeHub =
+    (r.nearbyHubs || []).find(
+      (h) => h.city === u.city && h.state === u.state
+    ) || (r.nearbyHubs || [])[0];
+
+  const breakdown = (homeHub?.topSports || [])
+    .slice(0, 4)
+    .map((s) => `${s.sport} (${s.count})`)
+    .join(", ");
+
+  const homeNarrationRaw =
+    `Your pathway begins in ${u.city}, ${u.state} — the densest part of your local Team USA pipeline. ` +
+    `${u.city} has produced ${homeHub?.athleteCount || "several"} athlete${homeHub?.athleteCount === 1 ? "" : "s"}` +
+    (breakdown ? `, with hometown roots in ${breakdown}. ` : ". ") +
+    `Over the next few stops, you'll see one facility for each recommended sport that could be a starting point.`;
+
   stops.push({
     city: u.city,
     state: u.state,
     lat: u.lat,
     lng: u.lng,
-    narration: await redactNames(
-      stripCitations(
-        `Your pathway begins here in ${u.city}, ${u.state}. From this corner of the map, ` +
-          `Team USA's hometown pipeline branches out in directions you may not have realized.`
-      )
-    ),
-    highlightSports: recommendedSportNames.slice(0, 3),
-    landmarks: [],
+    narration: await redactNames(stripCitations(homeNarrationRaw)),
+    highlightSports: sports.slice(0, 3).map((s) => s.sport),
+    landmarks: [
+      {
+        name: `${u.city}, ${u.state}`,
+        wikipedia: null,
+        lat: u.lat,
+        lng: u.lng,
+      },
+    ],
     viewpoint: { lat: u.lat, lng: u.lng, name: `${u.city}, ${u.state}` },
   });
 
-  // Stops 1..N — facilities. Prefer Gemini-provided lat/lng (it knows the
-  // coords of major universities + training centers); fall back to Maps
-  // Geocoding API if available; skip otherwise.
-  for (const f of r.facilities || []) {
-    if (stops.length >= 5) break;
-    if (!f?.name || f.type === "Category") continue;
+  // ── Stops 1..N — one per sport, paired with its facility ──────────
+  const usedFacilityNames = new Set();
+  for (const s of sports) {
+    if (stops.length >= 6) break;
 
-    let geo = null;
-    if (typeof f.lat === "number" && typeof f.lng === "number") {
-      geo = { lat: f.lat, lng: f.lng };
-    } else {
-      const query = `${f.name}, ${f.city || ""}`.trim().replace(/,\s*$/, "");
-      geo = await geocode(query);
-    }
-    if (!geo) continue;
-
-    const facilityCity = (f.city || "").split(",")[0].trim() || u.city;
-    const facilityState =
-      (f.city || "").split(",")[1]?.trim() || u.state;
-    const cleanNote = f.note ? ` ${stripCitations(f.note)}` : "";
-    const narration = await redactNames(
-      stripCitations(
-        `${f.name} in ${f.city || facilityCity} could be a starting point — a ${f.type.toLowerCase()} ` +
-          `worth exploring for visits, programs, or events.${cleanNote}`
-      )
+    // Try to pair this sport with a tagged facility.
+    const facility = (r.facilities || []).find(
+      (f) =>
+        f?.name &&
+        f.type !== "Category" &&
+        !usedFacilityNames.has(f.name) &&
+        sportMatches(f.sport, s.sport)
     );
-    stops.push({
-      city: facilityCity,
-      state: facilityState,
-      lat: geo.lat,
-      lng: geo.lng,
-      narration,
-      highlightSports: recommendedSportNames.slice(0, 2),
-      // Carry the facility coords on the landmark so the in-scene pin
-      // renderer (CityCinematic LandmarkMarkers) places a labeled marker
-      // at the facility's GPS point.
-      landmarks: [
-        { name: f.name, wikipedia: null, lat: geo.lat, lng: geo.lng },
-      ],
-      viewpoint: { lat: geo.lat, lng: geo.lng, name: f.name },
-    });
-  }
 
-  // Fallback — pad with top nearbyHubs (skip the user's own hometown).
-  if (stops.length < 3 && Array.isArray(r.nearbyHubs)) {
-    for (const h of r.nearbyHubs) {
-      if (stops.length >= 4) break;
-      if (
-        h?.city === u.city &&
-        h?.state === u.state
-      )
+    if (facility) {
+      const coords = await bestCoords(facility, u.city);
+      if (coords) {
+        const facCity =
+          (facility.city || "").split(",")[0].trim() || u.city;
+        const facState =
+          (facility.city || "").split(",")[1]?.trim() || u.state;
+        const noteText = facility.note
+          ? ` ${stripCitations(facility.note)}`
+          : "";
+        const narration = await redactNames(
+          stripCitations(
+            `For ${s.sport}, ${facility.name} in ${facility.city || facCity} could be a starting point — ` +
+              `a ${facility.type.toLowerCase()} worth exploring.${noteText}`
+          )
+        );
+        stops.push({
+          city: facCity,
+          state: facState,
+          lat: coords.lat,
+          lng: coords.lng,
+          narration,
+          highlightSports: [s.sport],
+          landmarks: [
+            {
+              name: facility.name,
+              wikipedia: null,
+              lat: coords.lat,
+              lng: coords.lng,
+            },
+          ],
+          viewpoint: {
+            lat: coords.lat,
+            lng: coords.lng,
+            name: facility.name,
+          },
+        });
+        usedFacilityNames.add(facility.name);
         continue;
-      if (typeof h?.lat !== "number" || typeof h?.lng !== "number") continue;
-      const topSport = Array.isArray(h.topSports) ? h.topSports[0] : null;
-      const sportLine = topSport
-        ? `, with notable strength in ${topSport.sport} (${topSport.count} ${topSport.category} ${topSport.count === 1 ? "athlete" : "athletes"})`
-        : "";
-      const narration = await redactNames(
-        stripCitations(
-          `${h.city}, ${h.state} sits ${h.distMi || "near"} miles away with ${h.athleteCount} ` +
-            `Team USA ${h.athleteCount === 1 ? "athlete" : "athletes"}${sportLine}. ` +
-            "It's a hub worth tracking from your area."
-        )
+      }
+    }
+
+    // No facility resolved — fall back to the nearest hub that lists
+    // this sport in its topSports, so the cinematic still has a
+    // geographic anchor for every recommended sport.
+    const fallbackHub = (r.nearbyHubs || []).find(
+      (h) =>
+        typeof h.lat === "number" &&
+        (h.topSports || []).some((ts) => sportMatches(ts.sport, s.sport))
+    );
+    if (fallbackHub) {
+      const ts = (fallbackHub.topSports || []).find((x) =>
+        sportMatches(x.sport, s.sport)
       );
+      const narrationRaw =
+        `For ${s.sport}, the nearest local pipeline runs through ${fallbackHub.city}, ${fallbackHub.state}, ` +
+        `which has produced ${ts?.count || fallbackHub.athleteCount} Team USA athlete${(ts?.count || fallbackHub.athleteCount) === 1 ? "" : "s"} in this sport — ` +
+        `a hub worth tracking as you explore the path.`;
       stops.push({
-        city: h.city,
-        state: h.state,
-        lat: h.lat,
-        lng: h.lng,
-        narration,
-        highlightSports: topSport ? [topSport.sport] : [],
+        city: fallbackHub.city,
+        state: fallbackHub.state,
+        lat: fallbackHub.lat,
+        lng: fallbackHub.lng,
+        narration: await redactNames(stripCitations(narrationRaw)),
+        highlightSports: [s.sport],
         landmarks: [
-          { name: `${h.city}, ${h.state}`, wikipedia: null, lat: h.lat, lng: h.lng },
+          {
+            name: `${fallbackHub.city}, ${fallbackHub.state}`,
+            wikipedia: null,
+            lat: fallbackHub.lat,
+            lng: fallbackHub.lng,
+          },
         ],
-        viewpoint: { lat: h.lat, lng: h.lng, name: `${h.city}, ${h.state}` },
+        viewpoint: {
+          lat: fallbackHub.lat,
+          lng: fallbackHub.lng,
+          name: `${fallbackHub.city}, ${fallbackHub.state}`,
+        },
       });
     }
   }
@@ -151,17 +225,15 @@ export async function pathwayTour(req, res) {
       .json({ error: "Not enough geocodable stops to compose a tour." });
   }
 
-  // Anchor the cinematic camera + landmark pins to ground elevation per stop.
-  // Without this, high-elevation cities (Las Vegas, Denver, Park City) drop
-  // the camera below visible terrain and pins drift relative to surface tiles
-  // as the camera orbits.
+  // Anchor the camera + pins to ground terrain instead of WGS84 sea
+  // level so the photoreal tiles render correctly at elevation.
   await attachElevations(stops);
 
   res.json({
     title: `Your Pathway from ${u.city}, ${u.state}`,
     summary:
-      "A personalized cinematic flight through the Team USA hubs and facilities near you. " +
-      "Each stop could be a starting point for exploration.",
+      "A personalized cinematic flight — your hometown first, then one stop for " +
+      "each sport with a real facility you could explore.",
     stops,
   });
 }

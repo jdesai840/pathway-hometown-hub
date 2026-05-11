@@ -1,36 +1,92 @@
-// Lightweight Google Maps Geocoding wrapper for facility/landmark names.
-// Caches in-memory per server boot (queries repeat across pathway tours).
+// Geocoder for facility/landmark names. Uses OpenStreetMap Nominatim — the
+// project's Google Maps API key is HTTP-referrer-restricted (intended for
+// Maps JS + Photoreal Tiles) and the Geocoding API isn't enabled. Nominatim
+// is free, keyless, accurate for US POIs, and server-friendly.
+//
+// Usage policy compliance:
+// - Identify the app via User-Agent (required).
+// - At most ~1 request/second across the whole process (we use 1.1s gap).
+// - Cache aggressively to avoid re-hitting the same query.
 
-const KEY = process.env.MAPS_API_KEY;
+const USER_AGENT =
+  "Pathway-TeamUSA-Hackathon/1.0 (krisjaybittensor@gmail.com)";
 const cache = new Map();
+let lastCallAt = 0;
+const MIN_GAP_MS = 1100;
+
+async function nominatimOnce(query) {
+  // Throttle: ensure at least MIN_GAP_MS between Nominatim hits.
+  const now = Date.now();
+  const wait = Math.max(0, lastCallAt + MIN_GAP_MS - now);
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastCallAt = Date.now();
+
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("q", query);
+  url.searchParams.set("format", "json");
+  url.searchParams.set("limit", "1");
+  url.searchParams.set("countrycodes", "us");
+  url.searchParams.set("addressdetails", "0");
+
+  try {
+    const res = await fetch(url.toString(), {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
+    });
+    if (!res.ok) {
+      console.warn(`nominatim HTTP ${res.status}`, query);
+      return null;
+    }
+    const arr = await res.json();
+    const hit = Array.isArray(arr) ? arr[0] : null;
+    if (!hit?.lat || !hit?.lon) return null;
+    return {
+      lat: Number(hit.lat),
+      lng: Number(hit.lon),
+      formattedAddress: hit.display_name || query,
+      source: "nominatim",
+    };
+  } catch (err) {
+    console.warn("nominatim error", query, err?.message);
+    return null;
+  }
+}
+
+// Build a small set of progressively-broader variations to try. Nominatim
+// can be picky about facility names containing extra qualifiers ("Vikings
+// Athletics", "Swimming and Diving"); stripping those often resolves to
+// the parent institution. Stop as soon as one variation hits.
+function queryVariations(query) {
+  const out = [query];
+  // 1. Strip common "<Org> <Suffix>" patterns where suffix is athletics-related.
+  const stripped = query
+    .replace(
+      /\s+(Vikings|Athletics|Swimming(?:\s*(?:and|&)\s*Diving)?|Track(?:\s*(?:and|&)\s*Field)?|Boxing|Diving|Club|Gym|Wrestling|Para|Adaptive Sports)\b/gi,
+      ""
+    )
+    .replace(/\s{2,}/g, " ")
+    .trim();
+  if (stripped && stripped !== query) out.push(stripped);
+  // 2. Use only the first 2-3 tokens before the comma + the city after the comma.
+  const [beforeComma, afterComma] = query.split(",");
+  if (beforeComma && afterComma) {
+    const tokens = beforeComma.trim().split(/\s+/);
+    if (tokens.length > 2) {
+      const short = `${tokens.slice(0, 2).join(" ")},${afterComma}`;
+      if (!out.includes(short)) out.push(short);
+    }
+  }
+  return out;
+}
 
 export async function geocode(query) {
-  if (!KEY || !query) return null;
+  if (!query) return null;
   const key = query.toLowerCase().trim();
   if (cache.has(key)) return cache.get(key);
 
-  const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
-  url.searchParams.set("address", query);
-  url.searchParams.set("key", KEY);
-  url.searchParams.set("region", "us");
-
   let out = null;
-  try {
-    const res = await fetch(url.toString());
-    if (res.ok) {
-      const j = await res.json();
-      const hit = j.results?.[0];
-      const loc = hit?.geometry?.location;
-      if (loc && typeof loc.lat === "number" && typeof loc.lng === "number") {
-        out = {
-          lat: loc.lat,
-          lng: loc.lng,
-          formattedAddress: hit.formatted_address || query,
-        };
-      }
-    }
-  } catch (err) {
-    console.warn("geocode failed", query, err?.message);
+  for (const q of queryVariations(query)) {
+    out = await nominatimOnce(q);
+    if (out) break;
   }
 
   cache.set(key, out);
